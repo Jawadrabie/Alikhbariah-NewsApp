@@ -1,16 +1,34 @@
 # newsappjs
 
-A new Flutter project.
+Flutter news application for **Alikhbariah Syria**.
 
-## Getting Started
+## Supabase setup (Step 1)
 
-This project is a starting point for a Flutter application.
+1. Execute database schema from [docs/supabase_init.sql](docs/supabase_init.sql) in Supabase SQL Editor.
+2. Create your first admin user in Supabase Auth.
+3. Insert the admin user UUID into `public.admin_users`.
 
-A few resources to get you started if this is your first Flutter project:
+```sql
+insert into public.admin_users(user_id) values ('PUT_ADMIN_UUID_HERE');
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Run app with Supabase (Step 2)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Use one of these options:
+
+- VS Code launch config: [/.vscode/launch.json](.vscode/launch.json)
+- CLI:
+
+```bash
+flutter run \
+	--dart-define=SUPABASE_URL=YOUR_SUPABASE_URL \
+	--dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+After launch, press **"اختبر الاتصال الآن"** on the home screen.
+
+## Notes
+
+- `saved_news` is intentionally local-only (no table in Supabase currently).
+- Anonymous users can read public content only.
+- Dashboard writes are restricted to `authenticated` users listed in `admin_users`.

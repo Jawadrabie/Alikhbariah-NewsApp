@@ -61,6 +61,7 @@ create table if not exists public.breaking_news (
   created_at timestamptz not null default now(),
   start_time timestamptz not null,
   end_time timestamptz not null,
+  send_notification boolean not null default true,
   is_active boolean not null default true,
   constraint breaking_news_time_check check (end_time >= start_time)
 );
@@ -68,13 +69,17 @@ create table if not exists public.breaking_news (
 create table if not exists public.ticker_news (
   id bigint generated always as identity primary key,
   text text not null,
+  priority integer not null default 0,
+  linked_news_id bigint null references public.news(id) on delete set null,
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
 create table if not exists public.live_stream (
   id bigint generated always as identity primary key,
+  broadcast_title text null,
   youtube_url text not null,
+  fallback_message text null,
   is_active boolean not null default false
 );
 
@@ -134,6 +139,8 @@ create or replace function public.is_admin_user()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -328,11 +335,55 @@ with check (public.is_admin_user());
 -- first admin can be inserted manually in SQL Editor
 
 drop policy if exists admin_users_admin_all on public.admin_users;
-create policy admin_users_admin_all on public.admin_users
-for all
+drop policy if exists admin_users_self_select on public.admin_users;
+create policy admin_users_self_select on public.admin_users
+for select
 to authenticated
-using (public.is_admin_user())
-with check (public.is_admin_user());
+using (user_id = auth.uid());
+
+-- ============
+-- Storage policies (news-images bucket)
+-- ============
+
+-- Allow authenticated admins only to upload files
+drop policy if exists news_images_admin_insert on storage.objects;
+create policy news_images_admin_insert on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'news-images'
+  and public.is_admin_user()
+);
+
+-- Allow authenticated admins only to update files
+drop policy if exists news_images_admin_update on storage.objects;
+create policy news_images_admin_update on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'news-images'
+  and public.is_admin_user()
+)
+with check (
+  bucket_id = 'news-images'
+  and public.is_admin_user()
+);
+
+-- Allow authenticated admins only to delete files
+drop policy if exists news_images_admin_delete on storage.objects;
+create policy news_images_admin_delete on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'news-images'
+  and public.is_admin_user()
+);
+
+-- Optional hardening: restrict MIME types at bucket level
+-- (safe to run after bucket is created)
+update storage.buckets
+set allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']::text[]
+where id = 'news-images';
 
 commit;
 

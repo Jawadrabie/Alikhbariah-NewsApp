@@ -51,8 +51,43 @@ select
   false;
 
 -- 6. Breaking News (Active)
-insert into public.breaking_news (title, content, start_time, end_time, is_active)
+insert into public.breaking_news (title, content, start_time, end_time, send_notification, is_active)
 values 
-('عاجل: بدء فعاليات مهرجان التسوق السنوي', 'انطلقت اليوم فعاليات مهرجان التسوق بمشاركة واسعة من الشركات المحلية.', now(), now() + interval '24 hours', true);
+('عاجل: بدء فعاليات مهرجان التسوق السنوي', 'انطلقت اليوم فعاليات مهرجان التسوق بمشاركة واسعة من الشركات المحلية.', now(), now() + interval '24 hours', true, true);
+
+-- 7. Ticker News
+insert into public.ticker_news (text, priority, is_active)
+values
+('تابعوا آخر الأخبار العاجلة أولاً بأول عبر تطبيق الإخبارية السورية', 100, true),
+('تحديثات لحظية للأخبار المحلية والاقتصادية والرياضية', 90, true);
+
+-- 8. Live Stream
+insert into public.live_stream (broadcast_title, youtube_url, fallback_message, is_active)
+values
+('البث المباشر - الإخبارية السورية', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'البث غير متاح حالياً، يرجى المحاولة لاحقاً.', true);
+
+-- 9. Programs
+insert into public.programs (name, description, image_url, order_index, is_active)
+values
+('نشرة التاسعة', 'برنامج إخباري يومي', null, 1, true),
+('عين على الحدث', 'تحليل ومتابعة أهم التطورات', null, 2, true);
+
+-- 10. Videos
+insert into public.videos (title, youtube_url, program_id, category_id, order_index, is_hidden)
+select
+  'حلقة خاصة: قراءة في المشهد الاقتصادي',
+  'https://www.youtube.com/watch?v=3JZ_D3ELwOQ',
+  (select id from public.programs where name = 'عين على الحدث' limit 1),
+  (select id from public.categories where slug = 'economy'),
+  1,
+  false
+where exists (select 1 from public.programs where name = 'عين على الحدث');
+
+-- 11. App Settings
+insert into public.app_settings (key, value) values
+('featured_slider_autoplay', 'true'),
+('featured_slider_interval_seconds', '3'),
+('facebook_url', 'https://facebook.com/alikhbariah')
+on conflict (key) do update set value = excluded.value;
 
 commit;

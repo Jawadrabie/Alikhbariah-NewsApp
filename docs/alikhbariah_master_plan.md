@@ -333,17 +333,22 @@ https://alikhbariah.com/
 - created_at (timestamp)
 - start_time (timestamp)
 - end_time (timestamp)
+- send_notification (boolean default true)
 - is_active (boolean)
 
 ### ticker_news
 - id (PK)
 - text (text)
+- priority (int default 0)
+- linked_news_id (FK nullable)
 - is_active (boolean)
 - created_at (timestamp)
 
 ### live_stream
 - id (PK)
+- broadcast_title (text nullable)
 - youtube_url (text)
+- fallback_message (text nullable)
 - is_active (boolean)
 
 ### videos

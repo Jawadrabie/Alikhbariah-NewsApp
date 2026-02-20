@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "83759396320",
+    "project_id": "alikhbariah-newsapp",
+    "storage_bucket": "alikhbariah-newsapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83759396320:android:95e388584068967aa86785",
+        "android_client_info": {
+          "package_name": "com.alikhbariah.newsapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPV5T0SF5wHqdWurYSMXQe9j3foQ4kAs4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83759396320:android:361063b1bb897a37a86785",
+        "android_client_info": {
+          "package_name": "com.example.newsappjs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPV5T0SF5wHqdWurYSMXQe9j3foQ4kAs4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BreakingNewsService {
   final _supabase = Supabase.instance.client;
+  dynamic _idValue(String id) => int.tryParse(id) ?? id;
 
   Future<List<BreakingNews>> getBreakingNews() async {
     try {
@@ -21,7 +22,8 @@ class BreakingNewsService {
 
   Future<void> createBreakingNews(BreakingNews breakingNews) async {
     try {
-      await _supabase.from('breaking_news').insert(breakingNews.toJson());
+      final data = Map<String, dynamic>.from(breakingNews.toJson())..remove('id');
+      await _supabase.from('breaking_news').insert(data);
     } catch (e) {
       debugPrint('Error creating breaking news: $e');
       rethrow;
@@ -30,10 +32,11 @@ class BreakingNewsService {
 
   Future<void> updateBreakingNews(BreakingNews breakingNews) async {
     try {
+      final data = Map<String, dynamic>.from(breakingNews.toJson())..remove('id');
       await _supabase
           .from('breaking_news')
-          .update(breakingNews.toJson())
-          .eq('id', breakingNews.id);
+          .update(data)
+          .eq('id', _idValue(breakingNews.id));
     } catch (e) {
       debugPrint('Error updating breaking news: $e');
       rethrow;
@@ -42,7 +45,7 @@ class BreakingNewsService {
 
   Future<void> deleteBreakingNews(String id) async {
     try {
-      await _supabase.from('breaking_news').delete().eq('id', id);
+      await _supabase.from('breaking_news').delete().eq('id', _idValue(id));
     } catch (e) {
       debugPrint('Error deleting breaking news: $e');
       rethrow;

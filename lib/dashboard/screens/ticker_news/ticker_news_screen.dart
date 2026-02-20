@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
+import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/ticker_news.dart';
 import 'package:newsappjs/dashboard/services/ticker_news_service.dart';
-import 'package:uuid/uuid.dart';
 
 class TickerNewsScreen extends StatefulWidget {
   const TickerNewsScreen({super.key});
@@ -27,6 +28,7 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
   }
 
   Future<void> _openForm({TickerNews? current}) async {
+    String t(String key) => DashboardI18n.t(context, key);
     final textController = TextEditingController(text: current?.text ?? '');
     final priorityController =
         TextEditingController(text: (current?.priority ?? 0).toString());
@@ -38,7 +40,7 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text(current == null ? 'Add Ticker Item' : 'Edit Ticker Item'),
+          title: Text(current == null ? t('add_ticker_item') : t('edit_ticker_item')),
           content: StatefulBuilder(
             builder: (context, setLocalState) {
               return SizedBox(
@@ -48,24 +50,24 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
                   children: [
                     TextField(
                       controller: textController,
-                      decoration: const InputDecoration(labelText: 'Text'),
+                      decoration: InputDecoration(labelText: t('text')),
                     ),
                     TextField(
                       controller: priorityController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Priority'),
+                      decoration: InputDecoration(labelText: t('priority')),
                     ),
                     TextField(
                       controller: linkedController,
-                      decoration: const InputDecoration(
-                        labelText: 'Linked News ID (optional)',
+                      decoration: InputDecoration(
+                        labelText: t('linked_news_id_optional'),
                       ),
                     ),
                     SwitchListTile(
                       value: isActive,
                       onChanged: (value) => setLocalState(() => isActive = value),
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Active'),
+                      title: Text(t('active')),
                     ),
                   ],
                 ),
@@ -75,12 +77,12 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(t('cancel')),
             ),
             FilledButton(
               onPressed: () async {
                 final item = TickerNews(
-                  id: current?.id ?? const Uuid().v4(),
+                  id: current?.id ?? '',
                   text: textController.text.trim(),
                   isActive: isActive,
                   priority: int.tryParse(priorityController.text.trim()) ?? 0,
@@ -90,17 +92,26 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
                   createdAt: current?.createdAt ?? DateTime.now(),
                 );
 
-                if (current == null) {
-                  await _service.createTickerNews(item);
-                } else {
-                  await _service.updateTickerNews(item);
+                try {
+                  if (current == null) {
+                    await _service.createTickerNews(item);
+                  } else {
+                    await _service.updateTickerNews(item);
+                  }
+                } catch (e) {
+                  if (!dialogContext.mounted) return;
+                  await DashboardDialogs.showError(
+                    dialogContext,
+                    '${t('error_saving_ticker_item')}: $e',
+                  );
+                  return;
                 }
 
-                if (!mounted) return;
+                if (!dialogContext.mounted) return;
                 Navigator.of(dialogContext).pop();
                 _reload();
               },
-              child: const Text('Save'),
+              child: Text(t('save')),
             ),
           ],
         );
@@ -109,21 +120,36 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
   }
 
   Future<void> _delete(String id) async {
-    await _service.deleteTickerNews(id);
-    _reload();
+    try {
+      await _service.deleteTickerNews(id);
+      _reload();
+    } catch (e) {
+      if (!mounted) return;
+      await DashboardDialogs.showError(
+        context,
+        '${DashboardI18n.t(context, 'error_deleting_ticker_item')}: $e',
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    String t(String key) => DashboardI18n.t(context, key);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ticker News'),
+        title: Text(t('ticker_news')),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _openForm(),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openForm(),
+        icon: const Icon(Icons.add),
+        label: Text(t('add_ticker_item')),
       ),
       body: FutureBuilder<List<TickerNews>>(
         future: _future,
@@ -132,22 +158,22 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('${t('error')}: ${snapshot.error}'));
           }
           final rows = snapshot.data ?? [];
           if (rows.isEmpty) {
-            return const Center(child: Text('No ticker items found.'));
+            return Center(child: Text(t('no_ticker_items_found')));
           }
 
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Text')),
-                DataColumn(label: Text('Priority')),
-                DataColumn(label: Text('Active')),
-                DataColumn(label: Text('Linked News')),
-                DataColumn(label: Text('Actions')),
+              columns: [
+                DataColumn(label: Text(t('text'))),
+                DataColumn(label: Text(t('priority'))),
+                DataColumn(label: Text(t('active'))),
+                DataColumn(label: Text(t('linked_news'))),
+                DataColumn(label: Text(t('actions'))),
               ],
               rows: rows
                   .map(
@@ -155,8 +181,8 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
                       cells: [
                         DataCell(Text(item.text)),
                         DataCell(Text(item.priority.toString())),
-                        DataCell(Text(item.isActive ? 'Yes' : 'No')),
-                        DataCell(Text(item.linkedNewsId ?? '-')),
+                        DataCell(Text(item.isActive ? t('yes') : t('no'))),
+                        DataCell(Text(item.linkedNewsId ?? t('na'))),
                         DataCell(
                           Row(
                             children: [

@@ -5,7 +5,7 @@ class News {
   final String content;
   final String imageUrl;
   final String categoryId;
-  final String locationId;
+  final String? locationId;
   final DateTime createdAt;
   final bool isHidden;
   final bool isFeatured;
@@ -29,18 +29,18 @@ class News {
 
   factory News.fromJson(Map<String, dynamic> json) {
     return News(
-      id: json['id'],
-      title: json['title'],
-      summary: json['summary'],
-      content: json['content'],
-      imageUrl: json['image_url'],
-      categoryId: json['category_id'],
-      locationId: json['location_id'],
-      createdAt: DateTime.parse(json['created_at']),
-      isHidden: json['is_hidden'],
-      isFeatured: json['is_featured'],
-      sentNotification: json['sent_notification'],
-      viewCount: json['view_count'] ?? 0,
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '') as String,
+      summary: (json['summary'] ?? '') as String,
+      content: (json['content'] ?? '') as String,
+      imageUrl: (json['image_url'] ?? '') as String,
+      categoryId: (json['category_id'] ?? '').toString(),
+      locationId: json['location_id']?.toString(),
+      createdAt: DateTime.tryParse((json['created_at'] ?? '').toString()) ?? DateTime.now(),
+      isHidden: json['is_hidden'] as bool? ?? false,
+      isFeatured: json['is_featured'] as bool? ?? false,
+      sentNotification: json['sent_notification'] as bool? ?? true,
+      viewCount: (json['view_count'] ?? 0) as int,
     );
   }
 

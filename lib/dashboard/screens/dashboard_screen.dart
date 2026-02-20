@@ -12,7 +12,10 @@ class DashboardScreen extends StatelessWidget {
         children: [
           const Sidebar(),
           Expanded(
-            child: child,
+            child: Container(
+              color: const Color(0xFFF1F5F9), // Light background for content area
+              child: child,
+            ),
           ),
         ],
       ),

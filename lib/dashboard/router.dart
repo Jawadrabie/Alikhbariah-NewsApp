@@ -8,13 +8,16 @@ import 'package:newsappjs/dashboard/screens/breaking_news/breaking_news_screen.d
 import 'package:newsappjs/dashboard/screens/breaking_news/edit_breaking_news_screen.dart';
 import 'package:newsappjs/dashboard/screens/categories/categories_screen.dart';
 import 'package:newsappjs/dashboard/screens/dashboard_screen.dart';
+import 'package:newsappjs/dashboard/screens/home/dashboard_home_screen.dart';
 import 'package:newsappjs/dashboard/screens/live_stream/live_stream_screen.dart';
 import 'package:newsappjs/dashboard/screens/locations/locations_screen.dart';
 import 'package:newsappjs/dashboard/screens/main_news/edit_news_screen.dart';
 import 'package:newsappjs/dashboard/screens/main_news/main_news_screen.dart';
+import 'package:newsappjs/dashboard/screens/manual_notifications/manual_notifications_screen.dart';
 import 'package:newsappjs/dashboard/screens/programs/programs_screen.dart';
 import 'package:newsappjs/dashboard/screens/settings/settings_screen.dart';
 import 'package:newsappjs/dashboard/screens/ticker_news/ticker_news_screen.dart';
+import 'package:newsappjs/dashboard/screens/user_reports/user_reports_screen.dart';
 import 'package:newsappjs/dashboard/screens/videos/videos_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -39,7 +42,11 @@ class DashboardRouter {
         routes: [
           GoRoute(
             path: '/dashboard',
-            redirect: (context, state) => '/dashboard/main-news',
+            redirect: (context, state) => '/dashboard/home',
+          ),
+          GoRoute(
+            path: '/dashboard/home',
+            builder: (context, state) => const DashboardHomeScreen(),
           ),
           GoRoute(
             path: '/dashboard/main-news',
@@ -85,7 +92,13 @@ class DashboardRouter {
           ),
           GoRoute(
             path: '/dashboard/videos',
-            builder: (context, state) => const VideosScreen(),
+            builder: (context, state) {
+              final data = state.extra as Map<String, dynamic>?;
+              return VideosScreen(
+                programId: data?['programId'] as String?,
+                programName: data?['programName'] as String?,
+              );
+            },
           ),
           GoRoute(
             path: '/dashboard/programs',
@@ -102,6 +115,14 @@ class DashboardRouter {
           GoRoute(
             path: '/dashboard/settings',
             builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/dashboard/manual-notifications',
+            builder: (context, state) => const ManualNotificationsScreen(),
+          ),
+          GoRoute(
+            path: '/dashboard/user-reports',
+            builder: (context, state) => const UserReportsScreen(),
           ),
         ],
         redirect: (context, state) {

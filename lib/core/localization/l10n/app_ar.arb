@@ -1,0 +1,98 @@
+{
+  "@@locale": "ar",
+  "appTitle": "الإخبارية السورية",
+  "search": "بحث",
+  "savedNews": "الأخبار المحفوظة",
+  "refresh": "تحديث",
+  "quickSearchInProgress": "البحث السريع قيد التنفيذ",
+  "categories": "التصنيفات",
+  "featuredNews": "الأخبار المميزة",
+  "latestNews": "أحدث الأخبار",
+  "failedLoadCategories": "تعذر تحميل التصنيفات: {error}",
+  "@failedLoadCategories": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedLoadFeaturedNews": "تعذر تحميل الأخبار المميزة: {error}",
+  "@failedLoadFeaturedNews": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noNewsNow": "لا توجد أخبار حالياً",
+  "allNewsShown": "تم عرض كل الأخبار",
+  "liveStream": "البث المباشر",
+  "notifications": "الإشعارات",
+  "notificationsComingSoon": "ميزة الإشعارات قيد التنفيذ",
+  "videos": "الفيديوهات",
+  "programs": "البرامج",
+  "darkMode": "الوضع الليلي",
+  "language": "اللغة",
+  "dateLabel": "التاريخ: {date}",
+  "@dateLabel": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "timeLabel": "الوقت: {time}",
+  "@timeLabel": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "openLiveStream": "فتح البث المباشر",
+  "failedOpenLiveLink": "تعذر فتح رابط البث المباشر",
+  "failedLoadLiveStream": "تعذر تحميل البث المباشر: {error}",
+  "@failedLoadLiveStream": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noLiveNow": "لا يوجد بث مباشر مفعّل حالياً",
+  "defaultLiveTitle": "البث المباشر - الإخبارية السورية",
+  "defaultLiveMessage": "اضغط الزر أدناه لفتح البث على YouTube",
+  "failedLoadVideos": "تعذر تحميل الفيديوهات: {error}",
+  "@failedLoadVideos": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noVideosNow": "لا توجد فيديوهات حالياً",
+  "programEpisodes": "حلقات برنامج {programName}",
+  "@programEpisodes": {
+    "placeholders": {
+      "programName": {}
+    }
+  },
+  "failedOpenVideoLink": "تعذر فتح رابط الفيديو",
+  "failedLoadPrograms": "تعذر تحميل البرامج: {error}",
+  "@failedLoadPrograms": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noProgramsNow": "لا توجد برامج حالياً",
+  "failedLoadSavedNews": "تعذر تحميل الأخبار المحفوظة: {error}",
+  "@failedLoadSavedNews": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noSavedNewsYet": "لا توجد أخبار محفوظة حتى الآن",
+  "savedNewsDeleted": "تم حذف الخبر من المحفوظات",
+  "articleDetails": "التفاصيل",
+  "increaseFontSize": "تكبير الخط",
+  "decreaseFontSize": "تصغير الخط",
+  "share": "مشاركة",
+  "removeFromSaved": "إزالة من المحفوظات",
+  "saveNews": "حفظ الخبر",
+  "newsSavedLocally": "تم حفظ الخبر محلياً",
+  "newsRemovedFromSaved": "تمت إزالة الخبر من المحفوظات",
+  "categoryNews": "خبر",
+  "languageArabic": "العربية",
+  "languageEnglish": "English",
+  "chooseLanguage": "اختر اللغة",
+  "cancel": "إلغاء",
+  "openLinkFailed": "تعذر فتح الرابط"
+}

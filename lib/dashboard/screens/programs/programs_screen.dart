@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
+import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/program.dart';
 import 'package:newsappjs/dashboard/services/programs_service.dart';
-import 'package:uuid/uuid.dart';
 
 class ProgramsScreen extends StatefulWidget {
   const ProgramsScreen({super.key});
@@ -28,6 +29,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   }
 
   Future<void> _openForm({Program? current}) async {
+    String t(String key) => DashboardI18n.t(context, key);
     final nameController = TextEditingController(text: current?.name ?? '');
     final descriptionController =
         TextEditingController(text: current?.description ?? '');
@@ -40,7 +42,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text(current == null ? 'Add Program' : 'Edit Program'),
+          title: Text(current == null ? t('add_program') : t('edit_program')),
           content: StatefulBuilder(
             builder: (context, setLocalState) {
               return SizedBox(
@@ -50,28 +52,27 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                   children: [
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Name'),
+                      decoration: InputDecoration(labelText: t('name')),
                     ),
                     TextField(
                       controller: descriptionController,
                       maxLines: 2,
-                      decoration:
-                          const InputDecoration(labelText: 'Description'),
+                      decoration: InputDecoration(labelText: t('description')),
                     ),
                     TextField(
                       controller: imageController,
-                      decoration: const InputDecoration(labelText: 'Image URL'),
+                      decoration: InputDecoration(labelText: t('image_url')),
                     ),
                     TextField(
                       controller: orderController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Order Index'),
+                      decoration: InputDecoration(labelText: t('order_index')),
                     ),
                     SwitchListTile(
                       value: isActive,
                       onChanged: (value) => setLocalState(() => isActive = value),
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Active'),
+                      title: Text(t('active')),
                     ),
                   ],
                 ),
@@ -81,12 +82,12 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(t('cancel')),
             ),
             FilledButton(
               onPressed: () async {
                 final item = Program(
-                  id: current?.id ?? const Uuid().v4(),
+                  id: current?.id ?? '',
                   name: nameController.text.trim(),
                   description: descriptionController.text.trim().isEmpty
                       ? null
@@ -99,17 +100,26 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                   createdAt: current?.createdAt ?? DateTime.now(),
                 );
 
-                if (current == null) {
-                  await _service.createProgram(item);
-                } else {
-                  await _service.updateProgram(item);
+                try {
+                  if (current == null) {
+                    await _service.createProgram(item);
+                  } else {
+                    await _service.updateProgram(item);
+                  }
+                } catch (e) {
+                  if (!dialogContext.mounted) return;
+                  await DashboardDialogs.showError(
+                    dialogContext,
+                    '${t('error_saving_program')}: $e',
+                  );
+                  return;
                 }
 
-                if (!mounted) return;
+                if (!dialogContext.mounted) return;
                 Navigator.of(dialogContext).pop();
                 _reload();
               },
-              child: const Text('Save'),
+              child: Text(t('save')),
             ),
           ],
         );
@@ -118,21 +128,36 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   }
 
   Future<void> _delete(String id) async {
-    await _service.deleteProgram(id);
-    _reload();
+    try {
+      await _service.deleteProgram(id);
+      _reload();
+    } catch (e) {
+      if (!mounted) return;
+      await DashboardDialogs.showError(
+        context,
+        '${DashboardI18n.t(context, 'error_deleting_program')}: $e',
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    String t(String key) => DashboardI18n.t(context, key);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Programs'),
+        title: Text(t('programs')),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _openForm(),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openForm(),
+        icon: const Icon(Icons.add),
+        label: Text(t('add_program')),
       ),
       body: FutureBuilder<List<Program>>(
         future: _future,
@@ -141,22 +166,22 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('${t('error')}: ${snapshot.error}'));
           }
 
           final items = snapshot.data ?? [];
           if (items.isEmpty) {
-            return const Center(child: Text('No programs found.'));
+            return Center(child: Text(t('no_programs_found')));
           }
 
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Order')),
-                DataColumn(label: Text('Active')),
-                DataColumn(label: Text('Actions')),
+              columns: [
+                DataColumn(label: Text(t('name'))),
+                DataColumn(label: Text(t('order'))),
+                DataColumn(label: Text(t('active'))),
+                DataColumn(label: Text(t('actions'))),
               ],
               rows: items
                   .map(
@@ -164,13 +189,13 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                       cells: [
                         DataCell(Text(item.name)),
                         DataCell(Text(item.orderIndex.toString())),
-                        DataCell(Text(item.isActive ? 'Yes' : 'No')),
+                        DataCell(Text(item.isActive ? t('yes') : t('no'))),
                         DataCell(
                           Row(
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.video_collection),
-                                tooltip: 'Manage Episodes',
+                                tooltip: t('manage_episodes'),
                                 onPressed: () {
                                   context.push(
                                     '/dashboard/videos',

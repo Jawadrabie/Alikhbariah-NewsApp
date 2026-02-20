@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/localization/l10n_extensions.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../home/data/models/news_model.dart';
 import '../../data/services/bookmark_service.dart';
@@ -62,6 +63,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   }
 
   Future<void> _toggleBookmark() async {
+    final l10n = context.l10n;
     final nowBookmarked = await _bookmarkService.toggleBookmark(widget.news);
     if (!mounted) return;
 
@@ -73,7 +75,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          nowBookmarked ? 'تم حفظ الخبر محلياً' : 'تمت إزالة الخبر من المحفوظات',
+          nowBookmarked ? l10n.newsSavedLocally : l10n.newsRemovedFromSaved,
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -82,41 +84,42 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final title = widget.news.title;
     final content = widget.news.content;
     final imageUrl = widget.news.imageUrl;
     // Category is just an ID in NewsModel, so we'll just show "News" or skip it for now
     // In a real app we would join with Category table or fetch category name.
-    const category = 'News'; 
+    final category = l10n.categoryNews;
     final publishedAt = widget.news.createdAt;
     
     final formattedDate = DateFormat('yyyy-MM-dd – HH:mm').format(publishedAt);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Details'),
+        title: Text(l10n.articleDetails),
         actions: [
           IconButton(
             icon: const Icon(Icons.text_increase),
             onPressed: _increaseFontSize,
-            tooltip: 'Increase Font Size',
+            tooltip: l10n.increaseFontSize,
           ),
           IconButton(
             icon: const Icon(Icons.text_decrease),
             onPressed: _decreaseFontSize,
-            tooltip: 'Decrease Font Size',
+            tooltip: l10n.decreaseFontSize,
           ),
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: _shareArticle,
-            tooltip: 'Share',
+            tooltip: l10n.share,
           ),
           IconButton(
             icon: Icon(
               _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
             ),
             onPressed: _bookmarkLoading ? null : _toggleBookmark,
-            tooltip: _isBookmarked ? 'إزالة من المحفوظات' : 'حفظ الخبر',
+            tooltip: _isBookmarked ? l10n.removeFromSaved : l10n.saveNews,
           ),
         ],
       ),
@@ -168,7 +171,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                           color: const Color(0xFFC0392B), // Dark Red
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
+                        child: Text(
                           category,
                           style: TextStyle(color: Colors.white, fontSize: 12),
                         ),
@@ -188,7 +191,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                       ),
                       onTapUrl: (url) async {
                         if (!await launchUrl(Uri.parse(url))) {
-                          throw Exception('Could not launch $url');
+                          throw Exception(l10n.openLinkFailed);
                         }
                         return true;
                       },

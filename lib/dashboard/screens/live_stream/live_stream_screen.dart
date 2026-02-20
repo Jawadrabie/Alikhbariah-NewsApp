@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
+import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/live_stream.dart';
 import 'package:newsappjs/dashboard/services/live_stream_service.dart';
-import 'package:uuid/uuid.dart';
 
 class LiveStreamScreen extends StatefulWidget {
   const LiveStreamScreen({super.key});
@@ -39,15 +40,26 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   }
 
   Future<void> _save() async {
+    String t(String key) => DashboardI18n.t(context, key);
     final stream = LiveStream(
-      id: _id ?? const Uuid().v4(),
+      id: _id ?? '',
       youtubeUrl: _urlController.text.trim(),
       isActive: _isActive,
       broadcastTitle: _titleController.text.trim(),
       fallbackMessage: _fallbackController.text.trim(),
     );
-    await _service.upsertLiveStream(stream);
-    await _load();
+    try {
+      await _service.upsertLiveStream(stream);
+      await _load();
+      if (!mounted) return;
+      await DashboardDialogs.showSuccess(context, t('save_successful'));
+    } catch (e) {
+      if (!mounted) return;
+      await DashboardDialogs.showError(
+        context,
+        '${t('error_saving_live_stream')}: $e',
+      );
+    }
   }
 
   @override
@@ -60,19 +72,26 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String t(String key) => DashboardI18n.t(context, key);
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Live Stream'),
+        title: Text(t('live_stream')),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: _save,
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _save,
+        icon: const Icon(Icons.save),
+        label: Text(_id == null || _id!.isEmpty ? t('save') : t('save_changes')),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -83,24 +102,23 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
             children: [
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Broadcast Title'),
+                decoration: InputDecoration(labelText: t('broadcast_title')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _urlController,
-                decoration: const InputDecoration(labelText: 'YouTube URL'),
+                decoration: InputDecoration(labelText: t('youtube_url')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _fallbackController,
                 maxLines: 2,
-                decoration:
-                    const InputDecoration(labelText: 'Fallback Message'),
+                decoration: InputDecoration(labelText: t('fallback_message')),
               ),
               const SizedBox(height: 12),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Broadcast Active'),
+                title: Text(t('active')),
                 value: _isActive,
                 onChanged: (value) => setState(() => _isActive = value),
               ),

@@ -19,7 +19,7 @@ class BreakingNews {
 
   factory BreakingNews.fromJson(Map<String, dynamic> json) {
     return BreakingNews(
-      id: json['id'],
+      id: (json['id'] ?? '').toString(),
       title: json['title'],
       content: json['content'],
       createdAt: DateTime.parse(json['created_at']),

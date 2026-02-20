@@ -1,42 +1,72 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 import '../../../home/data/models/news_model.dart';
 
 class BookmarkService {
-  static const String _bookmarksKey = 'saved_news_items';
+  static const String _bookmarksBox = 'saved_news_items';
+
+  Future<Box<String>> _openBox() {
+    return Hive.openBox<String>(_bookmarksBox);
+  }
 
   Future<List<NewsModel>> getBookmarks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final rawList = prefs.getStringList(_bookmarksKey) ?? const [];
-
-    return rawList
+    final box = await _openBox();
+    final items = box.values
         .map((item) => _decodeNews(item))
         .whereType<NewsModel>()
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    return items;
+  }
+
+  Future<List<NewsModel>> getBookmarksBySavedTime() async {
+    final box = await _openBox();
+
+    final decoded = box.values
+        .map((raw) {
+          final data = _decodeMap(raw);
+          if (data == null) return null;
+
+          final news = NewsModel.fromJson(data);
+          final savedAtRaw = data['saved_at'] as String?;
+          final savedAt = savedAtRaw != null
+              ? DateTime.tryParse(savedAtRaw) ?? news.createdAt
+              : news.createdAt;
+
+          return (news: news, savedAt: savedAt);
+        })
+        .whereType<({NewsModel news, DateTime savedAt})>()
         .toList();
+
+    decoded.sort((a, b) => b.savedAt.compareTo(a.savedAt));
+    return decoded.map((item) => item.news).toList();
   }
 
   Future<bool> isBookmarked(int newsId) async {
-    final items = await getBookmarks();
-    return items.any((item) => item.id == newsId);
+    final box = await _openBox();
+    return box.containsKey(newsId.toString());
   }
 
   Future<bool> toggleBookmark(NewsModel news) async {
-    final prefs = await SharedPreferences.getInstance();
-    final items = await getBookmarks();
-    final exists = items.any((item) => item.id == news.id);
+    final box = await _openBox();
+    final key = news.id.toString();
+    final exists = box.containsKey(key);
 
-    List<NewsModel> nextItems;
     if (exists) {
-      nextItems = items.where((item) => item.id != news.id).toList();
+      await box.delete(key);
     } else {
-      nextItems = [news, ...items.where((item) => item.id != news.id)];
+      await box.put(key, _encodeNews(news));
     }
 
-    final encoded = nextItems.map(_encodeNews).toList();
-    await prefs.setStringList(_bookmarksKey, encoded);
     return !exists;
+  }
+
+  Future<void> removeBookmark(int newsId) async {
+    final box = await _openBox();
+    await box.delete(newsId.toString());
   }
 
   String _encodeNews(NewsModel news) {
@@ -49,14 +79,26 @@ class BookmarkService {
       'category_id': news.categoryId,
       'created_at': news.createdAt.toIso8601String(),
       'is_featured': news.isFeatured,
+      'saved_at': DateTime.now().toIso8601String(),
     };
 
     return jsonEncode(payload);
   }
 
-  NewsModel? _decodeNews(String raw) {
+  Map<String, dynamic>? _decodeMap(String raw) {
     try {
       final map = jsonDecode(raw) as Map<String, dynamic>;
+      return map;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  NewsModel? _decodeNews(String raw) {
+    final map = _decodeMap(raw);
+    if (map == null) return null;
+
+    try {
       return NewsModel.fromJson(map);
     } catch (_) {
       return null;

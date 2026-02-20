@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 import '../../data/models/category_model.dart';
 
 class CategoryChips extends StatelessWidget {
-  const CategoryChips({super.key, required this.categories});
+  const CategoryChips({
+    super.key,
+    required this.categories,
+    this.selectedCategoryId,
+    this.onCategorySelected,
+  });
 
   final List<CategoryModel> categories;
+  final int? selectedCategoryId;
+  final ValueChanged<int?>? onCategorySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +30,27 @@ class CategoryChips extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
           final category = categories[index];
-          return Chip(
+          final isSelected = selectedCategoryId == category.id;
+
+          return ChoiceChip(
+            selected: isSelected,
             label: Text(category.name),
+            onSelected: onCategorySelected == null
+                ? null
+                : (_) => onCategorySelected!(category.id),
+            selectedColor: Theme.of(context).colorScheme.primary.withAlpha(35),
             backgroundColor: Colors.white,
-            side: const BorderSide(color: Color(0xFFD7DEE3)),
+            side: BorderSide(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : const Color(0xFFD7DEE3),
+            ),
+            labelStyle: TextStyle(
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : const Color(0xFF1F2937),
+            ),
           );
         },
         separatorBuilder: (_, __) => const SizedBox(width: 8),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../core/settings/app_settings_controller.dart';
 import '../core/theme/app_theme.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 
@@ -8,14 +11,26 @@ class NewsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'الإخبارية السورية',
-      theme: AppTheme.light(),
-      home: const Directionality(
-        textDirection: TextDirection.rtl,
-        child: HomeScreen(),
-      ),
+    return AnimatedBuilder(
+      animation: AppSettingsController.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: AppSettingsController.instance.themeMode,
+          locale: AppSettingsController.instance.locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }

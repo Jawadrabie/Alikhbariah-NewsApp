@@ -33,4 +33,33 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData dark() {
+    final base = ThemeData.dark(useMaterial3: true);
+    return base.copyWith(
+      scaffoldBackgroundColor: const Color(0xFF0F172A),
+      colorScheme: base.colorScheme.copyWith(
+        primary: primary,
+        secondary: primary,
+        surface: const Color(0xFF1E293B),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF111827),
+        foregroundColor: Colors.white,
+        centerTitle: false,
+        elevation: 0,
+      ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFF1E293B),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFF334155)),
+        ),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
 }

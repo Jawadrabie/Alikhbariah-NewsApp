@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/l10n_extensions.dart';
 import '../../../home/data/models/news_model.dart';
 import '../../../home/presentation/widgets/news_card.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -23,7 +24,7 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
   }
 
   void _loadSavedNews() {
-    _savedNewsFuture = _bookmarkService.getBookmarks();
+    _savedNewsFuture = _bookmarkService.getBookmarksBySavedTime();
   }
 
   Future<void> _refresh() async {
@@ -33,14 +34,16 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الأخبار المحفوظة'),
+        title: Text(l10n.savedNews),
         actions: [
           IconButton(
             onPressed: _refresh,
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'تحديث',
+            tooltip: l10n.refresh,
           ),
         ],
       ),
@@ -62,7 +65,7 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
                   const SizedBox(height: 120),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('تعذر تحميل الأخبار المحفوظة: ${snapshot.error}'),
+                    child: Text(l10n.failedLoadSavedNews(snapshot.error.toString())),
                   ),
                 ],
               );
@@ -71,11 +74,11 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
             final savedNews = snapshot.data ?? const [];
             if (savedNews.isEmpty) {
               return ListView(
-                children: const [
+                children: [
                   SizedBox(height: 120),
                   Icon(Icons.bookmark_border_rounded, size: 42, color: Color(0xFF9CA3AF)),
                   SizedBox(height: 10),
-                  Center(child: Text('لا توجد أخبار محفوظة حتى الآن')),
+                  Center(child: Text(l10n.noSavedNewsYet)),
                 ],
               );
             }
@@ -95,18 +98,14 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   onDismissed: (direction) async {
-                    // Remove from local storage
-                    await _bookmarkService.toggleBookmark(item);
+                    await _bookmarkService.removeBookmark(item.id);
                     
-                    // Refresh the list
-                    // In a more complex app, we would update a provider or state manager
-                    // Here we just trigger a reload of the future to sync UI
                     _refresh();
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم حذف الخبر من المحفوظات'),
+                        SnackBar(
+                          content: Text(l10n.savedNewsDeleted),
                           duration: Duration(seconds: 2),
                         ),
                       );

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
+import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/breaking_news.dart';
 import 'package:newsappjs/dashboard/services/breaking_news_service.dart';
-import 'package:uuid/uuid.dart';
 
 class EditBreakingNewsScreen extends StatefulWidget {
   final BreakingNews? breakingNews;
@@ -51,6 +52,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
       lastDate: DateTime(2101),
     );
     if (selectedDate == null) return;
+    if (!mounted) return;
 
     final selectedTime = await showTimePicker(
       context: context,
@@ -88,7 +90,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
       });
 
       final breakingNews = BreakingNews(
-        id: widget.breakingNews?.id ?? const Uuid().v4(),
+        id: widget.breakingNews?.id ?? '',
         title: _titleController.text,
         content: _contentController.text,
         createdAt: widget.breakingNews?.createdAt ?? DateTime.now(),
@@ -107,7 +109,12 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
           context.pop();
         }
       } catch (e) {
-        // Handle error
+        if (mounted) {
+          await DashboardDialogs.showError(
+            context,
+            '${DashboardI18n.t(context, 'error_saving_breaking_news')}: $e',
+          );
+        }
       } finally {
         if (mounted) {
           setState(() {
@@ -120,11 +127,13 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String t(String key) => DashboardI18n.t(context, key);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.breakingNews == null
-            ? 'Add Breaking News'
-            : 'Edit Breaking News'),
+            ? t('add_breaking_news')
+            : t('edit_breaking_news')),
         actions: [
           if (_isLoading)
             const Padding(
@@ -136,8 +145,9 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
               ),
             )
           else
-            IconButton(
+            TextButton.icon(
               icon: const Icon(Icons.save),
+              label: Text(t('save')),
               onPressed: _saveForm,
             ),
         ],
@@ -151,45 +161,54 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
               children: [
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(labelText: 'Title'),
+                  decoration: InputDecoration(labelText: t('title')),
                   validator: (value) =>
-                      value!.isEmpty ? 'Please enter a title' : null,
+                      value!.isEmpty ? t('please_enter_title') : null,
                 ),
                 TextFormField(
                   controller: _contentController,
-                  decoration: const InputDecoration(labelText: 'Content'),
+                  decoration: InputDecoration(labelText: t('content')),
                   maxLines: 3,
                   validator: (value) =>
-                      value!.isEmpty ? 'Please enter content' : null,
+                      value!.isEmpty ? t('please_enter_content') : null,
                 ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(
-                      child: Text('Start Time: ${_startTime.toString()}'),
+                      child: Text('${t('start_time')}: ${_startTime.toString()}'),
                     ),
                     ElevatedButton(
                       onPressed: () => _selectDateTime(isStart: true),
-                      child: const Text('Select'),
+                      child: Text(t('select')),
                     )
                   ],
                 ),
                 Row(
                   children: [
                     Expanded(
-                      child: Text('End Time: ${_endTime.toString()}'),
+                      child: Text('${t('end_time')}: ${_endTime.toString()}'),
                     ),
                     ElevatedButton(
                       onPressed: () => _selectDateTime(isStart: false),
-                      child: const Text('Select'),
+                      child: Text(t('select')),
                     )
                   ],
                 ),
                 SwitchListTile(
-                  title: const Text('Send Notification'),
+                  title: Text(t('send_notification')),
                   value: _sendNotification,
                   onChanged: (value) =>
                       setState(() => _sendNotification = value),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _isLoading ? null : _saveForm,
+                    icon: const Icon(Icons.save),
+                    label: Text(widget.breakingNews == null ? t('create_breaking_news') : t('save_changes')),
+                  ),
                 ),
               ],
             ),

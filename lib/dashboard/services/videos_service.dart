@@ -4,22 +4,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class VideosService {
   final _supabase = Supabase.instance.client;
+  dynamic _idValue(String id) => int.tryParse(id) ?? id;
 
   Future<List<VideoItem>> getVideos({String? programId}) async {
     try {
-      var query = _supabase
+      final response = await _supabase
           .from('videos')
           .select()
           .order('created_at', ascending: false);
 
-      if (programId != null && programId.isNotEmpty) {
-        query = query.eq('program_id', programId);
-      }
-
-      final response = await query;
-      return (response as List<dynamic>)
+      final mapped = (response as List<dynamic>)
           .map((json) => VideoItem.fromJson(json as Map<String, dynamic>))
           .toList();
+      if (programId == null || programId.isEmpty) {
+        return mapped;
+      }
+      return mapped.where((item) => item.programId == programId).toList();
     } catch (e) {
       debugPrint('Error fetching videos: $e');
       rethrow;
@@ -28,7 +28,8 @@ class VideosService {
 
   Future<void> createVideo(VideoItem video) async {
     try {
-      await _supabase.from('videos').insert(video.toJson());
+      final data = Map<String, dynamic>.from(video.toJson())..remove('id');
+      await _supabase.from('videos').insert(data);
     } catch (e) {
       debugPrint('Error creating video: $e');
       rethrow;
@@ -37,7 +38,8 @@ class VideosService {
 
   Future<void> updateVideo(VideoItem video) async {
     try {
-      await _supabase.from('videos').update(video.toJson()).eq('id', video.id);
+      final data = Map<String, dynamic>.from(video.toJson())..remove('id');
+      await _supabase.from('videos').update(data).eq('id', _idValue(video.id));
     } catch (e) {
       debugPrint('Error updating video: $e');
       rethrow;
@@ -46,7 +48,7 @@ class VideosService {
 
   Future<void> deleteVideo(String id) async {
     try {
-      await _supabase.from('videos').delete().eq('id', id);
+      await _supabase.from('videos').delete().eq('id', _idValue(id));
     } catch (e) {
       debugPrint('Error deleting video: $e');
       rethrow;

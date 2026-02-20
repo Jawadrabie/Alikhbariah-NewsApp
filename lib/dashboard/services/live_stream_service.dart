@@ -21,7 +21,13 @@ class LiveStreamService {
 
   Future<void> upsertLiveStream(LiveStream stream) async {
     try {
-      await _supabase.from('live_stream').upsert(stream.toJson());
+      final data = Map<String, dynamic>.from(stream.toJson());
+      if (stream.id.isEmpty) {
+        data.remove('id');
+        await _supabase.from('live_stream').insert(data);
+      } else {
+        await _supabase.from('live_stream').update(data).eq('id', stream.id);
+      }
     } catch (e) {
       debugPrint('Error upserting live stream: $e');
       rethrow;

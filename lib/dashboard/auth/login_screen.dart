@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardLoginScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
   bool _isLoading = false;
 
   Future<void> _login() async {
+    String t(String key) => DashboardI18n.t(context, key);
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -43,7 +45,7 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('An unexpected error occurred.'),
+              content: Text(t('unexpected_error')),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -67,6 +69,8 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String t(String key) => DashboardI18n.t(context, key);
+
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -84,23 +88,23 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                     FlutterLogo(size: 80),
                     const SizedBox(height: 24),
                     Text(
-                      'Dashboard Login',
+                      t('dashboard_login'),
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
+                      decoration: InputDecoration(
+                        labelText: t('email'),
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        prefixIcon: const Icon(Icons.email),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                          return t('please_enter_email');
                         }
                         if (!value.contains('@')) {
-                          return 'Please enter a valid email';
+                          return t('please_enter_valid_email');
                         }
                         return null;
                       },
@@ -109,14 +113,14 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
+                      decoration: InputDecoration(
+                        labelText: t('password'),
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
+                        prefixIcon: const Icon(Icons.lock),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return t('please_enter_password');
                         }
                         return null;
                       },
@@ -131,7 +135,7 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                               ),
-                              child: const Text('Login'),
+                              child: Text(t('login')),
                             ),
                           ),
                   ],

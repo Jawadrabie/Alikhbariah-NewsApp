@@ -1,0 +1,98 @@
+{
+  "@@locale": "en",
+  "appTitle": "Syrian News",
+  "search": "Search",
+  "savedNews": "Saved News",
+  "refresh": "Refresh",
+  "quickSearchInProgress": "Quick search is in progress",
+  "categories": "Categories",
+  "featuredNews": "Featured News",
+  "latestNews": "Latest News",
+  "failedLoadCategories": "Failed to load categories: {error}",
+  "@failedLoadCategories": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedLoadFeaturedNews": "Failed to load featured news: {error}",
+  "@failedLoadFeaturedNews": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noNewsNow": "No news available now",
+  "allNewsShown": "All news has been displayed",
+  "liveStream": "Live Stream",
+  "notifications": "Notifications",
+  "notificationsComingSoon": "Notifications feature is coming soon",
+  "videos": "Videos",
+  "programs": "Programs",
+  "darkMode": "Dark Mode",
+  "language": "Language",
+  "dateLabel": "Date: {date}",
+  "@dateLabel": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "timeLabel": "Time: {time}",
+  "@timeLabel": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "openLiveStream": "Open Live Stream",
+  "failedOpenLiveLink": "Failed to open live stream link",
+  "failedLoadLiveStream": "Failed to load live stream: {error}",
+  "@failedLoadLiveStream": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noLiveNow": "No active live stream at the moment",
+  "defaultLiveTitle": "Live Stream - Syrian News",
+  "defaultLiveMessage": "Tap the button below to open the stream on YouTube",
+  "failedLoadVideos": "Failed to load videos: {error}",
+  "@failedLoadVideos": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noVideosNow": "No videos available now",
+  "programEpisodes": "{programName} Episodes",
+  "@programEpisodes": {
+    "placeholders": {
+      "programName": {}
+    }
+  },
+  "failedOpenVideoLink": "Failed to open video link",
+  "failedLoadPrograms": "Failed to load programs: {error}",
+  "@failedLoadPrograms": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noProgramsNow": "No programs available now",
+  "failedLoadSavedNews": "Failed to load saved news: {error}",
+  "@failedLoadSavedNews": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "noSavedNewsYet": "No saved news yet",
+  "savedNewsDeleted": "News removed from saved items",
+  "articleDetails": "Details",
+  "increaseFontSize": "Increase Font Size",
+  "decreaseFontSize": "Decrease Font Size",
+  "share": "Share",
+  "removeFromSaved": "Remove from saved",
+  "saveNews": "Save news",
+  "newsSavedLocally": "News saved locally",
+  "newsRemovedFromSaved": "News removed from saved items",
+  "categoryNews": "News",
+  "languageArabic": "العربية",
+  "languageEnglish": "English",
+  "chooseLanguage": "Choose language",
+  "cancel": "Cancel",
+  "openLinkFailed": "Failed to open link"
+}

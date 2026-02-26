@@ -1,6 +1,8 @@
 # Deploy Instructions for FCM Function
 
-This folder contains a Supabase Edge Function (`send-fcm`) to send Firebase Cloud Messaging (FCM) notifications when a new record is inserted into `manual_notifications_log`.
+This folder contains a Supabase Edge Function (`send-fcm`) to send Firebase Cloud Messaging (FCM) notifications.
+
+The app can call this function directly from dashboard services when creating `news` and `breaking_news`, and it can also be triggered from `manual_notifications_log` via webhook.
 
 ## Prerequisites
 
@@ -29,7 +31,7 @@ This folder contains a Supabase Edge Function (`send-fcm`) to send Firebase Clou
     supabase functions deploy send-fcm
     ```
 
-3.  **Set up Database Trigger**:
+3.  **(Optional) Set up Database Trigger for manual notifications**:
     Go to your Supabase Dashboard -> Database -> Webhooks (or Triggers).
     Create a new webhook:
     -   **Name**: `send-fcm-trigger`
@@ -49,6 +51,6 @@ This folder contains a Supabase Edge Function (`send-fcm`) to send Firebase Clou
 
 ## Testing
 
-1.  Go to the **Dashboard** -> **Manual Notifications**.
-2.  Create a new notification.
-3.  Check the Edge Function logs in Supabase Dashboard to see if it triggered and sent the message.
+1.  In the dashboard, create a new **Main News** item or **Breaking News** item with notification enabled.
+2.  Open Supabase **Edge Functions logs** and verify `send-fcm` invocation succeeded.
+3.  If webhook is configured, also test from **Manual Notifications**.

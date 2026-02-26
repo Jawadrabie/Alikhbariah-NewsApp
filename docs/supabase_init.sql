@@ -34,7 +34,6 @@ create table if not exists public.programs (
 create table if not exists public.news (
   id bigint generated always as identity primary key,
   title text not null,
-  summary text null,
   content text not null,
   image_url text null,
   category_id bigint null references public.categories(id) on delete set null,

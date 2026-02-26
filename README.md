@@ -65,3 +65,40 @@ Apply admin-only write/delete policies for `news-images` bucket:
 What this enforces:
 - Upload/Update/Delete on `news-images` is allowed only for `authenticated` users that satisfy `public.is_admin_user()`.
 - Optional MIME hardening is applied to allow only: `image/jpeg`, `image/png`, `image/webp`.
+
+## Auto Translation Setup (Step 6)
+
+To save news/categories in Arabic once and auto-fill English fields:
+
+1. Run [docs/add_multilingual_columns.sql](docs/add_multilingual_columns.sql) in Supabase SQL Editor.
+2. Deploy Edge Function `translate-text`:
+
+```bash
+supabase functions deploy translate-text
+```
+
+3. Set function secrets (optional endpoint override):
+
+```bash
+supabase secrets set TRANSLATE_API_URL=https://libretranslate.com/translate
+supabase secrets set TRANSLATE_API_KEY=YOUR_KEY_IF_REQUIRED
+```
+
+Notes:
+- If translation function is unavailable, dashboard save still works and falls back to Arabic text.
+- Mobile app uses `*_en` fields when language is English, and falls back automatically when fields are empty.
+
+Troubleshooting when English is not appearing:
+1. Ensure `translate-text` is deployed (`supabase functions deploy translate-text`).
+2. Re-save an existing news item from dashboard (translation happens on save).
+3. Verify DB values:
+	```sql
+	select id, title, title_en, left(content_en, 120) as content_en_preview
+	from public.news
+	order by created_at desc
+	limit 10;
+	```
+4. If `title_en` is null/Arabic, check function logs:
+	```bash
+	supabase functions logs --name translate-text
+	```

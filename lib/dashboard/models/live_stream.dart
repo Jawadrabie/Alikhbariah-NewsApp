@@ -18,7 +18,7 @@ class LiveStream {
       id: json['id'].toString(),
       youtubeUrl: (json['youtube_url'] ?? '') as String,
       isActive: (json['is_active'] ?? false) as bool,
-      broadcastTitle: (json['broadcast_title'] ?? '') as String,
+      broadcastTitle: (json['broadcast_title'] ?? json['title'] ?? '') as String,
       fallbackMessage: (json['fallback_message'] ?? '') as String,
     );
   }

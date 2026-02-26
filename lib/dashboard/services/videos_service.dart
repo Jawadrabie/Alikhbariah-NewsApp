@@ -6,20 +6,25 @@ class VideosService {
   final _supabase = Supabase.instance.client;
   dynamic _idValue(String id) => int.tryParse(id) ?? id;
 
-  Future<List<VideoItem>> getVideos({String? programId}) async {
+  Future<List<VideoItem>> getVideos({String? programId, String? categoryId}) async {
     try {
-      final response = await _supabase
+      var query = _supabase
           .from('videos')
-          .select()
-          .order('created_at', ascending: false);
+          .select();
+
+      if (programId != null && programId.isNotEmpty) {
+        query = query.eq('program_id', _idValue(programId));
+      }
+      if (categoryId != null && categoryId.isNotEmpty) {
+        query = query.eq('category_id', _idValue(categoryId));
+      }
+
+      final response = await query.order('created_at', ascending: false);
 
       final mapped = (response as List<dynamic>)
           .map((json) => VideoItem.fromJson(json as Map<String, dynamic>))
           .toList();
-      if (programId == null || programId.isEmpty) {
-        return mapped;
-      }
-      return mapped.where((item) => item.programId == programId).toList();
+      return mapped;
     } catch (e) {
       debugPrint('Error fetching videos: $e');
       rethrow;

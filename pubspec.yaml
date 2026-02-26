@@ -38,7 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.9.1
   marquee: ^2.3.0
-  flutter_widget_from_html: ^0.16.1
+  flutter_widget_from_html_core: ^0.16.1
   share_plus: ^12.0.1
   intl: ^0.19.0
   url_launcher: ^6.3.2
@@ -47,16 +47,39 @@ dependencies:
   uuid: ^4.5.2
   shimmer: ^3.0.0
   cached_network_image: ^3.4.1
+  webview_flutter: ^4.13.0
+  webview_flutter_android: ^4.8.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   image_picker: ^1.2.1
   file_picker: ^10.3.10
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^19.4.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/images/icon.png"
+    background_color: "#hex_color"
+    theme_color: "#hex_color"
+  windows:
+    generate: true
+    image_path: "assets/images/icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/images/icon.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -78,9 +101,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

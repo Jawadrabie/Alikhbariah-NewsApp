@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/localization/l10n_extensions.dart';
+import '../../../../core/utils/relative_time_formatter.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../home/data/models/news_model.dart';
+import '../../../home/data/repositories/home_repository.dart';
+import '../../../home/presentation/widgets/news_card.dart';
 import '../../data/services/bookmark_service.dart';
 
 class NewsDetailsScreen extends StatefulWidget {
@@ -21,13 +24,29 @@ class NewsDetailsScreen extends StatefulWidget {
 class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   double _fontSize = 18.0;
   final BookmarkService _bookmarkService = BookmarkService();
+  final HomeRepository _homeRepository = HomeRepository();
   bool _isBookmarked = false;
   bool _bookmarkLoading = true;
+  bool _relatedLoading = true;
+  List<NewsModel> _relatedNews = const [];
+  String _currentLanguageCode = 'ar';
 
   @override
   void initState() {
     super.initState();
     _loadBookmarkState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final languageCode = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (_currentLanguageCode == languageCode) {
+      return;
+    }
+
+    _currentLanguageCode = languageCode;
+    _loadRelatedNews();
   }
 
   Future<void> _loadBookmarkState() async {
@@ -37,6 +56,51 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
       _isBookmarked = bookmarked;
       _bookmarkLoading = false;
     });
+  }
+
+  Future<void> _loadRelatedNews() async {
+    try {
+      final byCategory = await _homeRepository.getLatestNews(
+        languageCode: _currentLanguageCode,
+        limit: 10,
+        categoryId: widget.news.categoryId,
+      );
+
+      final filteredByCategory = byCategory
+          .where((item) => item.id != widget.news.id)
+          .take(5)
+          .toList();
+
+      if (filteredByCategory.isNotEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _relatedNews = filteredByCategory;
+          _relatedLoading = false;
+        });
+        return;
+      }
+
+      final fallbackLatest = await _homeRepository.getLatestNews(
+        languageCode: _currentLanguageCode,
+        limit: 10,
+      );
+      final filteredFallback = fallbackLatest
+          .where((item) => item.id != widget.news.id)
+          .take(5)
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _relatedNews = filteredFallback;
+        _relatedLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _relatedNews = const [];
+        _relatedLoading = false;
+      });
+    }
   }
 
   void _increaseFontSize() {
@@ -92,8 +156,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     // In a real app we would join with Category table or fetch category name.
     final category = l10n.categoryNews;
     final publishedAt = widget.news.createdAt;
-    
-    final formattedDate = DateFormat('yyyy-MM-dd – HH:mm').format(publishedAt);
+    final localeName = Localizations.localeOf(context).toString();
+    final formattedDate = DateFormat('yyyy-MM-dd – HH:mm', localeName).format(publishedAt);
+    final relativeDate = formatRelativeTime(context, publishedAt);
 
     return Scaffold(
       appBar: AppBar(
@@ -155,14 +220,14 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF2C3E50), // Dark Blue
                         ),
-                    textAlign: TextAlign.right, // Assuming Arabic titles
+                    textAlign: TextAlign.start,
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        formattedDate,
+                        '$relativeDate • $formattedDate',
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                       Container(
@@ -197,6 +262,28 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                       },
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  Text(
+                    l10n.relatedNews,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.start,
+                  ),
+                  const SizedBox(height: 12),
+                  if (_relatedLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_relatedNews.isEmpty)
+                    const SizedBox.shrink()
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _relatedNews.length,
+                      itemBuilder: (context, index) {
+                        return NewsCard(news: _relatedNews[index]);
+                      },
+                    ),
                 ],
               ),
             ),

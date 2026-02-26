@@ -4,6 +4,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/program.dart';
 import 'package:newsappjs/dashboard/services/programs_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class ProgramsScreen extends StatefulWidget {
   const ProgramsScreen({super.key});
@@ -143,22 +144,9 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t('programs')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openForm(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: Text(t('add_program')),
-      ),
       body: FutureBuilder<List<Program>>(
         future: _future,
         builder: (context, snapshot) {
@@ -170,58 +158,72 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
           }
 
           final items = snapshot.data ?? [];
-          if (items.isEmpty) {
-            return Center(child: Text(t('no_programs_found')));
-          }
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text(t('name'))),
-                DataColumn(label: Text(t('order'))),
-                DataColumn(label: Text(t('active'))),
-                DataColumn(label: Text(t('actions'))),
-              ],
-              rows: items
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item.name)),
-                        DataCell(Text(item.orderIndex.toString())),
-                        DataCell(Text(item.isActive ? t('yes') : t('no'))),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.video_collection),
-                                tooltip: t('manage_episodes'),
-                                onPressed: () {
-                                  context.push(
-                                    '/dashboard/videos',
-                                    extra: {
-                                      'programId': item.id,
-                                      'programName': item.name,
-                                    },
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _openForm(current: item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _delete(item.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+          return DashboardSectionView(
+            title: t('programs'),
+            actions: [
+              FilledButton.icon(
+                onPressed: () => _openForm(),
+                icon: const Icon(Icons.add),
+                label: Text(t('add_program')),
+              ),
+            ],
+            child: items.isEmpty
+                ? DashboardEmptyState(
+                    icon: Icons.video_collection_outlined,
+                    title: t('no_programs_found'),
                   )
-                  .toList(),
-            ),
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      columns: [
+                        DataColumn(label: Text(t('name'))),
+                        DataColumn(label: Text(t('order'))),
+                        DataColumn(label: Text(t('active'))),
+                        DataColumn(label: Text(t('actions'))),
+                      ],
+                      rows: items
+                          .map(
+                            (item) => DataRow(
+                              cells: [
+                                DataCell(Text(item.name)),
+                                DataCell(Text(item.orderIndex.toString())),
+                                DataCell(Text(item.isActive ? t('yes') : t('no'))),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.video_collection, color: scheme.secondary),
+                                        tooltip: t('manage_episodes'),
+                                        onPressed: () {
+                                          context.push(
+                                            '/dashboard/videos',
+                                            extra: {
+                                              'programId': item.id,
+                                              'programName': item.name,
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: scheme.primary),
+                                        onPressed: () => _openForm(current: item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: scheme.error),
+                                        onPressed: () => _delete(item.id),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
           );
         },
       ),

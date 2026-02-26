@@ -6,6 +6,22 @@ class BreakingNewsService {
   final _supabase = Supabase.instance.client;
   dynamic _idValue(String id) => int.tryParse(id) ?? id;
 
+  Future<void> _sendPush({required String title, required String body}) async {
+    try {
+      await _supabase.functions.invoke(
+        'send-fcm',
+        body: {
+          'record': {
+            'title': title,
+            'body': body,
+          },
+        },
+      );
+    } catch (e) {
+      debugPrint('Error sending breaking push notification: $e');
+    }
+  }
+
   Future<List<BreakingNews>> getBreakingNews() async {
     try {
       final response = await _supabase.from('breaking_news').select();
@@ -24,6 +40,13 @@ class BreakingNewsService {
     try {
       final data = Map<String, dynamic>.from(breakingNews.toJson())..remove('id');
       await _supabase.from('breaking_news').insert(data);
+
+      if (breakingNews.sendNotification) {
+        await _sendPush(
+          title: breakingNews.title,
+          body: breakingNews.content,
+        );
+      }
     } catch (e) {
       debugPrint('Error creating breaking news: $e');
       rethrow;

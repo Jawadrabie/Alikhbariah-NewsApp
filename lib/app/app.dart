@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../core/localization/generated/app_localizations.dart';
 
 import '../core/settings/app_settings_controller.dart';
 import '../core/theme/app_theme.dart';
 import '../features/home/presentation/screens/home_screen.dart';
+import '../features/media/presentation/screens/in_app_video_player_screen.dart';
 
 class NewsApp extends StatelessWidget {
   const NewsApp({super.key});
@@ -28,6 +29,14 @@ class NewsApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          builder: (context, child) {
+            return Stack(
+              children: [
+                if (child != null) child,
+                const InAppMiniPlayerOverlay(),
+              ],
+            );
+          },
           home: const HomeScreen(),
         );
       },

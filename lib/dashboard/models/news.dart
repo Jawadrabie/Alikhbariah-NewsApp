@@ -1,7 +1,6 @@
 class News {
   final String id;
   final String title;
-  final String summary;
   final String content;
   final String imageUrl;
   final String categoryId;
@@ -15,7 +14,6 @@ class News {
   News({
     required this.id,
     required this.title,
-    required this.summary,
     required this.content,
     required this.imageUrl,
     required this.categoryId,
@@ -31,7 +29,6 @@ class News {
     return News(
       id: (json['id'] ?? '').toString(),
       title: (json['title'] ?? '') as String,
-      summary: (json['summary'] ?? '') as String,
       content: (json['content'] ?? '') as String,
       imageUrl: (json['image_url'] ?? '') as String,
       categoryId: (json['category_id'] ?? '').toString(),
@@ -48,7 +45,6 @@ class News {
     return {
       'id': id,
       'title': title,
-      'summary': summary,
       'content': content,
       'image_url': imageUrl,
       'category_id': categoryId,

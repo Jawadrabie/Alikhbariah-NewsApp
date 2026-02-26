@@ -8,6 +8,7 @@
   "categories": "Categories",
   "featuredNews": "Featured News",
   "latestNews": "Latest News",
+  "relatedNews": "Related News",
   "failedLoadCategories": "Failed to load categories: {error}",
   "@failedLoadCategories": {
     "placeholders": {
@@ -26,6 +27,8 @@
   "notifications": "Notifications",
   "notificationsComingSoon": "Notifications feature is coming soon",
   "videos": "Videos",
+  "viewAll": "View all",
+  "readMore": "See more",
   "programs": "Programs",
   "darkMode": "Dark Mode",
   "language": "Language",
@@ -51,7 +54,7 @@
   },
   "noLiveNow": "No active live stream at the moment",
   "defaultLiveTitle": "Live Stream - Syrian News",
-  "defaultLiveMessage": "Tap the button below to open the stream on YouTube",
+  "defaultLiveMessage": "The Syrian News channel is broadcast live 24 hours a day.",
   "failedLoadVideos": "Failed to load videos: {error}",
   "@failedLoadVideos": {
     "placeholders": {
@@ -82,6 +85,39 @@
   "noSavedNewsYet": "No saved news yet",
   "savedNewsDeleted": "News removed from saved items",
   "articleDetails": "Details",
+  "justNow": "Just now",
+  "minutesAgo": "{count, plural, =0 {Less than a minute ago} =1 {A minute ago} other {{count} minutes ago}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count, plural, =0 {Less than an hour ago} =1 {An hour ago} other {{count} hours ago}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count, plural, =0 {Today} =1 {A day ago} other {{count} days ago}}",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeksAgo": "{count, plural, =0 {This week} =1 {A week ago} other {{count} weeks ago}}",
+  "@weeksAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "increaseFontSize": "Increase Font Size",
   "decreaseFontSize": "Decrease Font Size",
   "share": "Share",
@@ -90,6 +126,9 @@
   "newsSavedLocally": "News saved locally",
   "newsRemovedFromSaved": "News removed from saved items",
   "categoryNews": "News",
+  "allCategories": "All",
+  "noCategoriesAvailable": "No categories available",
+  "breakingNow": "Breaking",
   "languageArabic": "العربية",
   "languageEnglish": "English",
   "chooseLanguage": "Choose language",

@@ -3,6 +3,19 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (
+                requested.group == "com.android.tools.build" &&
+                requested.name == "gradle" &&
+                requested.version == "8.6.0"
+            ) {
+                useVersion("8.6.1")
+                because("Align AGP version across root project and plugins")
+            }
+        }
+    }
 }
 
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()

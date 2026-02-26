@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/live_stream.dart';
 import 'package:newsappjs/dashboard/services/live_stream_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class LiveStreamScreen extends StatefulWidget {
   const LiveStreamScreen({super.key});
@@ -73,54 +74,104 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t('live_stream')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _save,
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _save,
-        icon: const Icon(Icons.save),
-        label: Text(_id == null || _id!.isEmpty ? t('save') : t('save_changes')),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+    return DashboardSectionView(
+      title: t('live_stream'),
+      actions: [
+        FilledButton.icon(
+          onPressed: _save,
+          icon: const Icon(Icons.save),
+          label: Text(_id == null || _id!.isEmpty ? t('save') : t('save_changes')),
+        ),
+      ],
+      child: DashboardSurfaceCard(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Icon(Icons.live_tv, color: scheme.error, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    t('live_stream'),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: t('broadcast_title')),
+                decoration: InputDecoration(
+                  labelText: t('broadcast_title'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.title),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: _urlController,
-                decoration: InputDecoration(labelText: t('youtube_url')),
+                decoration: InputDecoration(
+                  labelText: t('youtube_url'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.link),
+                  hintText: 'https://www.youtube.com/watch?v=...',
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: _fallbackController,
-                maxLines: 2,
-                decoration: InputDecoration(labelText: t('fallback_message')),
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: t('fallback_message'),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.message_outlined),
+                  alignLabelWithHint: true,
+                ),
               ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(t('active')),
-                value: _isActive,
-                onChanged: (value) => setState(() => _isActive = value),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _isActive
+                      ? scheme.secondaryContainer
+                      : scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isActive ? scheme.secondary : scheme.outlineVariant,
+                  ),
+                ),
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    t('active'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _isActive
+                          ? scheme.onSecondaryContainer
+                          : scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  subtitle: Text(
+                    _isActive ? 'البث المباشر مفعل حالياً ويظهر للمستخدمين' : 'البث المباشر متوقف حالياً',
+                    style: TextStyle(
+                      color: _isActive
+                          ? scheme.onSecondaryContainer.withValues(alpha: 0.8)
+                          : scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  value: _isActive,
+                  activeColor: scheme.primary,
+                  onChanged: (value) => setState(() => _isActive = value),
+                ),
               ),
             ],
           ),

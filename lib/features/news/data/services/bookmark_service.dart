@@ -73,7 +73,6 @@ class BookmarkService {
     final payload = <String, dynamic>{
       'id': news.id,
       'title': news.title,
-      'summary': news.summary,
       'content': news.content,
       'image_url': news.imageUrl,
       'category_id': news.categoryId,

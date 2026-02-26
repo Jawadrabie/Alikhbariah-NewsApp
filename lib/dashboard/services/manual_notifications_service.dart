@@ -6,6 +6,22 @@ class ManualNotificationsService {
   final _supabase = Supabase.instance.client;
   dynamic _idValue(String id) => int.tryParse(id) ?? id;
 
+  Future<void> _sendPush({required String title, required String body}) async {
+    try {
+      await _supabase.functions.invoke(
+        'send-fcm',
+        body: {
+          'record': {
+            'title': title,
+            'body': body,
+          },
+        },
+      );
+    } catch (e) {
+      debugPrint('Error sending manual push notification: $e');
+    }
+  }
+
   Future<List<ManualNotification>> getNotifications() async {
     try {
       final response = await _supabase
@@ -23,8 +39,12 @@ class ManualNotificationsService {
 
   Future<void> createNotification(ManualNotification item) async {
     try {
-      final data = Map<String, dynamic>.from(item.toJson())..remove('id');
+      final data = <String, dynamic>{
+        'title': item.title,
+        'body': item.body,
+      };
       await _supabase.from('manual_notifications_log').insert(data);
+      await _sendPush(title: item.title, body: item.body);
     } catch (e) {
       debugPrint('Error creating manual notification: $e');
       rethrow;

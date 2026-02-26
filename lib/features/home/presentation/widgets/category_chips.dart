@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/l10n_extensions.dart';
 import '../../data/models/category_model.dart';
 
 class CategoryChips extends StatelessWidget {
@@ -16,10 +17,12 @@ class CategoryChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (categories.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 52,
-        child: Center(child: Text('لا توجد تصنيفات')),
+        child: Center(child: Text(l10n.noCategoriesAvailable)),
       );
     }
 
@@ -29,7 +32,29 @@ class CategoryChips extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          final category = categories[index];
+          if (index == 0) {
+            final isSelected = selectedCategoryId == null;
+            return ChoiceChip(
+              selected: isSelected,
+              label: Text(l10n.allCategories),
+              onSelected: onCategorySelected == null ? null : (_) => onCategorySelected!(null),
+              selectedColor: Theme.of(context).colorScheme.primary.withAlpha(35),
+              backgroundColor: Colors.white,
+              side: BorderSide(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : const Color(0xFFD7DEE3),
+              ),
+              labelStyle: TextStyle(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : const Color(0xFF1F2937),
+              ),
+            );
+          }
+
+          final category = categories[index - 1];
           final isSelected = selectedCategoryId == category.id;
 
           return ChoiceChip(
@@ -54,7 +79,7 @@ class CategoryChips extends StatelessWidget {
           );
         },
         separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemCount: categories.length,
+        itemCount: categories.length + 1,
       ),
     );
   }

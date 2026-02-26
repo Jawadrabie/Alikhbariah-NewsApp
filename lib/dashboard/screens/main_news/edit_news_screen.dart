@@ -24,7 +24,6 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
-  late final TextEditingController _summaryController;
   late final TextEditingController _contentController;
   late final TextEditingController _imageUrlController;
 
@@ -49,7 +48,6 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.news?.title);
-    _summaryController = TextEditingController(text: widget.news?.summary);
     _contentController = TextEditingController(text: widget.news?.content);
     _imageUrlController = TextEditingController(text: widget.news?.imageUrl);
     _isFeatured = widget.news?.isFeatured ?? false;
@@ -60,14 +58,13 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
       ? _imageSourceUrl
       : _imageSourceUpload;
 
-    _categoriesFuture = _categoryService.getCategories();
+    _categoriesFuture = _categoryService.getCategories(type: 'news');
     _locationsFuture = _locationService.getLocations();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _summaryController.dispose();
     _contentController.dispose();
     _imageUrlController.dispose();
     super.dispose();
@@ -110,7 +107,6 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
       final news = News(
         id: widget.news?.id ?? '',
         title: _titleController.text,
-        summary: _summaryController.text,
         content: _contentController.text,
         imageUrl: _imageUrlController.text,
         categoryId: _selectedCategoryId!,
@@ -150,6 +146,7 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -168,6 +165,7 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
             TextButton.icon(
               icon: const Icon(Icons.save),
               label: Text(t('save')),
+              style: TextButton.styleFrom(foregroundColor: scheme.primary),
               onPressed: _saveForm,
             ),
         ],
@@ -188,12 +186,6 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                   decoration: InputDecoration(labelText: t('title')),
                   validator: (value) =>
                       value!.isEmpty ? t('please_enter_title') : null,
-                ),
-                TextFormField(
-                  controller: _summaryController,
-                  decoration: InputDecoration(labelText: t('summary')),
-                  validator: (value) =>
-                      value!.isEmpty ? t('please_enter_summary') : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -262,7 +254,7 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.upload_file),
+                        icon: Icon(Icons.upload_file, color: scheme.primary),
                         tooltip: t('upload_image'),
                         onPressed: _pickImage,
                       ),
@@ -338,11 +330,13 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                 SwitchListTile(
                   title: Text(t('featured')),
                   value: _isFeatured,
+                  activeColor: scheme.primary,
                   onChanged: (value) => setState(() => _isFeatured = value),
                 ),
                 SwitchListTile(
                   title: Text(t('hidden')),
                   value: _isHidden,
+                  activeColor: scheme.primary,
                   onChanged: (value) => setState(() => _isHidden = value),
                 ),
                     ], // Column children

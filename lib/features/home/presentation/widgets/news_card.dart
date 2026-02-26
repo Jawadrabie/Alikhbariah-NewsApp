@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../../core/localization/l10n_extensions.dart';
+import '../../../../core/utils/relative_time_formatter.dart';
 import '../../data/models/news_model.dart';
 import '../../../../features/news/presentation/screens/news_details_screen.dart';
 
@@ -9,8 +11,22 @@ class NewsCard extends StatelessWidget {
 
   final NewsModel news;
 
+  String _contentPreview(String htmlContent) {
+    final plain = htmlContent
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (plain.isEmpty) return '';
+    if (plain.length <= 110) return plain;
+    return '${plain.substring(0, 110)}...';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final textDirection = Directionality.of(context);
+    final relativeTime = formatRelativeTime(context, news.createdAt);
+    final preview = _contentPreview(news.content);
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: InkWell(
@@ -37,17 +53,49 @@ class NewsCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                      textAlign: TextAlign.right, // Assuming Arabic
-                      textDirection: TextDirection.rtl,
+                      textAlign: TextAlign.start,
+                      textDirection: textDirection,
+                    ),
+                    const SizedBox(height: 6),
+                    if (preview.isNotEmpty) ...[
+                      Text(
+                        preview,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Color(0xFF4B5563), height: 1.4),
+                        textAlign: TextAlign.start,
+                        textDirection: textDirection,
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => NewsDetailsScreen(news: news),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        l10n.readMore,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                        textAlign: TextAlign.start,
+                        textDirection: textDirection,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      news.summary ?? '',
-                      maxLines: 2,
+                      relativeTime,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Color(0xFF4B5563), height: 1.4),
-                      textAlign: TextAlign.right,
-                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                      textAlign: TextAlign.start,
+                      textDirection: textDirection,
                     ),
                   ],
                 ),

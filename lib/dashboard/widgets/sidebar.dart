@@ -21,6 +21,7 @@ class Sidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
     final currentRoute = GoRouterState.of(context).uri.toString();
+    final scheme = Theme.of(context).colorScheme;
 
     // Helper to check active route
     bool isActive(String route) {
@@ -32,10 +33,10 @@ class Sidebar extends StatelessWidget {
 
     return Container(
       width: 250,
-      color: const Color(0xFF1E3A8A), // Corporate Blue
+      color: scheme.surfaceContainerHigh,
       child: Column(
         children: [
-          _buildHeader(t),
+          _buildHeader(context, t),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -49,13 +50,13 @@ class Sidebar extends StatelessWidget {
                 _buildNavItem(context, 'programs', Icons.video_collection, '/dashboard/programs', isActive('/dashboard/programs')),
                 _buildNavItem(context, 'categories', Icons.category, '/dashboard/categories', isActive('/dashboard/categories')),
                 _buildNavItem(context, 'locations', Icons.location_on, '/dashboard/locations', isActive('/dashboard/locations')),
-                const Divider(color: Colors.white24, height: 32), // Separator
+                Divider(color: scheme.outlineVariant, height: 32),
                 _buildNavItem(context, 'manual_notifications', Icons.notifications_active, '/dashboard/manual-notifications', isActive('/dashboard/manual-notifications')),
                 _buildNavItem(context, 'user_reports', Icons.campaign, '/dashboard/user-reports', isActive('/dashboard/user-reports')),
               ],
             ),
           ),
-          const Divider(color: Colors.white24, height: 1),
+          Divider(color: scheme.outlineVariant, height: 1),
           _buildNavItem(context, 'settings', Icons.settings, '/dashboard/settings', isActive('/dashboard/settings')),
           _buildLogoutItem(context, t),
         ],
@@ -63,24 +64,25 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(String Function(String) t) {
+  Widget _buildHeader(BuildContext context, String Function(String) t) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       height: 80,
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF172554), // Darker blue for header
-        border: Border(bottom: BorderSide(color: Colors.white10)),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.newspaper, color: Colors.white, size: 32),
+          Icon(Icons.newspaper, color: scheme.onPrimaryContainer, size: 32),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               t('dashboard_title'),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: scheme.onPrimaryContainer,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
@@ -95,15 +97,16 @@ class Sidebar extends StatelessWidget {
 
   Widget _buildNavItem(BuildContext context, String titleKey, IconData icon, String route, bool isSelected) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Material(
-        color: isSelected ? Colors.white.withOpacity(0.1) : Colors.transparent,
+        color: isSelected ? scheme.primary.withValues(alpha: 0.14) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: () => context.go(route),
           borderRadius: BorderRadius.circular(8),
-          hoverColor: Colors.white.withOpacity(0.05),
+          hoverColor: scheme.primary.withValues(alpha: 0.08),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
@@ -111,14 +114,14 @@ class Sidebar extends StatelessWidget {
                 Icon(
                   icon,
                   size: 20,
-                  color: isSelected ? Colors.white : Colors.white70,
+                  color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     t(titleKey),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.white70,
+                      color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                       fontSize: 14,
                     ),
@@ -128,8 +131,8 @@ class Sidebar extends StatelessWidget {
                   Container(
                     width: 4,
                     height: 4,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: scheme.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -142,6 +145,7 @@ class Sidebar extends StatelessWidget {
   }
 
   Widget _buildLogoutItem(BuildContext context, String Function(String) t) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Material(
@@ -150,17 +154,17 @@ class Sidebar extends StatelessWidget {
         child: InkWell(
           onTap: () => _logout(context),
           borderRadius: BorderRadius.circular(8),
-          hoverColor: Colors.red.withOpacity(0.1),
+          hoverColor: scheme.error.withValues(alpha: 0.1),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const Icon(Icons.logout, size: 20, color: Colors.redAccent),
+                Icon(Icons.logout, size: 20, color: scheme.error),
                 const SizedBox(width: 16),
                 Text(
                   t('logout'),
-                  style: const TextStyle(
-                    color: Colors.redAccent,
+                  style: TextStyle(
+                    color: scheme.error,
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
                   ),

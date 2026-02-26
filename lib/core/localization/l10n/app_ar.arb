@@ -8,6 +8,7 @@
   "categories": "التصنيفات",
   "featuredNews": "الأخبار المميزة",
   "latestNews": "أحدث الأخبار",
+  "relatedNews": "أخبار متعلقة",
   "failedLoadCategories": "تعذر تحميل التصنيفات: {error}",
   "@failedLoadCategories": {
     "placeholders": {
@@ -26,6 +27,8 @@
   "notifications": "الإشعارات",
   "notificationsComingSoon": "ميزة الإشعارات قيد التنفيذ",
   "videos": "الفيديوهات",
+  "viewAll": "عرض الكل",
+  "readMore": "قراءة المزيد",
   "programs": "البرامج",
   "darkMode": "الوضع الليلي",
   "language": "اللغة",
@@ -51,7 +54,7 @@
   },
   "noLiveNow": "لا يوجد بث مباشر مفعّل حالياً",
   "defaultLiveTitle": "البث المباشر - الإخبارية السورية",
-  "defaultLiveMessage": "اضغط الزر أدناه لفتح البث على YouTube",
+  "defaultLiveMessage": "يتم بث القناة الإخبارية السورية على مدار 24 ساعة.",
   "failedLoadVideos": "تعذر تحميل الفيديوهات: {error}",
   "@failedLoadVideos": {
     "placeholders": {
@@ -82,6 +85,39 @@
   "noSavedNewsYet": "لا توجد أخبار محفوظة حتى الآن",
   "savedNewsDeleted": "تم حذف الخبر من المحفوظات",
   "articleDetails": "التفاصيل",
+  "justNow": "الآن",
+  "minutesAgo": "منذ {count, plural, =0 {أقل من دقيقة} =1 {دقيقة واحدة} =2 {دقيقتين} few {{count} دقائق} many {{count} دقيقة} other {{count} دقيقة}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "منذ {count, plural, =0 {أقل من ساعة} =1 {ساعة واحدة} =2 {ساعتين} few {{count} ساعات} many {{count} ساعة} other {{count} ساعة}}",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "منذ {count, plural, =0 {اليوم} =1 {يوم واحد} =2 {يومين} few {{count} أيام} many {{count} يوماً} other {{count} يوم}}",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeksAgo": "منذ {count, plural, =0 {هذا الأسبوع} =1 {أسبوع واحد} =2 {أسبوعين} few {{count} أسابيع} many {{count} أسبوعاً} other {{count} أسبوع}}",
+  "@weeksAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "increaseFontSize": "تكبير الخط",
   "decreaseFontSize": "تصغير الخط",
   "share": "مشاركة",
@@ -90,6 +126,9 @@
   "newsSavedLocally": "تم حفظ الخبر محلياً",
   "newsRemovedFromSaved": "تمت إزالة الخبر من المحفوظات",
   "categoryNews": "خبر",
+  "allCategories": "الكل",
+  "noCategoriesAvailable": "لا توجد تصنيفات",
+  "breakingNow": "عاجل",
   "languageArabic": "العربية",
   "languageEnglish": "English",
   "chooseLanguage": "اختر اللغة",

@@ -18,7 +18,7 @@ class LiveStreamModel {
       id: json['id'] as int,
       youtubeUrl: (json['youtube_url'] as String?) ?? '',
       isActive: json['is_active'] as bool? ?? false,
-      broadcastTitle: json['broadcast_title'] as String?,
+      broadcastTitle: (json['broadcast_title'] ?? json['title']) as String?,
       fallbackMessage: json['fallback_message'] as String?,
     );
   }

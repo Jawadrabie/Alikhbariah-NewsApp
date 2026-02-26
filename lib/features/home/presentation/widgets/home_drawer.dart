@@ -96,6 +96,15 @@ class _HomeDrawerState extends State<HomeDrawer> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Image.asset(
+                      'assets/images/logo.webp',
+                      height: 34,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Text(
                     l10n.appTitle,
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),

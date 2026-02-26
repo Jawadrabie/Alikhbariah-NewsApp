@@ -5,6 +5,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class LiveStreamService {
   final _supabase = Supabase.instance.client;
 
+  bool _isMissingBroadcastTitle(Object error) {
+    if (error is! PostgrestException) return false;
+    final message = error.message.toLowerCase();
+    return message.contains('broadcast_title') &&
+        (error.code?.toUpperCase() == 'PGRST204' ||
+            message.contains("could not find"));
+  }
+
   Future<LiveStream?> getLiveStream() async {
     try {
       final response = await _supabase.from('live_stream').select().limit(1);
@@ -29,6 +37,22 @@ class LiveStreamService {
         await _supabase.from('live_stream').update(data).eq('id', stream.id);
       }
     } catch (e) {
+      if (_isMissingBroadcastTitle(e)) {
+        final legacyData = Map<String, dynamic>.from(stream.toJson())
+          ..remove('broadcast_title')
+          ..['title'] = stream.broadcastTitle;
+
+        if (stream.id.isEmpty) {
+          legacyData.remove('id');
+          await _supabase.from('live_stream').insert(legacyData);
+        } else {
+          await _supabase
+              .from('live_stream')
+              .update(legacyData)
+              .eq('id', stream.id);
+        }
+        return;
+      }
       debugPrint('Error upserting live stream: $e');
       rethrow;
     }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/video_item.dart';
+import 'package:newsappjs/dashboard/services/category_service.dart';
+import 'package:newsappjs/dashboard/services/programs_service.dart';
 import 'package:newsappjs/dashboard/services/videos_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class VideosScreen extends StatefulWidget {
   final String? programId;
@@ -16,17 +19,25 @@ class VideosScreen extends StatefulWidget {
 
 class _VideosScreenState extends State<VideosScreen> {
   final VideosService _service = VideosService();
+  final CategoryService _categoryService = CategoryService();
+  final ProgramsService _programsService = ProgramsService();
   late Future<List<VideoItem>> _future;
+  String? _selectedCategoryId;
+  String? _selectedProgramId;
 
   @override
   void initState() {
     super.initState();
+    _selectedProgramId = widget.programId;
     _reload();
   }
 
   void _reload() {
     setState(() {
-      _future = _service.getVideos(programId: widget.programId);
+      _future = _service.getVideos(
+        programId: widget.programId ?? _selectedProgramId,
+        categoryId: _selectedCategoryId,
+      );
     });
   }
 
@@ -37,6 +48,11 @@ class _VideosScreenState extends State<VideosScreen> {
     final thumbController = TextEditingController(text: current?.thumbnailUrl ?? '');
     final orderController =
         TextEditingController(text: (current?.orderIndex ?? 0).toString());
+    final categories = await _categoryService.getCategories(type: 'video');
+    final programs = await _programsService.getPrograms();
+    if (!mounted) return;
+    String? selectedCategoryId = current?.categoryId;
+    String? selectedProgramId = widget.programId ?? current?.programId;
     bool isHidden = current?.isHidden ?? false;
 
     await showDialog<void>(
@@ -70,6 +86,49 @@ class _VideosScreenState extends State<VideosScreen> {
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(labelText: t('order_index')),
                     ),
+                    DropdownButtonFormField<String?>(
+                      value: selectedCategoryId,
+                      decoration: InputDecoration(
+                        labelText: t('video_category_optional'),
+                      ),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(t('na')),
+                        ),
+                        ...categories.map(
+                          (item) => DropdownMenuItem<String?>(
+                            value: item.id,
+                            child: Text(item.name),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setLocalState(() => selectedCategoryId = value);
+                      },
+                    ),
+                    if (widget.programId == null)
+                      DropdownButtonFormField<String?>(
+                        value: selectedProgramId,
+                        decoration: InputDecoration(
+                          labelText: t('program_optional'),
+                        ),
+                        items: [
+                          DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text(t('na')),
+                          ),
+                          ...programs.map(
+                            (item) => DropdownMenuItem<String?>(
+                              value: item.id,
+                              child: Text(item.name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setLocalState(() => selectedProgramId = value);
+                        },
+                      ),
                     SwitchListTile(
                       value: isHidden,
                       onChanged: (value) => setLocalState(() => isHidden = value),
@@ -92,8 +151,8 @@ class _VideosScreenState extends State<VideosScreen> {
                   id: current?.id ?? '',
                   title: titleController.text.trim(),
                   youtubeUrl: urlController.text.trim(),
-                  programId: widget.programId ?? current?.programId,
-                  categoryId: current?.categoryId,
+                    programId: selectedProgramId,
+                    categoryId: selectedCategoryId,
                   thumbnailUrl: thumbController.text.trim().isEmpty
                       ? null
                       : thumbController.text.trim(),
@@ -146,25 +205,12 @@ class _VideosScreenState extends State<VideosScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
     final title = widget.programName == null
       ? t('videos')
       : t('program_episodes').replaceAll('{name}', widget.programName ?? '');
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openForm(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: Text(t('add_video')),
-      ),
       body: FutureBuilder<List<VideoItem>>(
         future: _future,
         builder: (context, snapshot) {
@@ -176,49 +222,63 @@ class _VideosScreenState extends State<VideosScreen> {
           }
 
           final items = snapshot.data ?? [];
-          if (items.isEmpty) {
-            return Center(child: Text(t('no_videos_found')));
-          }
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text(t('title'))),
-                DataColumn(label: Text(t('youtube_url'))),
-                DataColumn(label: Text(t('order'))),
-                DataColumn(label: Text(t('hidden'))),
-                DataColumn(label: Text(t('published_at'))),
-                DataColumn(label: Text(t('actions'))),
-              ],
-              rows: items
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item.title)),
-                        DataCell(Text(item.youtubeUrl)),
-                        DataCell(Text(item.orderIndex.toString())),
-                        DataCell(Text(item.isHidden ? t('yes') : t('no'))),
-                        DataCell(Text(item.publishedAt?.toString() ?? t('na'))),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _openForm(current: item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _delete(item.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+          return DashboardSectionView(
+            title: title,
+            actions: [
+              FilledButton.icon(
+                onPressed: () => _openForm(),
+                icon: const Icon(Icons.add),
+                label: Text(t('add_video')),
+              ),
+            ],
+            child: items.isEmpty
+                ? DashboardEmptyState(
+                    icon: Icons.ondemand_video_outlined,
+                    title: t('no_videos_found'),
                   )
-                  .toList(),
-            ),
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      columns: [
+                        DataColumn(label: Text(t('title'))),
+                        DataColumn(label: Text(t('youtube_url'))),
+                        DataColumn(label: Text(t('order'))),
+                        DataColumn(label: Text(t('hidden'))),
+                        DataColumn(label: Text(t('published_at'))),
+                        DataColumn(label: Text(t('actions'))),
+                      ],
+                      rows: items
+                          .map(
+                            (item) => DataRow(
+                              cells: [
+                                DataCell(Text(item.title)),
+                                DataCell(Text(item.youtubeUrl)),
+                                DataCell(Text(item.orderIndex.toString())),
+                                DataCell(Text(item.isHidden ? t('yes') : t('no'))),
+                                DataCell(Text(item.publishedAt?.toString() ?? t('na'))),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: scheme.primary),
+                                        onPressed: () => _openForm(current: item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: scheme.error),
+                                        onPressed: () => _delete(item.id),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
           );
         },
       ),

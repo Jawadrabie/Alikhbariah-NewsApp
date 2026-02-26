@@ -121,6 +121,7 @@ class _FeaturedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textDirection = Directionality.of(context);
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -172,7 +173,7 @@ class _FeaturedCard extends StatelessWidget {
                 news.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                textDirection: TextDirection.rtl,
+                textDirection: textDirection,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,

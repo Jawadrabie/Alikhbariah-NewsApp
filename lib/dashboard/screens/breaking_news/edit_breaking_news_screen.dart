@@ -44,47 +44,64 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
     super.dispose();
   }
 
+  String _formatDateTime(DateTime value) {
+    final localizations = MaterialLocalizations.of(context);
+    final date = localizations.formatFullDate(value);
+    final time = localizations.formatTimeOfDay(
+      TimeOfDay.fromDateTime(value),
+    );
+    return '$date - $time';
+  }
+
   Future<void> _selectDateTime({required bool isStart}) async {
+    final currentValue = isStart ? _startTime : _endTime;
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: isStart ? _startTime : _endTime,
+      initialDate: currentValue,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime(2100),
     );
     if (selectedDate == null) return;
+
     if (!mounted) return;
 
     final selectedTime = await showTimePicker(
       context: context,
-      initialTime:
-          TimeOfDay.fromDateTime(isStart ? _startTime : _endTime),
+      initialTime: TimeOfDay.fromDateTime(currentValue),
     );
     if (selectedTime == null) return;
     if (!mounted) return;
 
     setState(() {
+      final updated = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+
       if (isStart) {
-        _startTime = DateTime(
-          selectedDate.year,
-          selectedDate.month,
-          selectedDate.day,
-          selectedTime.hour,
-          selectedTime.minute,
-        );
+        _startTime = updated;
+        if (!_endTime.isAfter(_startTime)) {
+          _endTime = _startTime.add(const Duration(hours: 1));
+        }
       } else {
-        _endTime = DateTime(
-          selectedDate.year,
-          selectedDate.month,
-          selectedDate.day,
-          selectedTime.hour,
-          selectedTime.minute,
-        );
+        _endTime = updated;
       }
     });
   }
 
   void _saveForm() async {
     if (_formKey.currentState!.validate()) {
+      if (!_endTime.isAfter(_startTime)) {
+        DashboardDialogs.showError(
+          context,
+          DashboardI18n.t(context, 'end_time_must_be_after_start'),
+        );
+        return;
+      }
+
       setState(() {
         _isLoading = true;
       });
@@ -128,6 +145,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -148,6 +166,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
             TextButton.icon(
               icon: const Icon(Icons.save),
               label: Text(t('save')),
+              style: TextButton.styleFrom(foregroundColor: scheme.primary),
               onPressed: _saveForm,
             ),
         ],
@@ -176,9 +195,12 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('${t('start_time')}: ${_startTime.toString()}'),
+                      child: Text(
+                        '${t('start_time')}: ${_formatDateTime(_startTime)}',
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
                     ),
-                    ElevatedButton(
+                    FilledButton.tonal(
                       onPressed: () => _selectDateTime(isStart: true),
                       child: Text(t('select')),
                     )
@@ -187,9 +209,12 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('${t('end_time')}: ${_endTime.toString()}'),
+                      child: Text(
+                        '${t('end_time')}: ${_formatDateTime(_endTime)}',
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
                     ),
-                    ElevatedButton(
+                    FilledButton.tonal(
                       onPressed: () => _selectDateTime(isStart: false),
                       child: Text(t('select')),
                     )
@@ -198,6 +223,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                 SwitchListTile(
                   title: Text(t('send_notification')),
                   value: _sendNotification,
+                  activeColor: scheme.primary,
                   onChanged: (value) =>
                       setState(() => _sendNotification = value),
                 ),

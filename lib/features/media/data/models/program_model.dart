@@ -4,6 +4,7 @@ class ProgramModel {
   final String? description;
   final String? imageUrl;
   final int orderIndex;
+  final bool isActive;
 
   const ProgramModel({
     required this.id,
@@ -11,6 +12,7 @@ class ProgramModel {
     required this.description,
     required this.imageUrl,
     required this.orderIndex,
+    this.isActive = true,
   });
 
   factory ProgramModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class ProgramModel {
       description: json['description'] as String?,
       imageUrl: json['image_url'] as String?,
       orderIndex: json['order_index'] as int? ?? 0,
+      isActive: json['is_active'] as bool? ?? true,
     );
   }
 }

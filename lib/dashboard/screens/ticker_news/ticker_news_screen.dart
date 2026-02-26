@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/ticker_news.dart';
 import 'package:newsappjs/dashboard/services/ticker_news_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class TickerNewsScreen extends StatefulWidget {
   const TickerNewsScreen({super.key});
@@ -135,22 +136,9 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t('ticker_news')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openForm(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: Text(t('add_ticker_item')),
-      ),
       body: FutureBuilder<List<TickerNews>>(
         future: _future,
         builder: (context, snapshot) {
@@ -161,47 +149,61 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
             return Center(child: Text('${t('error')}: ${snapshot.error}'));
           }
           final rows = snapshot.data ?? [];
-          if (rows.isEmpty) {
-            return Center(child: Text(t('no_ticker_items_found')));
-          }
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text(t('text'))),
-                DataColumn(label: Text(t('priority'))),
-                DataColumn(label: Text(t('active'))),
-                DataColumn(label: Text(t('linked_news'))),
-                DataColumn(label: Text(t('actions'))),
-              ],
-              rows: rows
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item.text)),
-                        DataCell(Text(item.priority.toString())),
-                        DataCell(Text(item.isActive ? t('yes') : t('no'))),
-                        DataCell(Text(item.linkedNewsId ?? t('na'))),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _openForm(current: item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _delete(item.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+          return DashboardSectionView(
+            title: t('ticker_news'),
+            actions: [
+              FilledButton.icon(
+                onPressed: () => _openForm(),
+                icon: const Icon(Icons.add),
+                label: Text(t('add_ticker_item')),
+              ),
+            ],
+            child: rows.isEmpty
+                ? DashboardEmptyState(
+                    icon: Icons.linear_scale,
+                    title: t('no_ticker_items_found'),
                   )
-                  .toList(),
-            ),
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      columns: [
+                        DataColumn(label: Text(t('text'))),
+                        DataColumn(label: Text(t('priority'))),
+                        DataColumn(label: Text(t('active'))),
+                        DataColumn(label: Text(t('linked_news'))),
+                        DataColumn(label: Text(t('actions'))),
+                      ],
+                      rows: rows
+                          .map(
+                            (item) => DataRow(
+                              cells: [
+                                DataCell(Text(item.text)),
+                                DataCell(Text(item.priority.toString())),
+                                DataCell(Text(item.isActive ? t('yes') : t('no'))),
+                                DataCell(Text(item.linkedNewsId ?? t('na'))),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: scheme.primary),
+                                        onPressed: () => _openForm(current: item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: scheme.error),
+                                        onPressed: () => _delete(item.id),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
           );
         },
       ),

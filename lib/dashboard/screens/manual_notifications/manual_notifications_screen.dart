@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/manual_notification.dart';
 import 'package:newsappjs/dashboard/services/manual_notifications_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class ManualNotificationsScreen extends StatefulWidget {
   const ManualNotificationsScreen({super.key});
@@ -63,6 +64,15 @@ class _ManualNotificationsScreenState extends State<ManualNotificationsScreen> {
             ),
             FilledButton(
               onPressed: () async {
+                if (titleController.text.trim().isEmpty || bodyController.text.trim().isEmpty) {
+                  if (!dialogContext.mounted) return;
+                  await DashboardDialogs.showError(
+                    dialogContext,
+                    t('please_fill_all_fields'),
+                  );
+                  return;
+                }
+
                 final item = ManualNotification(
                   id: current?.id ?? '',
                   title: titleController.text.trim(),
@@ -115,23 +125,18 @@ class _ManualNotificationsScreenState extends State<ManualNotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t('manual_notifications')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_alert),
-            onPressed: () => _openForm(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add_alert),
-        label: Text(t('add_manual_notification')),
-      ),
-      body: FutureBuilder<List<ManualNotification>>(
+    return DashboardSectionView(
+      title: t('manual_notifications'),
+      actions: [
+        FilledButton.icon(
+          onPressed: () => _openForm(),
+          icon: const Icon(Icons.add_alert),
+          label: Text(t('add_manual_notification')),
+        ),
+      ],
+      child: FutureBuilder<List<ManualNotification>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -142,45 +147,53 @@ class _ManualNotificationsScreenState extends State<ManualNotificationsScreen> {
           }
           final items = snapshot.data ?? [];
           if (items.isEmpty) {
-            return Center(child: Text(t('no_manual_notifications')));
+            return DashboardEmptyState(
+              title: t('no_manual_notifications'),
+              icon: Icons.notifications_off_outlined,
+            );
           }
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text(t('title'))),
-                DataColumn(label: Text(t('text'))),
-                DataColumn(label: Text(t('sent_date'))),
-                DataColumn(label: Text(t('view_count'))),
-                DataColumn(label: Text(t('actions'))),
-              ],
-              rows: items
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item.title)),
-                        DataCell(SizedBox(width: 420, child: Text(item.body))),
-                        DataCell(Text(item.sentAt.toString())),
-                        DataCell(Text(item.viewCount.toString())),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _openForm(current: item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _delete(item.id),
-                              ),
-                            ],
+          return DashboardSurfaceCard(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+                columns: [
+                  DataColumn(label: Text(t('title'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text(t('text'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text(t('sent_date'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text(t('view_count'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text(t('actions'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                ],
+                rows: items
+                    .map(
+                      (item) => DataRow(
+                        cells: [
+                          DataCell(Text(item.title)),
+                          DataCell(SizedBox(width: 420, child: Text(item.body))),
+                          DataCell(Text(item.sentAt.toString().split('.')[0])),
+                          DataCell(Text(item.viewCount.toString())),
+                          DataCell(
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.edit, color: scheme.primary),
+                                  onPressed: () => _openForm(current: item),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: scheme.error),
+                                  onPressed: () => _delete(item.id),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(),
+                        ],
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           );
         },

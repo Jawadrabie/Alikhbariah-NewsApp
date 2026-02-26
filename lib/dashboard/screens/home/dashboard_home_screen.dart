@@ -14,6 +14,34 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   final _supabase = Supabase.instance.client;
   late Future<Map<String, dynamic>> _future;
 
+  Future<int> _countRows(
+    String table, {
+    Map<String, dynamic>? equals,
+  }) async {
+    dynamic query = _supabase.from(table).select('id');
+
+    if (equals != null) {
+      for (final entry in equals.entries) {
+        query = query.eq(entry.key, entry.value);
+      }
+    }
+
+    final response = await query as List<dynamic>;
+    return response.length;
+  }
+
+  String _formatIsoTime(dynamic rawValue) {
+    final raw = (rawValue ?? '').toString();
+    if (raw.isEmpty) return '--:--';
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) return '--:--';
+    final local = parsed.toLocal();
+    final localizations = MaterialLocalizations.of(context);
+    final date = localizations.formatShortDate(local);
+    final time = localizations.formatTimeOfDay(TimeOfDay.fromDateTime(local));
+    return '$date $time';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -21,58 +49,63 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   }
 
   Future<Map<String, dynamic>> _load() async {
-    final news = await _supabase
-        .from('news')
-        .select('id,title,created_at,is_hidden')
-        .order('created_at', ascending: false)
-        .limit(5);
+    final results = await Future.wait<dynamic>([
+      _supabase
+          .from('news')
+          .select('id,title,created_at,is_hidden')
+          .order('created_at', ascending: false)
+          .limit(5),
+      _supabase
+          .from('breaking_news')
+          .select('id,title,start_time,end_time')
+          .order('created_at', ascending: false)
+          .limit(5),
+      _countRows('videos'),
+      _countRows('programs'),
+      _countRows('categories'),
+      _countRows('news'),
+      _countRows('news', equals: {'is_hidden': true}),
+      _countRows('news', equals: {'is_featured': true}),
+    ]);
 
-    final breaking = await _supabase
-        .from('breaking_news')
-        .select('id,title,start_time,end_time')
-        .order('created_at', ascending: false)
-        .limit(5);
-
-    final videos = await _supabase.from('videos').select('id');
-    final programs = await _supabase.from('programs').select('id');
-    final categories = await _supabase.from('categories').select('id');
-
-    final allNews = await _supabase.from('news').select('id,is_hidden,is_featured');
-    final hiddenCount = (allNews as List<dynamic>)
-        .where((e) => (e['is_hidden'] ?? false) == true)
-        .length;
-    final featuredCount = (allNews)
-        .where((e) => (e['is_featured'] ?? false) == true)
-        .length;
+    final latestNews = results[0] as List<dynamic>;
+    final latestBreaking = results[1] as List<dynamic>;
+    final videosCount = results[2] as int;
+    final programsCount = results[3] as int;
+    final categoriesCount = results[4] as int;
+    final newsCount = results[5] as int;
+    final hiddenCount = results[6] as int;
+    final featuredCount = results[7] as int;
 
     return {
-      'newsCount': (allNews).length,
+      'newsCount': newsCount,
       'hiddenNewsCount': hiddenCount,
       'featuredNewsCount': featuredCount,
-      'breakingCount': (breaking as List<dynamic>).length,
-      'videosCount': (videos as List<dynamic>).length,
-      'programsCount': (programs as List<dynamic>).length,
-      'categoriesCount': (categories as List<dynamic>).length,
-      'latestNews': news,
-      'latestBreaking': breaking,
+      'breakingCount': latestBreaking.length,
+      'videosCount': videosCount,
+      'programsCount': programsCount,
+      'categoriesCount': categoriesCount,
+      'latestNews': latestNews,
+      'latestBreaking': latestBreaking,
     };
   }
 
-  Widget _kpi(String title, String value, IconData icon, Color color) {
+  Widget _kpi(BuildContext context, String title, String value, IconData icon, Color color) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: 240, // consistent width for wrap
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04), // Softer shadow
+            color: scheme.shadow.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +116,7 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10), // Softer corners
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -93,17 +126,17 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
           const SizedBox(height: 20),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B), // Dark slate
+              color: scheme.onSurface,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             title,
             style: TextStyle(
-              color: Colors.grey[600],
+              color: scheme.onSurfaceVariant,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -118,9 +151,10 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // Let parent background show
+      backgroundColor: Colors.transparent,
       body: FutureBuilder<Map<String, dynamic>>(
         future: _future,
         builder: (context, snapshot) {
@@ -150,13 +184,13 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                   spacing: 20,
                   runSpacing: 20,
                   children: [
-                    _kpi(t('total_news'), '${data['newsCount'] ?? 0}', Icons.article, Colors.blue),
-                    _kpi(t('featured_news'), '${data['featuredNewsCount'] ?? 0}', Icons.star, Colors.amber),
-                    _kpi(t('hidden_news'), '${data['hiddenNewsCount'] ?? 0}', Icons.visibility_off, Colors.grey),
-                    _kpi(t('breaking_items'), '${data['breakingCount'] ?? 0}', Icons.flash_on, Colors.red),
-                    _kpi(t('videos'), '${data['videosCount'] ?? 0}', Icons.play_circle, Colors.deepPurple),
-                    _kpi(t('programs'), '${data['programsCount'] ?? 0}', Icons.tv, Colors.indigo),
-                    _kpi(t('categories'), '${data['categoriesCount'] ?? 0}', Icons.category, Colors.teal),
+                    _kpi(context, t('total_news'), '${data['newsCount'] ?? 0}', Icons.article, scheme.primary),
+                    _kpi(context, t('featured_news'), '${data['featuredNewsCount'] ?? 0}', Icons.star, scheme.tertiary),
+                    _kpi(context, t('hidden_news'), '${data['hiddenNewsCount'] ?? 0}', Icons.visibility_off, scheme.outline),
+                    _kpi(context, t('breaking_items'), '${data['breakingCount'] ?? 0}', Icons.flash_on, scheme.error),
+                    _kpi(context, t('videos'), '${data['videosCount'] ?? 0}', Icons.play_circle, scheme.secondary),
+                    _kpi(context, t('programs'), '${data['programsCount'] ?? 0}', Icons.tv, scheme.primaryContainer),
+                    _kpi(context, t('categories'), '${data['categoriesCount'] ?? 0}', Icons.category, scheme.tertiaryContainer),
                   ],
                 ),
                 const SizedBox(height: 48),
@@ -172,10 +206,10 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: scheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.newspaper, color: Colors.blue),
+                            child: Icon(Icons.newspaper, color: scheme.primary),
                           ),
                           title: Text(
                             (item['title'] ?? '').toString(),
@@ -185,12 +219,15 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                           ),
                           subtitle: Text(
                             (item['created_at'] ?? '').toString().split('T').first,
-                            style: TextStyle(color: Colors.grey[500]),
+                            style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
                           trailing: ((item['is_hidden'] ?? false) == true)
                               ? Chip(
-                                  label: Text(t('hidden'), style: const TextStyle(fontSize: 10, color: Colors.white)),
-                                  backgroundColor: Colors.grey,
+                                  label: Text(
+                                    t('hidden'),
+                                    style: TextStyle(fontSize: 10, color: scheme.onErrorContainer),
+                                  ),
+                                  backgroundColor: scheme.errorContainer,
                                   visualDensity: VisualDensity.compact,
                                   padding: EdgeInsets.zero,
                                 )
@@ -208,10 +245,10 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.1),
+                              color: scheme.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.flash_on, color: Colors.red),
+                            child: Icon(Icons.flash_on, color: scheme.error),
                           ),
                           title: Text(
                             (item['title'] ?? '').toString(),
@@ -221,9 +258,9 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                           ),
                           subtitle: Text(
                             t('from_to')
-                                .replaceFirst('{start}', (item['start_time'] ?? '').toString().substring(11, 16))
-                                .replaceFirst('{end}', (item['end_time'] ?? '').toString().substring(11, 16)),
-                            style: TextStyle(color: Colors.grey[500]),
+                                .replaceFirst('{start}', _formatIsoTime(item['start_time']))
+                                .replaceFirst('{end}', _formatIsoTime(item['end_time'])),
+                            style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
                         ),
                       ),
@@ -240,21 +277,22 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   }
 
   Widget _buildHeader(String Function(String) t) {
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           t('dashboard_overview'),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+            color: scheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          t('welcome_message') ?? 'Welcome back to the dashboard', // Add generic fallback
-          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          t('welcome_message'),
+          style: TextStyle(fontSize: 16, color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 24),
         Wrap(
@@ -263,8 +301,8 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
           children: [
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
-                foregroundColor: Colors.white,
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
@@ -274,8 +312,8 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
             ),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1E3A8A),
-                side: const BorderSide(color: Color(0xFF1E3A8A)),
+                foregroundColor: scheme.primary,
+                side: BorderSide(color: scheme.outline),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
@@ -290,18 +328,19 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   }
 
   Widget _buildRecentList(String title, List<dynamic> items, Widget Function(dynamic) itemBuilder) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: scheme.shadow.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,18 +349,18 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
             padding: const EdgeInsets.all(20),
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: scheme.onSurface,
               ),
             ),
           ),
-          const Divider(height: 1, color: Colors.black12),
+          Divider(height: 1, color: scheme.outlineVariant),
           if (items.isEmpty)
              Padding(
               padding: const EdgeInsets.all(32),
-              child: Center(child: Text('No items yet', style: TextStyle(color: Colors.grey[400]))),
+              child: Center(child: Text('No items yet', style: TextStyle(color: scheme.onSurfaceVariant))),
             )
           else
             ListView.separated(

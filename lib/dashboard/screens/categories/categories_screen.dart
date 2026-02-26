@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/category.dart';
 import 'package:newsappjs/dashboard/services/category_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -33,32 +34,55 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final slugController = TextEditingController(text: current?.slug ?? '');
     final orderController =
         TextEditingController(text: (current?.orderIndex ?? 0).toString());
+    String selectedType = current?.type ?? 'news';
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(current == null ? t('add_category') : t('edit_category')),
-          content: SizedBox(
-            width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(labelText: t('name')),
+          content: StatefulBuilder(
+            builder: (context, setLocalState) {
+              return SizedBox(
+                width: 420,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(labelText: t('name')),
+                    ),
+                    TextField(
+                      controller: slugController,
+                      decoration: InputDecoration(labelText: t('slug')),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedType,
+                      decoration: InputDecoration(labelText: t('category_type')),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'news',
+                          child: Text(t('category_type_news')),
+                        ),
+                        DropdownMenuItem(
+                          value: 'video',
+                          child: Text(t('category_type_video')),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setLocalState(() => selectedType = value);
+                      },
+                    ),
+                    TextField(
+                      controller: orderController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: t('order_index')),
+                    ),
+                  ],
                 ),
-                TextField(
-                  controller: slugController,
-                  decoration: InputDecoration(labelText: t('slug')),
-                ),
-                TextField(
-                  controller: orderController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: t('order_index')),
-                ),
-              ],
-            ),
+              );
+            },
           ),
           actions: [
             TextButton(
@@ -74,6 +98,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       ? null
                       : slugController.text.trim(),
                   orderIndex: int.tryParse(orderController.text.trim()) ?? 0,
+                  type: selectedType,
                 );
 
                 try {
@@ -119,22 +144,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t('categories')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openForm(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: Text(t('add_category')),
-      ),
       body: FutureBuilder<List<Category>>(
         future: _future,
         builder: (context, snapshot) {
@@ -146,45 +158,67 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           }
 
           final items = snapshot.data ?? [];
-          if (items.isEmpty) {
-            return Center(child: Text(t('no_categories_found')));
-          }
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text(t('name'))),
-                DataColumn(label: Text(t('slug'))),
-                DataColumn(label: Text(t('order'))),
-                DataColumn(label: Text(t('actions'))),
-              ],
-              rows: items
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item.name)),
-                        DataCell(Text(item.slug ?? t('na'))),
-                        DataCell(Text(item.orderIndex.toString())),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _openForm(current: item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _delete(item.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+          return DashboardSectionView(
+            title: t('categories'),
+            actions: [
+              FilledButton.icon(
+                onPressed: () => _openForm(),
+                icon: const Icon(Icons.add),
+                label: Text(t('add_category')),
+              ),
+            ],
+            child: items.isEmpty
+                ? DashboardEmptyState(
+                    icon: Icons.category_outlined,
+                    title: t('no_categories_found'),
                   )
-                  .toList(),
-            ),
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      columns: [
+                        DataColumn(label: Text(t('name'))),
+                        DataColumn(label: Text(t('slug'))),
+                        DataColumn(label: Text(t('category_type'))),
+                        DataColumn(label: Text(t('order'))),
+                        DataColumn(label: Text(t('actions'))),
+                      ],
+                      rows: items
+                          .map(
+                            (item) => DataRow(
+                              cells: [
+                                DataCell(Text(item.name)),
+                                DataCell(Text(item.slug ?? t('na'))),
+                                DataCell(
+                                  Text(
+                                    item.type == 'video'
+                                        ? t('category_type_video')
+                                        : t('category_type_news'),
+                                  ),
+                                ),
+                                DataCell(Text(item.orderIndex.toString())),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: scheme.primary),
+                                        onPressed: () => _openForm(current: item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: scheme.error),
+                                        onPressed: () => _delete(item.id),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
           );
         },
       ),

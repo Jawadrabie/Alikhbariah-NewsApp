@@ -5,11 +5,12 @@ import '../models/news_model.dart';
 class SupabaseService {
   SupabaseClient get _client => Supabase.instance.client;
 
-  // Fetch all categories (ordered by order_index)
-  Future<List<CategoryModel>> getCategories() async {
+  // Fetch categories by type (ordered by order_index)
+  Future<List<CategoryModel>> getCategories({String categoryType = 'news'}) async {
     final response = await _client
         .from('categories')
         .select()
+        .eq('type', categoryType)
         .order('order_index', ascending: true);
 
     final data = response as List<dynamic>;

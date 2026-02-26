@@ -35,17 +35,62 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  String _contentPreview(String htmlContent) {
+    final plain = htmlContent
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (plain.isEmpty) return '';
+    if (plain.length <= 110) return plain;
+    return '${plain.substring(0, 110)}...';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإخبارية السورية'),
+        title: Image.asset(
+          'assets/images/logo.webp',
+          height: 40,
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
+            onPressed: () {
+              setState(() {
+                _categoriesFuture = _supabaseService.getCategories();
+                _latestNewsFuture = _supabaseService.getLatestNews(limit: 5);
+              });
+            },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo.webp',
+                  height: 60,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('الرئيسية'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -143,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
-                          news.summary ?? '',
+                          _contentPreview(news.content),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/location.dart';
 import 'package:newsappjs/dashboard/services/location_service.dart';
+import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -111,22 +112,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
   @override
   Widget build(BuildContext context) {
     String t(String key) => DashboardI18n.t(context, key);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t('locations')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _openForm(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: Text(t('add_location')),
-      ),
       body: FutureBuilder<List<Location>>(
         future: _future,
         builder: (context, snapshot) {
@@ -138,43 +126,57 @@ class _LocationsScreenState extends State<LocationsScreen> {
           }
 
           final items = snapshot.data ?? [];
-          if (items.isEmpty) {
-            return Center(child: Text(t('no_locations_found')));
-          }
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text(t('name'))),
-                DataColumn(label: Text(t('slug'))),
-                DataColumn(label: Text(t('actions'))),
-              ],
-              rows: items
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item.name)),
-                        DataCell(Text(item.slug ?? t('na'))),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _openForm(current: item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _delete(item.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+          return DashboardSectionView(
+            title: t('locations'),
+            actions: [
+              FilledButton.icon(
+                onPressed: () => _openForm(),
+                icon: const Icon(Icons.add),
+                label: Text(t('add_location')),
+              ),
+            ],
+            child: items.isEmpty
+                ? DashboardEmptyState(
+                    icon: Icons.location_on_outlined,
+                    title: t('no_locations_found'),
                   )
-                  .toList(),
-            ),
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      columns: [
+                        DataColumn(label: Text(t('name'))),
+                        DataColumn(label: Text(t('slug'))),
+                        DataColumn(label: Text(t('actions'))),
+                      ],
+                      rows: items
+                          .map(
+                            (item) => DataRow(
+                              cells: [
+                                DataCell(Text(item.name)),
+                                DataCell(Text(item.slug ?? t('na'))),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: scheme.primary),
+                                        onPressed: () => _openForm(current: item),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: scheme.error),
+                                        onPressed: () => _delete(item.id),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
           );
         },
       ),

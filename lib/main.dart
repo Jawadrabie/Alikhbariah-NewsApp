@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:newsappjs/dashboard/router.dart';
 import 'package:newsappjs/dashboard/services/dashboard_preferences_service.dart';
+import 'package:newsappjs/core/services/local_cache_service.dart';
 import 'package:newsappjs/core/services/push_notification_service.dart';
 import 'package:newsappjs/core/settings/app_settings_controller.dart';
+import 'package:newsappjs/core/theme/dashboard_theme.dart';
 
 import 'app/app.dart';
 import 'core/config/app_env.dart';
@@ -14,6 +16,7 @@ import 'core/config/app_env.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  await LocalCacheService.instance.init();
 
   if (AppEnv.hasSupabaseConfig) {
     await Supabase.initialize(
@@ -54,18 +57,8 @@ class DashboardApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           themeMode: DashboardPreferencesService.instance.themeMode,
-          theme: ThemeData(
-            colorSchemeSeed: Colors.blue,
-            brightness: Brightness.light,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            colorSchemeSeed: Colors.blue,
-            brightness: Brightness.dark,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            useMaterial3: true,
-          ),
+          theme: DashboardTheme.light(),
+          darkTheme: DashboardTheme.dark(),
           routerConfig: DashboardRouter.router,
         );
       },

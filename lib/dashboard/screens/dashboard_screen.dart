@@ -7,13 +7,14 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Row(
         children: [
           const Sidebar(),
           Expanded(
             child: Container(
-              color: const Color(0xFFF1F5F9), // Light background for content area
+              color: scheme.surfaceContainerLowest,
               child: child,
             ),
           ),

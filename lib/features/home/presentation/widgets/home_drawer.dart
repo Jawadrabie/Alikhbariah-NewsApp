@@ -10,6 +10,7 @@ import '../../../media/presentation/screens/live_stream_screen.dart';
 import '../../../media/presentation/screens/programs_screen.dart';
 import '../../../media/presentation/screens/videos_screen.dart';
 import '../../../news/presentation/screens/saved_news_screen.dart';
+import '../../../user_reports/presentation/screens/user_report_submission_screen.dart';
 
 class HomeDrawer extends StatefulWidget {
   const HomeDrawer({super.key});
@@ -149,6 +150,13 @@ class _HomeDrawerState extends State<HomeDrawer> {
               leading: const Icon(Icons.newspaper_rounded),
               title: Text(l10n.latestNews),
               onTap: () => Navigator.of(context).pop(),
+            ),
+            const Divider(height: 28),
+            ListTile(
+              leading: const Icon(Icons.campaign_outlined),
+              title: Text(l10n.userReports),
+              subtitle: Text(l10n.userReportsDrawerSubtitle),
+              onTap: () => _openScreen(const UserReportSubmissionScreen()),
             ),
             const Divider(height: 28),
             SwitchListTile.adaptive(

@@ -41,7 +41,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final languageCode = Localizations.localeOf(context).languageCode.toLowerCase();
-    if (_currentLanguageCode == languageCode) {
+    if (_currentLanguageCode == languageCode && !_relatedLoading) {
       return;
     }
 

@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../../../../core/localization/l10n_extensions.dart';
-import '../controllers/in_app_video_controller.dart';
-import '../../data/models/program_model.dart';
 import '../../data/models/video_category_model.dart';
 import '../../data/models/video_item_model.dart';
 import '../../data/repositories/media_repository.dart';
+import 'media_episode_player_screen.dart';
 
 class VideosScreen extends StatefulWidget {
-  const VideosScreen({super.key, this.programId, this.programName});
+  const VideosScreen({
+    super.key,
+    this.programId,
+    this.programName,
+    this.categoryId,
+    this.categoryName,
+  });
 
   final int? programId;
   final String? programName;
+  final int? categoryId;
+  final String? categoryName;
 
   @override
   State<VideosScreen> createState() => _VideosScreenState();
@@ -21,39 +28,44 @@ class VideosScreen extends StatefulWidget {
 class _VideosScreenState extends State<VideosScreen> {
   final MediaRepository _repository = MediaRepository();
   late Future<List<VideoItemModel>> _videosFuture;
-  late Future<_VideosHomeData> _homeFuture;
+  late Future<List<VideoCategoryModel>> _categoriesFuture;
+  String _currentLanguageCode = 'ar';
+
+  bool get _isEpisodesMode => widget.programId != null || widget.categoryId != null;
 
   @override
   void initState() {
     super.initState();
-    if (widget.programId != null) {
-      _videosFuture = _repository.getVideos(programId: widget.programId);
-    } else {
-      _homeFuture = _loadHomeData();
-    }
+    _initializeFutures();
   }
 
-  Future<_VideosHomeData> _loadHomeData() async {
-    final categories = await _repository.getVideoCategories();
-    final programs = await _repository.getPrograms();
-
-    final videosByCategoryEntries = await Future.wait(
-      categories.map((category) async {
-        final videos = await _repository.getVideos(categoryId: category.id);
-        return MapEntry(category.id, videos);
-      }),
-    );
-
-    final videosByCategory = <int, List<VideoItemModel>>{};
-    for (final entry in videosByCategoryEntries) {
-      videosByCategory[entry.key] = entry.value;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextLanguage = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (_currentLanguageCode == nextLanguage) {
+      return;
     }
+    _currentLanguageCode = nextLanguage;
+    _initializeFutures();
+  }
 
-    return _VideosHomeData(
-      categories: categories,
-      programs: programs,
-      videosByCategory: videosByCategory,
-    );
+  void _initializeFutures() {
+    if (widget.programId != null) {
+      _videosFuture = _repository.getVideos(
+        languageCode: _currentLanguageCode,
+        programId: widget.programId,
+      );
+    } else if (widget.categoryId != null) {
+      _videosFuture = _repository.getVideos(
+        languageCode: _currentLanguageCode,
+        categoryId: widget.categoryId,
+      );
+    } else {
+      _categoriesFuture = _repository.getVideoCategories(
+        languageCode: _currentLanguageCode,
+      );
+    }
   }
 
   String _extractYoutubeId(String url) {
@@ -90,36 +102,26 @@ class _VideosScreenState extends State<VideosScreen> {
     return 'https://img.youtube.com/vi/$id/hqdefault.jpg';
   }
 
-  Future<void> _openVideo(VideoItemModel item) async {
-    final l10n = context.l10n;
-    final didStart = InAppVideoController.instance.play(
-      youtubeUrl: item.youtubeUrl,
-      title: item.title,
-    );
-
-    if (!didStart) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.failedOpenVideoLink)),
-      );
-      return;
-    }
-
+  String _episodesLabel(BuildContext context) {
+    final code = Localizations.localeOf(context).languageCode.toLowerCase();
+    return code == 'en' ? 'Episodes' : 'الحلقات';
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.programId != null) {
-      return _buildProgramEpisodesView(context);
+    if (_isEpisodesMode) {
+      return _buildEpisodesView(context);
     }
-    return _buildVideosHomeView(context);
+    return _buildCategoriesView(context);
   }
 
-  Widget _buildProgramEpisodesView(BuildContext context) {
+  Widget _buildEpisodesView(BuildContext context) {
     final l10n = context.l10n;
-    final title = widget.programName == null
+    final title = widget.categoryName != null
+      ? widget.categoryName!
+      : (widget.programName == null
         ? l10n.videos
-        : l10n.programEpisodes(widget.programName!);
+        : l10n.programEpisodes(widget.programName!));
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -139,22 +141,30 @@ class _VideosScreenState extends State<VideosScreen> {
             return Center(child: Text(l10n.noVideosNow));
           }
 
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
             itemCount: items.length,
-            itemBuilder: (context, index) => _buildVideoListTile(context, items[index]),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) => _buildEpisodeCard(
+              context: context,
+              item: items[index],
+              allItems: items,
+              index: index,
+              listTitle: title,
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildVideosHomeView(BuildContext context) {
+  Widget _buildCategoriesView(BuildContext context) {
     final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.videos)),
-      body: FutureBuilder<_VideosHomeData>(
-        future: _homeFuture,
+      body: FutureBuilder<List<VideoCategoryModel>>(
+        future: _categoriesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -164,186 +174,101 @@ class _VideosScreenState extends State<VideosScreen> {
             return Center(child: Text(l10n.failedLoadVideos(snapshot.error.toString())));
           }
 
-          final data = snapshot.data;
-          if (data == null) {
+          final categories = snapshot.data ?? const <VideoCategoryModel>[];
+          if (categories.isEmpty) {
             return Center(child: Text(l10n.noVideosNow));
           }
 
-          final sections = <Widget>[];
-
-          if (data.programs.isNotEmpty) {
-            sections
-              ..add(_buildSectionHeader(context, l10n.programs))
-              ..add(
-                SizedBox(
-                  height: 150,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: data.programs.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final program = data.programs[index];
-                      return _buildProgramCard(context, program);
-                    },
-                  ),
-                ),
-              )
-              ..add(const SizedBox(height: 8));
-          }
-
-          for (final category in data.categories) {
-            final videos = data.videosByCategory[category.id] ?? const <VideoItemModel>[];
-            if (videos.isEmpty) continue;
-
-            sections
-              ..add(_buildSectionHeader(context, category.name))
-              ..add(
-                SizedBox(
-                  height: 188,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: videos.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) => _buildVideoCard(videos[index]),
-                  ),
-                ),
-              )
-              ..add(const SizedBox(height: 8));
-          }
-
-          if (sections.isEmpty) {
-            return Center(child: Text(l10n.noVideosNow));
-          }
-
-          return ListView(children: sections);
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) => _buildCategoryCard(categories[index]),
+          );
         },
       ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-        textDirection: TextDirection.rtl,
-      ),
-    );
-  }
-
-  Widget _buildProgramCard(BuildContext context, ProgramModel program) {
-    return SizedBox(
-      width: 190,
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => VideosScreen(
-                  programId: program.id,
-                  programName: program.name,
-                ),
+  Widget _buildCategoryCard(VideoCategoryModel category) {
+    final direction = Directionality.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VideosScreen(
+                categoryId: category.id,
+                categoryName: category.name,
               ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      color: const Color(0xFFE5EBEF),
-                      width: double.infinity,
-                      child: program.imageUrl == null || program.imageUrl!.isEmpty
-                          ? const Icon(Icons.video_collection_rounded)
-                          : Image.network(
-                              program.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(Icons.video_collection_rounded),
-                            ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  program.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVideoCard(VideoItemModel item) {
-    final thumb = _thumbnailOf(item);
-    return SizedBox(
-      width: 230,
-      child: Card(
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => _openVideo(item),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          );
+        },
+        child: SizedBox(
+          height: 150,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    thumb.isEmpty
-                        ? Container(
-                            color: const Color(0xFFE5EBEF),
-                            child: const Icon(
-                              Icons.play_circle_fill_rounded,
-                              size: 34,
-                            ),
-                          )
-                        : Image.network(
-                            thumb,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFFE5EBEF),
-                              child: const Icon(
-                                Icons.play_circle_fill_rounded,
-                                size: 34,
-                              ),
-                            ),
-                          ),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.play_circle_fill_rounded,
-                        size: 42,
-                        color: Colors.white,
+              category.coverImageUrl == null || category.coverImageUrl!.isEmpty
+                  ? Container(
+                      color: const Color(0xFFE5EBEF),
+                      child: const Icon(
+                        Icons.video_library_rounded,
+                        size: 44,
+                        color: Color(0xFF4B5563),
+                      ),
+                    )
+                  : Image.network(
+                      category.coverImageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFFE5EBEF),
+                        child: const Icon(
+                          Icons.video_library_rounded,
+                          size: 44,
+                          color: Color(0xFF4B5563),
+                        ),
                       ),
                     ),
-                  ],
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x22000000), Color(0xA6000000)],
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+              Positioned(
+                right: 12,
+                left: 12,
+                bottom: 12,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        category.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textDirection: direction,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -353,7 +278,31 @@ class _VideosScreenState extends State<VideosScreen> {
     );
   }
 
-  Widget _buildVideoListTile(BuildContext context, VideoItemModel item) {
+  void _openEpisodePlayer({
+    required List<VideoItemModel> items,
+    required int initialIndex,
+    required String listTitle,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MediaEpisodePlayerScreen(
+          episodes: items,
+          initialIndex: initialIndex,
+          listTitle: listTitle,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEpisodeCard({
+    required BuildContext context,
+    required VideoItemModel item,
+    required List<VideoItemModel> allItems,
+    required int index,
+    required String listTitle,
+  }) {
+    final direction = Directionality.of(context);
     final localeName = Localizations.localeOf(context).toString();
     final thumb = _thumbnailOf(item);
     final date = intl
@@ -361,62 +310,70 @@ class _VideosScreenState extends State<VideosScreen> {
         .format(item.publishedAt ?? item.createdAt);
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => _openVideo(item),
+        onTap: () => _openEpisodePlayer(
+          items: allItems,
+          initialIndex: index,
+          listTitle: listTitle,
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  width: 110,
-                  height: 72,
+                  width: 132,
+                  height: 84,
                   color: const Color(0xFFE5EBEF),
                   child: thumb.isEmpty
                       ? const Icon(Icons.play_circle_fill_rounded)
-                      : Image.network(thumb, fit: BoxFit.cover),
+                      : Image.network(
+                          thumb,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.play_circle_fill_rounded),
+                        ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      '${_episodesLabel(context)} ${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
                       item.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      textDirection: TextDirection.rtl,
+                      textDirection: direction,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
                       date,
                       style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
-                      textDirection: TextDirection.rtl,
+                      textDirection: direction,
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.play_circle_fill_rounded, size: 20),
+              const SizedBox(width: 8),
+              const Icon(Icons.play_arrow_rounded, size: 24),
             ],
           ),
         ),
       ),
     );
   }
-}
-
-class _VideosHomeData {
-  final List<VideoCategoryModel> categories;
-  final List<ProgramModel> programs;
-  final Map<int, List<VideoItemModel>> videosByCategory;
-
-  const _VideosHomeData({
-    required this.categories,
-    required this.programs,
-    required this.videosByCategory,
-  });
 }

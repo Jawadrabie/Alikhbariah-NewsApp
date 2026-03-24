@@ -7,9 +7,8 @@ import '../../data/models/category_model.dart';
 import '../../data/models/featured_slider_settings_model.dart';
 import '../../data/models/news_model.dart';
 import '../../data/repositories/home_repository.dart';
-import '../../../media/data/models/video_item_model.dart';
+import '../../../media/data/models/video_category_model.dart';
 import '../../../media/data/repositories/media_repository.dart';
-import '../../../media/presentation/controllers/in_app_video_controller.dart';
 import '../../../media/presentation/screens/videos_screen.dart';
 import '../../../news/presentation/screens/saved_news_screen.dart';
 import '../widgets/breaking_ticker.dart';
@@ -33,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Future<List<CategoryModel>> _categoriesFuture;
   late Future<List<NewsModel>> _featuredFuture;
-  late Future<List<VideoItemModel>> _videosFuture;
+  late Future<List<VideoCategoryModel>> _videoCategoriesFuture;
   late Future<FeaturedSliderSettingsModel> _sliderSettingsFuture;
 
   List<NewsModel> _latestNews = const [];
@@ -109,15 +108,17 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // 3. Videos
-    final cachedVideos = _mediaRepository.getCachedVideos();
-    if (cachedVideos != null) {
-      _videosFuture = Future.value(cachedVideos);
-      _mediaRepository.getVideos(forceRefresh: true).then((fresh) {
-         if (mounted) setState(() => _videosFuture = Future.value(fresh));
+    // 3. Video categories
+    final cachedVideoCategories = _mediaRepository.getCachedVideoCategories();
+    if (cachedVideoCategories != null) {
+      _videoCategoriesFuture = Future.value(cachedVideoCategories);
+      _mediaRepository.getVideoCategories(forceRefresh: true).then((fresh) {
+         if (mounted) {
+           setState(() => _videoCategoriesFuture = Future.value(fresh));
+         }
       });
     } else {
-      _videosFuture = _mediaRepository.getVideos();
+      _videoCategoriesFuture = _mediaRepository.getVideoCategories();
     }
 
     // 4. Slider Settings
@@ -162,35 +163,6 @@ class _HomeScreenState extends State<HomeScreen> {
          setState(() => _breakingTitles = const []);
       }
     }
-  }
-
-  Future<void> _openVideo(VideoItemModel item) async {
-    final l10n = context.l10n;
-    final didStart = InAppVideoController.instance.play(
-      youtubeUrl: item.youtubeUrl,
-      title: item.title,
-    );
-
-    if (!didStart) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.failedOpenVideoLink)),
-      );
-      return;
-    }
-  }
-
-  String _thumbnailOf(VideoItemModel item) {
-    if (item.thumbnailUrl != null && item.thumbnailUrl!.isNotEmpty) {
-      return item.thumbnailUrl!;
-    }
-
-    final id = InAppVideoController.extractYoutubeId(item.youtubeUrl) ?? '';
-    if (id.isEmpty) {
-      return '';
-    }
-
-    return 'https://img.youtube.com/vi/$id/hqdefault.jpg';
   }
 
   Future<void> _loadInitialNews({bool forceRefresh = false, bool useCache = false}) async {
@@ -335,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
         limit: 5,
         forceRefresh: true,
       );
-      _videosFuture = _mediaRepository.getVideos(forceRefresh: true);
+      _videoCategoriesFuture = _mediaRepository.getVideoCategories(forceRefresh: true);
       _sliderSettingsFuture = _repository.getFeaturedSliderSettings(forceRefresh: true);
     });
 
@@ -349,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.wait<void>([
       _categoriesFuture.then((_) => null),
       _featuredFuture.then((_) => null),
-      _videosFuture.then((_) => null),
+      _videoCategoriesFuture.then((_) => null),
       _sliderSettingsFuture.then((_) => null),
     ]);
   }
@@ -425,7 +397,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView(
             controller: _scrollController,
             children: [
-            SectionTitle(title: l10n.categories),
             FutureBuilder<List<CategoryModel>>(
               future: _categoriesFuture,
               builder: (context, snapshot) {
@@ -464,7 +435,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
             if (_selectedCategoryId == null) ...[
-            SectionTitle(title: l10n.featuredNews),
             FutureBuilder<List<NewsModel>>(
               future: _featuredFuture,
               builder: (context, snapshot) {
@@ -516,32 +486,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const VideosScreen()),
-                      );
-                    },
-                    child: Text(l10n.viewAll),
-                  ),
                 ],
               ),
             ),
-            FutureBuilder<List<VideoItemModel>>(
-              future: _videosFuture,
+            FutureBuilder<List<VideoCategoryModel>>(
+              future: _videoCategoriesFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return SizedBox(
-                    height: 188,
+                    height: 120,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: 3,
                       separatorBuilder: (_, __) => const SizedBox(width: 12),
                       itemBuilder: (context, index) => const ShimmerLoading(
-                        width: 230,
-                        height: 188,
+                        width: 180,
+                        height: 120,
                         borderRadius: 14,
                       ),
                     ),
@@ -555,8 +516,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
 
-                final videos = (snapshot.data ?? const <VideoItemModel>[]).take(10).toList();
-                if (videos.isEmpty) {
+                final categories = snapshot.data ?? const <VideoCategoryModel>[];
+                if (categories.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(l10n.noVideosNow),
@@ -564,69 +525,90 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 return SizedBox(
-                  height: 188,
+                  height: 120,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: videos.length,
+                    itemCount: categories.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
-                      final item = videos[index];
-                      final thumbnail = _thumbnailOf(item);
+                      final item = categories[index];
+                      final hasCover =
+                          item.coverImageUrl != null && item.coverImageUrl!.isNotEmpty;
                       return SizedBox(
-                        width: 230,
+                        width: 180,
                         child: Card(
                           margin: EdgeInsets.zero,
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            onTap: () => _openVideo(item),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      thumbnail.isEmpty
-                                          ? Container(
-                                              color: const Color(0xFFE5EBEF),
-                                              child: const Icon(
-                                                Icons.play_circle_fill_rounded,
-                                                size: 34,
-                                              ),
-                                            )
-                                          : Image.network(
-                                              thumbnail,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Container(
-                                                color: const Color(0xFFE5EBEF),
-                                                child: const Icon(
-                                                  Icons.play_circle_fill_rounded,
-                                                  size: 34,
-                                                ),
-                                              ),
-                                            ),
-                                      const Align(
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.play_circle_fill_rounded,
-                                          size: 42,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => VideosScreen(
+                                    categoryId: item.id,
+                                    categoryName: item.name,
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    item.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    textDirection: TextDirection.rtl,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13,
+                              );
+                            },
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (hasCover)
+                                  Image.network(
+                                    item.coverImageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                      alignment: Alignment.center,
+                                      child: const Icon(
+                                        Icons.video_library_rounded,
+                                        size: 30,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.video_library_rounded,
+                                      size: 30,
+                                    ),
+                                  ),
+                                Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.black.withValues(alpha: 0.05),
+                                          Colors.black.withValues(alpha: 0.6),
+                                        ],
+                                      ),
+                                    ),
+                                    child: Text(
+                                      item.name,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      textDirection: TextDirection.rtl,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ),
                                 ),

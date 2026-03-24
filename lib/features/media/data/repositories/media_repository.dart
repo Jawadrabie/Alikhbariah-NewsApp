@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/services/local_cache_service.dart';
 import '../models/live_stream_model.dart';
-import '../models/program_model.dart';
 import '../models/video_category_model.dart';
 import '../models/video_item_model.dart';
 
@@ -10,123 +9,122 @@ class MediaRepository {
   SupabaseClient get _client => Supabase.instance.client;
   final LocalCacheService _cache = LocalCacheService.instance;
 
-  static const Duration _programsCacheTtl = Duration(hours: 2);
   static const Duration _videoCategoriesCacheTtl = Duration(hours: 2);
   static const Duration _videosCacheTtl = Duration(minutes: 15);
   static const Duration _liveCacheTtl = Duration(minutes: 2);
 
   // --- Synchronous Getters ---
 
-  List<ProgramModel>? getCachedPrograms() {
-    const cacheKey = 'media_programs';
+  List<VideoCategoryModel>? getCachedVideoCategories({String languageCode = 'ar'}) {
+    final normalizedLanguage = languageCode.toLowerCase();
+    final cacheKey = 'media_video_categories_$normalizedLanguage';
     final cached = _cache.readListSync(cacheKey);
     if (cached != null) {
-      return cached.data.map(ProgramModel.fromJson).toList();
+      return cached.data
+          .map((e) => VideoCategoryModel.fromJson(e, languageCode: normalizedLanguage))
+          .toList();
     }
     return null;
   }
 
-  List<VideoCategoryModel>? getCachedVideoCategories() {
-    const cacheKey = 'media_video_categories';
+  List<VideoItemModel>? getCachedVideos({
+    String languageCode = 'ar',
+    int? programId,
+    int? categoryId,
+  }) {
+    final normalizedLanguage = languageCode.toLowerCase();
+    final effectiveCategoryId = categoryId ?? programId;
+    final cacheKey = 'media_videos_${normalizedLanguage}_${effectiveCategoryId ?? 'all'}';
     final cached = _cache.readListSync(cacheKey);
     if (cached != null) {
-      return cached.data.map((e) => VideoCategoryModel.fromJson(e)).toList();
-    }
-    return null;
-  }
-
-  List<VideoItemModel>? getCachedVideos({int? programId, int? categoryId}) {
-    final cacheKey = 'media_videos_${programId ?? 'all'}_${categoryId ?? 'all'}';
-    final cached = _cache.readListSync(cacheKey);
-    if (cached != null) {
-      return cached.data.map((e) => VideoItemModel.fromJson(e)).toList();
+      return cached.data
+          .map((e) => VideoItemModel.fromJson(e, languageCode: normalizedLanguage))
+          .toList();
     }
     return null;
   }
 
   // --- End Synchronous Getters ---
 
-  Future<List<ProgramModel>> getPrograms({bool forceRefresh = false}) async {
-    const cacheKey = 'media_programs';
-    final cached = await _cache.readList(cacheKey);
-    final hasFreshCache = !forceRefresh &&
-        cached != null &&
-        DateTime.now().difference(cached.cachedAt) < _programsCacheTtl;
-    if (hasFreshCache) {
-      return cached.data.map(ProgramModel.fromJson).toList();
-    }
-
-    try {
-      final response = await _client
-          .from('programs')
-          .select('id,name,description,image_url,order_index')
-          .eq('is_active', true)
-          .order('order_index', ascending: true)
-          .order('created_at', ascending: false);
-
-      final rows = _toMapList(response);
-      await _cache.writeList(cacheKey, rows);
-      return rows.map(ProgramModel.fromJson).toList();
-    } catch (_) {
-      if (cached != null) {
-        return cached.data.map(ProgramModel.fromJson).toList();
-      }
-      rethrow;
-    }
-  }
-
-  Future<List<VideoCategoryModel>> getVideoCategories({bool forceRefresh = false}) async {
-    const cacheKey = 'media_video_categories';
+  Future<List<VideoCategoryModel>> getVideoCategories({
+    String languageCode = 'ar',
+    String categoryType = 'video',
+    bool forceRefresh = false,
+  }) async {
+    final normalizedLanguage = languageCode.toLowerCase();
+    final cacheKey = 'media_${categoryType}_categories_$normalizedLanguage';
     final cached = await _cache.readList(cacheKey);
     final hasFreshCache = !forceRefresh &&
         cached != null &&
         DateTime.now().difference(cached.cachedAt) < _videoCategoriesCacheTtl;
     if (hasFreshCache) {
-      return cached.data.map(VideoCategoryModel.fromJson).toList();
+      return cached.data
+          .map((row) => VideoCategoryModel.fromJson(row, languageCode: normalizedLanguage))
+          .toList();
     }
 
     try {
-      final response = await _client
-          .from('categories')
-          .select('id,name,slug,order_index')
-          .eq('type', 'video')
-          .order('order_index', ascending: true);
+      dynamic response;
+      try {
+        response = await _client
+            .from('categories')
+            .select('id,name,name_en,slug,cover_image_url,order_index')
+            .eq('type', categoryType)
+            .order('order_index', ascending: true);
+      } catch (e) {
+        final text = e.toString();
+        final missingCoverColumn =
+            text.contains('cover_image_url') && text.contains('42703');
+        if (!missingCoverColumn) rethrow;
+
+        response = await _client
+            .from('categories')
+            .select('id,name,name_en,slug,order_index')
+            .eq('type', categoryType)
+            .order('order_index', ascending: true);
+      }
 
       final rows = _toMapList(response);
       await _cache.writeList(cacheKey, rows);
-      return rows.map(VideoCategoryModel.fromJson).toList();
+      return rows
+          .map((row) => VideoCategoryModel.fromJson(row, languageCode: normalizedLanguage))
+          .toList();
     } catch (_) {
       if (cached != null) {
-        return cached.data.map(VideoCategoryModel.fromJson).toList();
+        return cached.data
+            .map((row) => VideoCategoryModel.fromJson(row, languageCode: normalizedLanguage))
+            .toList();
       }
       rethrow;
     }
   }
 
   Future<List<VideoItemModel>> getVideos({
+    String languageCode = 'ar',
     int? programId,
     int? categoryId,
     bool forceRefresh = false,
   }) async {
-    final cacheKey = 'media_videos_${programId ?? 'all'}_${categoryId ?? 'all'}';
+    final effectiveCategoryId = categoryId ?? programId;
+    final normalizedLanguage = languageCode.toLowerCase();
+    final cacheKey = 'media_videos_${normalizedLanguage}_${effectiveCategoryId ?? 'all'}';
     final cached = await _cache.readList(cacheKey);
     final hasFreshCache = !forceRefresh &&
         cached != null &&
         DateTime.now().difference(cached.cachedAt) < _videosCacheTtl;
     if (hasFreshCache) {
-      return cached.data.map(VideoItemModel.fromJson).toList();
+      return cached.data
+          .map((row) => VideoItemModel.fromJson(row, languageCode: normalizedLanguage))
+          .toList();
     }
 
-    final query = _client
+    dynamic query = _client
         .from('videos')
-        .select('id,title,youtube_url,program_id,category_id,thumbnail_url,published_at,created_at')
+        .select('id,title,title_en,youtube_url,category_id,thumbnail_url,published_at,created_at')
         .eq('is_hidden', false);
 
-    if (programId != null) {
-      query.eq('program_id', programId);
-    }
-    if (categoryId != null) {
-      query.eq('category_id', categoryId);
+    if (effectiveCategoryId != null) {
+      query = query.eq('category_id', effectiveCategoryId);
     }
 
     try {
@@ -136,17 +134,25 @@ class MediaRepository {
 
       final rows = _toMapList(response);
       await _cache.writeList(cacheKey, rows);
-      return rows.map(VideoItemModel.fromJson).toList();
+      return rows
+          .map((row) => VideoItemModel.fromJson(row, languageCode: normalizedLanguage))
+          .toList();
     } catch (_) {
       if (cached != null) {
-        return cached.data.map(VideoItemModel.fromJson).toList();
+        return cached.data
+            .map((row) => VideoItemModel.fromJson(row, languageCode: normalizedLanguage))
+            .toList();
       }
       rethrow;
     }
   }
 
-  Future<LiveStreamModel?> getActiveLiveStream({bool forceRefresh = false}) async {
-    const cacheKey = 'media_live_stream';
+  Future<LiveStreamModel?> getActiveLiveStream({
+    String languageCode = 'ar',
+    bool forceRefresh = false,
+  }) async {
+    final normalizedLanguage = languageCode.toLowerCase();
+    final cacheKey = 'media_live_stream_$normalizedLanguage';
     final cached = await _cache.readMap(cacheKey);
     final hasFreshCache = !forceRefresh &&
         cached != null &&
@@ -158,7 +164,10 @@ class MediaRepository {
       }
       final row = cachedData['row'];
       if (row is Map) {
-        return LiveStreamModel.fromJson(Map<String, dynamic>.from(row));
+        return LiveStreamModel.fromJson(
+          Map<String, dynamic>.from(row),
+          languageCode: normalizedLanguage,
+        );
       }
     }
 
@@ -178,7 +187,7 @@ class MediaRepository {
 
       final row = rows.first;
       await _cache.writeMap(cacheKey, {'has_data': true, 'row': row});
-      return LiveStreamModel.fromJson(row);
+      return LiveStreamModel.fromJson(row, languageCode: normalizedLanguage);
     } catch (_) {
       if (cached != null) {
         final cachedData = cached.data;
@@ -187,7 +196,10 @@ class MediaRepository {
         }
         final row = cachedData['row'];
         if (row is Map) {
-          return LiveStreamModel.fromJson(Map<String, dynamic>.from(row));
+          return LiveStreamModel.fromJson(
+            Map<String, dynamic>.from(row),
+            languageCode: normalizedLanguage,
+          );
         }
       }
       rethrow;

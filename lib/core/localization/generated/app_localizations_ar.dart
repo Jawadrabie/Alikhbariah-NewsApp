@@ -234,7 +234,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryNews => 'خبر';
 
   @override
-  String get allCategories => 'الكل';
+  String get allCategories => 'الرئيسية';
 
   @override
   String get noCategoriesAvailable => 'لا توجد تصنيفات';
@@ -256,4 +256,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get openLinkFailed => 'تعذر فتح الرابط';
+
+  @override
+  String get userReports => 'تقارير المستخدمين';
+
+  @override
+  String get userReportsDrawerSubtitle => 'إرسال بلاغ أو معلومة تصل مباشرة إلى الداشبورد';
+
+  @override
+  String get reportName => 'الاسم (اختياري)';
+
+  @override
+  String get reportPhone => 'رقم الهاتف (اختياري)';
+
+  @override
+  String get reportMessage => 'نص التقرير';
+
+  @override
+  String get reportMessageHint => 'اكتب تفاصيل البلاغ هنا...';
+
+  @override
+  String get sendReport => 'إرسال التقرير';
+
+  @override
+  String get reportMessageRequired => 'يرجى كتابة نص التقرير';
+
+  @override
+  String get reportSentSuccessfully => 'تم إرسال التقرير بنجاح';
+
+  @override
+  String get reportSendFailed => 'تعذر إرسال التقرير';
+
+  @override
+  String get reportAttachImage => 'إرفاق صورة';
+
+  @override
+  String get reportAttachmentUploaded => 'تم رفع المرفق بنجاح';
+
+  @override
+  String get reportAttachmentReady => 'تم إرفاق صورة وسيتم إرسالها مع التقرير';
+
+  @override
+  String get reportAttachmentUploadFailed => 'تعذر رفع المرفق';
+
+  @override
+  String get reportAttachmentTooLarge => 'حجم المرفق كبير جداً (الحد الأقصى 8MB)';
 }

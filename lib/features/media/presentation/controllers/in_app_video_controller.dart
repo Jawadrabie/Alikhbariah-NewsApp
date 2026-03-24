@@ -71,7 +71,7 @@ class InAppVideoController extends ChangeNotifier {
 
   Uri _embedUriFor(String videoId) {
     return Uri.parse(
-      'https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=1&fs=1&iv_load_policy=3',
+      'https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0&fs=0&disablekb=1&iv_load_policy=3',
     );
   }
 

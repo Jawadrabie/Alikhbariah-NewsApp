@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
@@ -18,13 +17,12 @@ class LiveStreamScreen extends StatefulWidget {
 class _LiveStreamScreenState extends State<LiveStreamScreen> {
   final MediaRepository _repository = MediaRepository();
   String? _autoStartedUrl;
+  String _currentLanguageCode = 'ar';
 
-  Future<void> _shareLive(String title, String url) async {
-    await SharePlus.instance.share(
-      ShareParams(
-        text: '$title\n\n$url',
-      ),
-    );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _currentLanguageCode = Localizations.localeOf(context).languageCode.toLowerCase();
   }
 
   Future<void> _openInlineLive({required String url, required String title}) async {
@@ -75,7 +73,7 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.liveStream)),
       body: FutureBuilder(
-        future: _repository.getActiveLiveStream(),
+        future: _repository.getActiveLiveStream(languageCode: _currentLanguageCode),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -113,71 +111,103 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                           child: Text(
                             title,
                             textAlign: TextAlign.center,
-                            textDirection: TextDirection.rtl,
+                            textDirection: Directionality.of(context),
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
                           ),
-                        ),
-                        PopupMenuButton<String>(
-                          icon: const Icon(Icons.share_rounded),
-                          onSelected: (value) async {
-                            if (value == 'share') {
-                              await _shareLive(title, stream.youtubeUrl);
-                            }
-                          },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem<String>(
-                              value: 'share',
-                              child: Text('مشاركة البث'),
-                            ),
-                          ],
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 12),
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Stack(
-                      fit: StackFit.expand,
+                  Material(
+                    elevation: 2,
+                    color: Theme.of(context).colorScheme.surface,
+                    shadowColor: Colors.black26,
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (playerController != null)
-                          _buildPlayer(playerController)
-                        else
-                          const Center(child: CircularProgressIndicator()),
-                        if (playerState.hasPlaybackError)
-                          Container(
-                            color: Colors.black54,
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.all(16),
-                            child: Text(
-                              playerState.playbackErrorMessage,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                        AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (playerController != null)
+                                _buildPlayer(playerController)
+                              else
+                                const Center(child: CircularProgressIndicator()),
+                              if (playerState.hasPlaybackError)
+                                Container(
+                                  color: Colors.black54,
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(
+                                    playerState.playbackErrorMessage,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                            ],
                           ),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: IconButton(
-                            icon: const Icon(Icons.picture_in_picture_alt_rounded),
-                            color: Colors.white,
-                            onPressed: playerState.minimize,
+                        ),
+                        Container(
+                          color: Colors.black87,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Material(
+                                color: Colors.transparent,
+                                child: IconButton(
+                                  icon: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white),
+                                  tooltip: 'عرض',
+                                  onPressed: playerState.minimize,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 34,
+                                    minHeight: 34,
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Material(
+                                color: Colors.transparent,
+                                child: IconButton(
+                                  icon: const Icon(Icons.open_in_full_rounded, color: Colors.white),
+                                  tooltip: 'تكبير',
+                                  onPressed: playerState.showFullscreen,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 34,
+                                    minHeight: 34,
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      stream.fallbackMessage?.isNotEmpty == true
-                          ? stream.fallbackMessage!
-                          : l10n.defaultLiveMessage,
-                      textAlign: TextAlign.center,
-                      textDirection: TextDirection.rtl,
+                  const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              stream.fallbackMessage?.isNotEmpty == true
+                                  ? stream.fallbackMessage!
+                                  : l10n.defaultLiveMessage,
+                              textAlign: TextAlign.center,
+                              textDirection: Directionality.of(context),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  const SizedBox(height: 12),
                 ],
               );
             },

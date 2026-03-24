@@ -19,6 +19,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         centerTitle: false,
         elevation: 0,
+        toolbarHeight: 48,
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -48,6 +49,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         centerTitle: false,
         elevation: 0,
+        toolbarHeight: 48,
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF1E293B),

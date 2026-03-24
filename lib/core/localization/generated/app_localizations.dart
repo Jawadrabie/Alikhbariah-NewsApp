@@ -416,7 +416,7 @@ abstract class AppLocalizations {
   /// No description provided for @allCategories.
   ///
   /// In ar, this message translates to:
-  /// **'الكل'**
+  /// **'الرئيسية'**
   String get allCategories;
 
   /// No description provided for @noCategoriesAvailable.
@@ -460,6 +460,96 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذر فتح الرابط'**
   String get openLinkFailed;
+
+  /// No description provided for @userReports.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقارير المستخدمين'**
+  String get userReports;
+
+  /// No description provided for @userReportsDrawerSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال بلاغ أو معلومة تصل مباشرة إلى الداشبورد'**
+  String get userReportsDrawerSubtitle;
+
+  /// No description provided for @reportName.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم (اختياري)'**
+  String get reportName;
+
+  /// No description provided for @reportPhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم الهاتف (اختياري)'**
+  String get reportPhone;
+
+  /// No description provided for @reportMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'نص التقرير'**
+  String get reportMessage;
+
+  /// No description provided for @reportMessageHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتب تفاصيل البلاغ هنا...'**
+  String get reportMessageHint;
+
+  /// No description provided for @sendReport.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرسال التقرير'**
+  String get sendReport;
+
+  /// No description provided for @reportMessageRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'يرجى كتابة نص التقرير'**
+  String get reportMessageRequired;
+
+  /// No description provided for @reportSentSuccessfully.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إرسال التقرير بنجاح'**
+  String get reportSentSuccessfully;
+
+  /// No description provided for @reportSendFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر إرسال التقرير'**
+  String get reportSendFailed;
+
+  /// No description provided for @reportAttachImage.
+  ///
+  /// In ar, this message translates to:
+  /// **'إرفاق صورة'**
+  String get reportAttachImage;
+
+  /// No description provided for @reportAttachmentUploaded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم رفع المرفق بنجاح'**
+  String get reportAttachmentUploaded;
+
+  /// No description provided for @reportAttachmentReady.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إرفاق صورة وسيتم إرسالها مع التقرير'**
+  String get reportAttachmentReady;
+
+  /// No description provided for @reportAttachmentUploadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر رفع المرفق'**
+  String get reportAttachmentUploadFailed;
+
+  /// No description provided for @reportAttachmentTooLarge.
+  ///
+  /// In ar, this message translates to:
+  /// **'حجم المرفق كبير جداً (الحد الأقصى 8MB)'**
+  String get reportAttachmentTooLarge;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

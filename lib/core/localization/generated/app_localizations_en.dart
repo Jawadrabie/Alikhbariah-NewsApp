@@ -222,7 +222,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryNews => 'News';
 
   @override
-  String get allCategories => 'All';
+  String get allCategories => 'Home';
 
   @override
   String get noCategoriesAvailable => 'No categories available';
@@ -244,4 +244,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openLinkFailed => 'Failed to open link';
+
+  @override
+  String get userReports => 'User Reports';
+
+  @override
+  String get userReportsDrawerSubtitle => 'Send a report that appears directly in the dashboard';
+
+  @override
+  String get reportName => 'Name (optional)';
+
+  @override
+  String get reportPhone => 'Phone (optional)';
+
+  @override
+  String get reportMessage => 'Report message';
+
+  @override
+  String get reportMessageHint => 'Write your report details here...';
+
+  @override
+  String get sendReport => 'Send report';
+
+  @override
+  String get reportMessageRequired => 'Please enter report message';
+
+  @override
+  String get reportSentSuccessfully => 'Report sent successfully';
+
+  @override
+  String get reportSendFailed => 'Failed to send report';
+
+  @override
+  String get reportAttachImage => 'Attach image';
+
+  @override
+  String get reportAttachmentUploaded => 'Attachment uploaded successfully';
+
+  @override
+  String get reportAttachmentReady => 'Image attached and will be sent with your report';
+
+  @override
+  String get reportAttachmentUploadFailed => 'Failed to upload attachment';
+
+  @override
+  String get reportAttachmentTooLarge => 'Attachment is too large (max 8MB)';
 }

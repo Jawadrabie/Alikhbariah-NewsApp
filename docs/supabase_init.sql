@@ -65,15 +65,6 @@ create table if not exists public.breaking_news (
   constraint breaking_news_time_check check (end_time >= start_time)
 );
 
-create table if not exists public.ticker_news (
-  id bigint generated always as identity primary key,
-  text text not null,
-  priority integer not null default 0,
-  linked_news_id bigint null references public.news(id) on delete set null,
-  is_active boolean not null default true,
-  created_at timestamptz not null default now()
-);
-
 create table if not exists public.live_stream (
   id bigint generated always as identity primary key,
   broadcast_title text null,
@@ -125,7 +116,6 @@ create index if not exists idx_news_created_at on public.news(created_at desc);
 create index if not exists idx_news_category_created on public.news(category_id, created_at desc);
 create index if not exists idx_news_featured_created on public.news(is_featured, created_at desc);
 create index if not exists idx_breaking_news_time on public.breaking_news(start_time, end_time);
-create index if not exists idx_ticker_news_active on public.ticker_news(is_active, created_at desc);
 create index if not exists idx_videos_created_at on public.videos(created_at desc);
 create index if not exists idx_videos_program_order on public.videos(program_id, order_index);
 create index if not exists idx_programs_order_active on public.programs(order_index, is_active);
@@ -157,7 +147,6 @@ alter table public.locations enable row level security;
 alter table public.news enable row level security;
 alter table public.manual_notifications_log enable row level security;
 alter table public.breaking_news enable row level security;
-alter table public.ticker_news enable row level security;
 alter table public.live_stream enable row level security;
 alter table public.videos enable row level security;
 alter table public.programs enable row level security;
@@ -201,12 +190,6 @@ using (
   is_active = true
   and now() between start_time and end_time
 );
-
-drop policy if exists ticker_news_public_read on public.ticker_news;
-create policy ticker_news_public_read on public.ticker_news
-for select
-to anon, authenticated
-using (is_active = true);
 
 drop policy if exists live_stream_public_read on public.live_stream;
 create policy live_stream_public_read on public.live_stream
@@ -273,13 +256,6 @@ with check (public.is_admin_user());
 
 drop policy if exists breaking_news_admin_all on public.breaking_news;
 create policy breaking_news_admin_all on public.breaking_news
-for all
-to authenticated
-using (public.is_admin_user())
-with check (public.is_admin_user());
-
-drop policy if exists ticker_news_admin_all on public.ticker_news;
-create policy ticker_news_admin_all on public.ticker_news
 for all
 to authenticated
 using (public.is_admin_user())

@@ -1,4 +1,4 @@
--- Add bilingual columns for automatic translation support
+-- Add bilingual columns for manual Arabic/English entry in dashboard
 -- Run this once in Supabase SQL Editor
 
 begin;

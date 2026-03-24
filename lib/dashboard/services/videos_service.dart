@@ -12,11 +12,12 @@ class VideosService {
           .from('videos')
           .select();
 
-      if (programId != null && programId.isNotEmpty) {
-        query = query.eq('program_id', _idValue(programId));
-      }
       if (categoryId != null && categoryId.isNotEmpty) {
         query = query.eq('category_id', _idValue(categoryId));
+      } else if (programId != null && programId.isNotEmpty) {
+        // Support legacy programId parameter for backward compatibility
+        // In new model, programs are categories with type='program', so use programId as categoryId
+        query = query.eq('category_id', _idValue(programId));
       }
 
       final response = await query.order('created_at', ascending: false);
@@ -33,7 +34,9 @@ class VideosService {
 
   Future<void> createVideo(VideoItem video) async {
     try {
-      final data = Map<String, dynamic>.from(video.toJson())..remove('id');
+      final data = Map<String, dynamic>.from(video.toJson())
+        ..remove('id')
+        ..remove('program_id');
       await _supabase.from('videos').insert(data);
     } catch (e) {
       debugPrint('Error creating video: $e');
@@ -43,7 +46,9 @@ class VideosService {
 
   Future<void> updateVideo(VideoItem video) async {
     try {
-      final data = Map<String, dynamic>.from(video.toJson())..remove('id');
+      final data = Map<String, dynamic>.from(video.toJson())
+        ..remove('id')
+        ..remove('program_id');
       await _supabase.from('videos').update(data).eq('id', _idValue(video.id));
     } catch (e) {
       debugPrint('Error updating video: $e');

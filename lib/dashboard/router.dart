@@ -16,7 +16,6 @@ import 'package:newsappjs/dashboard/screens/main_news/main_news_screen.dart';
 import 'package:newsappjs/dashboard/screens/manual_notifications/manual_notifications_screen.dart';
 import 'package:newsappjs/dashboard/screens/programs/programs_screen.dart';
 import 'package:newsappjs/dashboard/screens/settings/settings_screen.dart';
-import 'package:newsappjs/dashboard/screens/ticker_news/ticker_news_screen.dart';
 import 'package:newsappjs/dashboard/screens/user_reports/user_reports_screen.dart';
 import 'package:newsappjs/dashboard/screens/videos/videos_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -83,10 +82,6 @@ class DashboardRouter {
             ],
           ),
           GoRoute(
-            path: '/dashboard/ticker-news',
-            builder: (context, state) => const TickerNewsScreen(),
-          ),
-          GoRoute(
             path: '/dashboard/live-stream',
             builder: (context, state) => const LiveStreamScreen(),
           ),
@@ -94,9 +89,17 @@ class DashboardRouter {
             path: '/dashboard/videos',
             builder: (context, state) {
               final data = state.extra as Map<String, dynamic>?;
+
+              String? asString(dynamic v) {
+                if (v == null) return null;
+                return v.toString();
+              }
+
               return VideosScreen(
-                programId: data?['programId'] as String?,
-                programName: data?['programName'] as String?,
+                programId: asString(data?['programId']),
+                programName: asString(data?['programName']),
+                categoryId: asString(data?['categoryId']),
+                categoryName: asString(data?['categoryName']),
               );
             },
           ),
@@ -106,7 +109,14 @@ class DashboardRouter {
           ),
           GoRoute(
             path: '/dashboard/categories',
-            builder: (context, state) => const CategoriesScreen(),
+            builder: (context, state) {
+              final data = state.extra as Map<String, dynamic>?;
+              final presetType = data?['presetCategoryType'] as String?;
+              return CategoriesScreen(
+                autoOpenCreateForm: data?['autoOpenCreateForm'] == true,
+                presetCategoryType: presetType,
+              );
+            },
           ),
           GoRoute(
             path: '/dashboard/locations',

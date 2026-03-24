@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/live_stream.dart';
 import 'package:newsappjs/dashboard/services/live_stream_service.dart';
+import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class LiveStreamScreen extends StatefulWidget {
@@ -16,7 +17,9 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   final _service = LiveStreamService();
   final _urlController = TextEditingController();
   final _titleController = TextEditingController();
+  final _titleEnController = TextEditingController();
   final _fallbackController = TextEditingController();
+  final _fallbackEnController = TextEditingController();
   bool _isActive = false;
   bool _loading = true;
   String? _id;
@@ -34,7 +37,9 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
       _id = data?.id;
       _urlController.text = data?.youtubeUrl ?? '';
       _titleController.text = data?.broadcastTitle ?? '';
+      _titleEnController.text = data?.broadcastTitleEn ?? '';
       _fallbackController.text = data?.fallbackMessage ?? '';
+      _fallbackEnController.text = data?.fallbackMessageEn ?? '';
       _isActive = data?.isActive ?? false;
       _loading = false;
     });
@@ -47,7 +52,9 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
       youtubeUrl: _urlController.text.trim(),
       isActive: _isActive,
       broadcastTitle: _titleController.text.trim(),
+      broadcastTitleEn: _titleEnController.text.trim(),
       fallbackMessage: _fallbackController.text.trim(),
+      fallbackMessageEn: _fallbackEnController.text.trim(),
     );
     try {
       await _service.upsertLiveStream(stream);
@@ -67,7 +74,9 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   void dispose() {
     _urlController.dispose();
     _titleController.dispose();
+    _titleEnController.dispose();
     _fallbackController.dispose();
+    _fallbackEnController.dispose();
     super.dispose();
   }
 
@@ -108,70 +117,48 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              TextField(
+              CustomTextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: t('broadcast_title'),
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.title),
-                ),
+                labelText: t('broadcast_title_ar'),
+                prefixIcon: const Icon(Icons.title),
               ),
               const SizedBox(height: 16),
-              TextField(
+              CustomTextField(
+                controller: _titleEnController,
+                labelText: t('broadcast_title_en'),
+                prefixIcon: const Icon(Icons.title),
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
                 controller: _urlController,
-                decoration: InputDecoration(
-                  labelText: t('youtube_url'),
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.link),
-                  hintText: 'https://www.youtube.com/watch?v=...',
-                ),
+                labelText: t('youtube_url'),
+                prefixIcon: const Icon(Icons.link),
+                hintText: 'https://www.youtube.com/watch?v=...',
               ),
               const SizedBox(height: 16),
-              TextField(
+              CustomTextField(
                 controller: _fallbackController,
                 maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: t('fallback_message'),
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.message_outlined),
-                  alignLabelWithHint: true,
-                ),
+                labelText: t('fallback_message_ar'),
+                prefixIcon: const Icon(Icons.message_outlined),
+                alignLabelWithHint: true,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _fallbackEnController,
+                maxLines: 3,
+                labelText: t('fallback_message_en'),
+                prefixIcon: const Icon(Icons.message_outlined),
+                alignLabelWithHint: true,
               ),
               const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: _isActive
-                      ? scheme.secondaryContainer
-                      : scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _isActive ? scheme.secondary : scheme.outlineVariant,
-                  ),
-                ),
-                child: SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    t('active'),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _isActive
-                          ? scheme.onSecondaryContainer
-                          : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  subtitle: Text(
-                    _isActive ? 'البث المباشر مفعل حالياً ويظهر للمستخدمين' : 'البث المباشر متوقف حالياً',
-                    style: TextStyle(
-                      color: _isActive
-                          ? scheme.onSecondaryContainer.withValues(alpha: 0.8)
-                          : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  value: _isActive,
-                  activeColor: scheme.primary,
-                  onChanged: (value) => setState(() => _isActive = value),
-                ),
+              CustomSwitchTile(
+                title: t('active'),
+                subtitle: _isActive
+                    ? 'البث المباشر مفعل حالياً ويظهر للمستخدمين'
+                    : 'البث المباشر متوقف حالياً',
+                value: _isActive,
+                onChanged: (value) => setState(() => _isActive = value),
               ),
             ],
           ),

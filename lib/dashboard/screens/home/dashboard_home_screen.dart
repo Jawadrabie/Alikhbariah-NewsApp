@@ -61,7 +61,7 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
           .order('created_at', ascending: false)
           .limit(5),
       _countRows('videos'),
-      _countRows('programs'),
+      _countRows('categories', equals: {'type': 'program'}),
       _countRows('categories'),
       _countRows('news'),
       _countRows('news', equals: {'is_hidden': true}),

@@ -9,6 +9,7 @@ import 'package:newsappjs/dashboard/services/category_service.dart';
 import 'package:newsappjs/dashboard/services/location_service.dart';
 import 'package:newsappjs/dashboard/services/news_service.dart';
 import 'package:newsappjs/dashboard/services/storage_service.dart';
+import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 
 class EditNewsScreen extends StatefulWidget {
   final News? news;
@@ -24,7 +25,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
+  late final TextEditingController _titleEnController;
   late final TextEditingController _contentController;
+  late final TextEditingController _contentEnController;
   late final TextEditingController _imageUrlController;
 
   final CategoryService _categoryService = CategoryService();
@@ -48,7 +51,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.news?.title);
+    _titleEnController = TextEditingController(text: widget.news?.titleEn);
     _contentController = TextEditingController(text: widget.news?.content);
+    _contentEnController = TextEditingController(text: widget.news?.contentEn);
     _imageUrlController = TextEditingController(text: widget.news?.imageUrl);
     _isFeatured = widget.news?.isFeatured ?? false;
     _isHidden = widget.news?.isHidden ?? false;
@@ -65,7 +70,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _titleEnController.dispose();
     _contentController.dispose();
+    _contentEnController.dispose();
     _imageUrlController.dispose();
     super.dispose();
   }
@@ -106,8 +113,10 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
 
       final news = News(
         id: widget.news?.id ?? '',
-        title: _titleController.text,
-        content: _contentController.text,
+        title: _titleController.text.trim(),
+        titleEn: _titleEnController.text.trim(),
+        content: _contentController.text.trim(),
+        contentEn: _contentEnController.text.trim(),
         imageUrl: _imageUrlController.text,
         categoryId: _selectedCategoryId!,
         locationId: _selectedLocationId!,
@@ -181,32 +190,48 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                TextFormField(
+                CustomTextField(
                   controller: _titleController,
-                  decoration: InputDecoration(labelText: t('title')),
+                  labelText: t('title_ar'),
                   validator: (value) =>
                       value!.isEmpty ? t('please_enter_title') : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                CustomTextField(
+                  controller: _titleEnController,
+                  labelText: t('title_en'),
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? t('please_enter_title_en') : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
                   controller: _contentController,
-                  decoration: InputDecoration(
-                    labelText: t('content_html'),
-                    hintText: t('content_hint'),
-                    alignLabelWithHint: true,
-                  ),
+                  labelText: t('content_html_ar'),
+                  hintText: t('content_hint'),
+                  alignLabelWithHint: true,
                   minLines: 12,
                   maxLines: 20,
                   validator: (value) =>
                       value == null || value.trim().isEmpty ? t('please_enter_content') : null,
                 ),
                 const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _contentEnController,
+                  labelText: t('content_html_en'),
+                  hintText: t('content_hint_en'),
+                  alignLabelWithHint: true,
+                  minLines: 12,
+                  maxLines: 20,
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? t('please_enter_content_en') : null,
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
+                      child: CustomDropdownField<String>(
                         value: _imageSource,
-                        decoration: InputDecoration(labelText: t('image_source')),
+                        labelText: t('image_source'),
                         items: [
                           DropdownMenuItem(value: _imageSourceUrl, child: Text(t('direct_url'))),
                           DropdownMenuItem(value: _imageSourceUpload, child: Text(t('upload_from_device'))),
@@ -224,9 +249,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                 ),
                 const SizedBox(height: 8),
                 if (_imageSource == _imageSourceUrl)
-                  TextFormField(
+                  CustomTextField(
                     controller: _imageUrlController,
-                    decoration: InputDecoration(labelText: t('image_url')),
+                    labelText: t('image_url'),
                     validator: (value) {
                       if (_imageSource != _imageSourceUrl) return null;
                       return value == null || value.isEmpty
@@ -238,13 +263,11 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextField(
                           controller: _imageUrlController,
                           readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: t('uploaded_image_url'),
-                            hintText: t('upload_from_device'),
-                          ),
+                          labelText: t('uploaded_image_url'),
+                          hintText: t('upload_from_device'),
                           validator: (value) {
                             if (_imageSource != _imageSourceUpload) return null;
                             return value == null || value.isEmpty
@@ -289,8 +312,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                     if (!snapshot.hasData) {
                       return const CircularProgressIndicator();
                     }
-                    return DropdownButtonFormField<String>(
+                    return CustomDropdownField<String>(
                       value: _selectedCategoryId,
+                      labelText: t('category'),
                       items: snapshot.data!
                           .map((category) => DropdownMenuItem(
                                 value: category.id,
@@ -299,7 +323,6 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                           .toList(),
                       onChanged: (value) =>
                           setState(() => _selectedCategoryId = value),
-                        decoration: InputDecoration(labelText: t('category')),
                       validator: (value) =>
                           value == null ? t('please_select_category') : null,
                     );
@@ -311,8 +334,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                     if (!snapshot.hasData) {
                       return const CircularProgressIndicator();
                     }
-                    return DropdownButtonFormField<String>(
+                    return CustomDropdownField<String>(
                       value: _selectedLocationId,
+                      labelText: t('location'),
                       items: snapshot.data!
                           .map((location) => DropdownMenuItem(
                                 value: location.id,
@@ -321,22 +345,19 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                           .toList(),
                       onChanged: (value) =>
                           setState(() => _selectedLocationId = value),
-                      decoration: InputDecoration(labelText: t('location')),
                       validator: (value) =>
                           value == null ? t('please_select_location') : null,
                     );
                   },
                 ),
-                SwitchListTile(
-                  title: Text(t('featured')),
+                CustomSwitchTile(
+                  title: t('featured'),
                   value: _isFeatured,
-                  activeColor: scheme.primary,
                   onChanged: (value) => setState(() => _isFeatured = value),
                 ),
-                SwitchListTile(
-                  title: Text(t('hidden')),
+                CustomSwitchTile(
+                  title: t('hidden'),
                   value: _isHidden,
-                  activeColor: scheme.primary,
                   onChanged: (value) => setState(() => _isHidden = value),
                 ),
                     ], // Column children

@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/manual_notification.dart';
 import 'package:newsappjs/dashboard/services/manual_notifications_service.dart';
+import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class ManualNotificationsScreen extends StatefulWidget {
@@ -44,15 +45,15 @@ class _ManualNotificationsScreenState extends State<ManualNotificationsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                CustomTextField(
                   controller: titleController,
-                  decoration: InputDecoration(labelText: t('notification_title')),
+                  labelText: t('notification_title'),
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                CustomTextField(
                   controller: bodyController,
                   maxLines: 4,
-                  decoration: InputDecoration(labelText: t('notification_body')),
+                  labelText: t('notification_body'),
                 ),
               ],
             ),

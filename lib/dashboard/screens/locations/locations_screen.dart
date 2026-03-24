@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/location.dart';
 import 'package:newsappjs/dashboard/services/location_service.dart';
+import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class LocationsScreen extends StatefulWidget {
@@ -31,7 +32,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
   Future<void> _openForm({Location? current}) async {
     String t(String key) => DashboardI18n.t(context, key);
     final nameController = TextEditingController(text: current?.name ?? '');
-    final slugController = TextEditingController(text: current?.slug ?? '');
+    final nameEnController = TextEditingController(text: current?.nameEn ?? '');
 
     await showDialog<void>(
       context: context,
@@ -43,13 +44,13 @@ class _LocationsScreenState extends State<LocationsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                CustomTextField(
                   controller: nameController,
-                  decoration: InputDecoration(labelText: t('name')),
+                  labelText: t('name'),
                 ),
-                TextField(
-                  controller: slugController,
-                  decoration: InputDecoration(labelText: t('slug')),
+                CustomTextField(
+                  controller: nameEnController,
+                  labelText: t('name_en'),
                 ),
               ],
             ),
@@ -64,9 +65,10 @@ class _LocationsScreenState extends State<LocationsScreen> {
                 final item = Location(
                   id: current?.id ?? '',
                   name: nameController.text.trim(),
-                  slug: slugController.text.trim().isEmpty
+                  nameEn: nameEnController.text.trim().isEmpty
                       ? null
-                      : slugController.text.trim(),
+                      : nameEnController.text.trim(),
+                  slug: current?.slug,
                 );
 
                 try {
@@ -148,7 +150,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       ),
                       columns: [
                         DataColumn(label: Text(t('name'))),
-                        DataColumn(label: Text(t('slug'))),
+                        DataColumn(label: Text(t('name_en'))),
                         DataColumn(label: Text(t('actions'))),
                       ],
                       rows: items
@@ -156,7 +158,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                             (item) => DataRow(
                               cells: [
                                 DataCell(Text(item.name)),
-                                DataCell(Text(item.slug ?? t('na'))),
+                                DataCell(Text(item.nameEn ?? t('na'))),
                                 DataCell(
                                   Row(
                                     children: [

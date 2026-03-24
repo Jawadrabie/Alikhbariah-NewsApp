@@ -44,7 +44,6 @@ class Sidebar extends StatelessWidget {
                 _buildNavItem(context, 'home', Icons.dashboard, '/dashboard/home', isActive('/dashboard/home')),
                 _buildNavItem(context, 'main_news', Icons.article, '/dashboard/main-news', isActive('/dashboard/main-news')),
                 _buildNavItem(context, 'breaking_news', Icons.new_releases, '/dashboard/breaking-news', isActive('/dashboard/breaking-news')),
-                _buildNavItem(context, 'ticker_news', Icons.linear_scale, '/dashboard/ticker-news', isActive('/dashboard/ticker-news')),
                 _buildNavItem(context, 'live_stream', Icons.live_tv, '/dashboard/live-stream', isActive('/dashboard/live-stream')),
                 _buildNavItem(context, 'videos', Icons.video_library, '/dashboard/videos', isActive('/dashboard/videos')),
                 _buildNavItem(context, 'programs', Icons.video_collection, '/dashboard/programs', isActive('/dashboard/programs')),

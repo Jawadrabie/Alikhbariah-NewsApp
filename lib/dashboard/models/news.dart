@@ -1,7 +1,9 @@
 class News {
   final String id;
   final String title;
+  final String titleEn;
   final String content;
+  final String contentEn;
   final String imageUrl;
   final String categoryId;
   final String? locationId;
@@ -14,7 +16,9 @@ class News {
   News({
     required this.id,
     required this.title,
+    required this.titleEn,
     required this.content,
+    required this.contentEn,
     required this.imageUrl,
     required this.categoryId,
     required this.locationId,
@@ -29,7 +33,9 @@ class News {
     return News(
       id: (json['id'] ?? '').toString(),
       title: (json['title'] ?? '') as String,
+      titleEn: (json['title_en'] ?? '') as String,
       content: (json['content'] ?? '') as String,
+      contentEn: (json['content_en'] ?? '') as String,
       imageUrl: (json['image_url'] ?? '') as String,
       categoryId: (json['category_id'] ?? '').toString(),
       locationId: json['location_id']?.toString(),
@@ -45,7 +51,9 @@ class News {
     return {
       'id': id,
       'title': title,
+      'title_en': titleEn,
       'content': content,
+      'content_en': contentEn,
       'image_url': imageUrl,
       'category_id': categoryId,
       'location_id': locationId,

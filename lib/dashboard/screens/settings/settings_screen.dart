@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/services/dashboard_preferences_service.dart';
+import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -35,13 +36,10 @@ class SettingsScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: DropdownButtonFormField<ThemeMode>(
+                child: CustomDropdownField<ThemeMode>(
                   value: prefs.themeMode,
-                  decoration: InputDecoration(
-                    labelText: t('theme'),
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.brightness_6_outlined),
-                  ),
+                  labelText: t('theme'),
+                  prefixIcon: const Icon(Icons.brightness_6_outlined),
                   items: [
                     DropdownMenuItem(
                       value: ThemeMode.system,
@@ -65,13 +63,10 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: DropdownButtonFormField<String>(
+                child: CustomDropdownField<String>(
                   value: prefs.locale.languageCode,
-                  decoration: InputDecoration(
-                    labelText: t('language'),
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.language_outlined),
-                  ),
+                  labelText: t('language'),
+                  prefixIcon: const Icon(Icons.language_outlined),
                   items: [
                     DropdownMenuItem(
                       value: 'ar',

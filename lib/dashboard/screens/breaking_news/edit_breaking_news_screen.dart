@@ -4,6 +4,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/breaking_news.dart';
 import 'package:newsappjs/dashboard/services/breaking_news_service.dart';
+import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 
 class EditBreakingNewsScreen extends StatefulWidget {
   final BreakingNews? breakingNews;
@@ -16,7 +17,9 @@ class EditBreakingNewsScreen extends StatefulWidget {
 class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
+  late final TextEditingController _titleEnController;
   late final TextEditingController _contentController;
+  late final TextEditingController _contentEnController;
   DateTime _startTime = DateTime.now();
   DateTime _endTime = DateTime.now().add(const Duration(hours: 1));
   bool _sendNotification = true;
@@ -28,8 +31,10 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.breakingNews?.title);
+    _titleEnController = TextEditingController(text: widget.breakingNews?.titleEn);
     _contentController =
         TextEditingController(text: widget.breakingNews?.content);
+    _contentEnController = TextEditingController(text: widget.breakingNews?.contentEn);
     if (widget.breakingNews != null) {
       _startTime = widget.breakingNews!.startTime;
       _endTime = widget.breakingNews!.endTime;
@@ -40,7 +45,9 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _titleEnController.dispose();
     _contentController.dispose();
+    _contentEnController.dispose();
     super.dispose();
   }
 
@@ -108,8 +115,10 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
 
       final breakingNews = BreakingNews(
         id: widget.breakingNews?.id ?? '',
-        title: _titleController.text,
-        content: _contentController.text,
+        title: _titleController.text.trim(),
+        titleEn: _titleEnController.text.trim(),
+        content: _contentController.text.trim(),
+        contentEn: _contentEnController.text.trim(),
         createdAt: widget.breakingNews?.createdAt ?? DateTime.now(),
         startTime: _startTime,
         endTime: _endTime,
@@ -178,18 +187,34 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                TextFormField(
+                CustomTextField(
                   controller: _titleController,
-                  decoration: InputDecoration(labelText: t('title')),
+                  labelText: t('title_ar'),
                   validator: (value) =>
                       value!.isEmpty ? t('please_enter_title') : null,
                 ),
-                TextFormField(
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _titleEnController,
+                  labelText: t('title_en'),
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? t('please_enter_title_en') : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
                   controller: _contentController,
-                  decoration: InputDecoration(labelText: t('content')),
+                  labelText: t('content_ar'),
                   maxLines: 3,
                   validator: (value) =>
                       value!.isEmpty ? t('please_enter_content') : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _contentEnController,
+                  labelText: t('content_en'),
+                  maxLines: 3,
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? t('please_enter_content_en') : null,
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -220,10 +245,9 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                     )
                   ],
                 ),
-                SwitchListTile(
-                  title: Text(t('send_notification')),
+                CustomSwitchTile(
+                  title: t('send_notification'),
                   value: _sendNotification,
-                  activeColor: scheme.primary,
                   onChanged: (value) =>
                       setState(() => _sendNotification = value),
                 ),

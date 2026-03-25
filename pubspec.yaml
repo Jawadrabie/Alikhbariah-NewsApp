@@ -53,6 +53,7 @@ dependencies:
   hive_flutter: ^1.1.0
   image_picker: ^1.2.1
   file_picker: ^10.3.10
+  dropdown_button2: ^2.3.9
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
   flutter_local_notifications: ^19.4.2

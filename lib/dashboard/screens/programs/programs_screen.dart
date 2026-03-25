@@ -137,10 +137,7 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   Future<void> _openEpisodeForm({required List<Category> programs}) async {
     String t(String key) => DashboardI18n.t(context, key);
     if (programs.isEmpty) {
-      await DashboardDialogs.showError(
-        context,
-        t('no_programs_found'),
-      );
+      await DashboardDialogs.showError(context, t('no_programs_found'));
       return;
     }
 
@@ -152,7 +149,9 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
     bool isHidden = false;
 
     Future<void> updateOrder(StateSetter setLocalState) async {
-      final videos = await _videosService.getVideos(categoryId: selectedProgramId);
+      final videos = await _videosService.getVideos(
+        categoryId: selectedProgramId,
+      );
       if (!mounted) return;
       setLocalState(() {
         orderController.text = _nextEpisodeOrderIndex(videos).toString();
@@ -186,14 +185,15 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                     CustomDropdownField<String>(
                       value: selectedProgramId,
                       labelText: t('program_category_required'),
-                      items: programs
-                          .map(
-                            (item) => DropdownMenuItem<String>(
-                              value: item.id,
-                              child: Text(item.name),
-                            ),
-                          )
-                          .toList(),
+                      items:
+                          programs
+                              .map(
+                                (item) => DropdownMenuItem<String>(
+                                  value: item.id,
+                                  child: Text(item.name),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (value) async {
                         if (value == null) return;
                         setLocalState(() => selectedProgramId = value);
@@ -207,7 +207,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                     ),
                     CustomSwitchTile(
                       value: isHidden,
-                      onChanged: (value) => setLocalState(() => isHidden = value),
+                      onChanged:
+                          (value) => setLocalState(() => isHidden = value),
                       title: t('hidden'),
                     ),
                   ],
@@ -222,8 +223,12 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
             ),
             FilledButton(
               onPressed: () async {
-                if (titleController.text.trim().isEmpty || urlController.text.trim().isEmpty) {
-                  await DashboardDialogs.showError(dialogContext, t('please_fill_all_fields'));
+                if (titleController.text.trim().isEmpty ||
+                    urlController.text.trim().isEmpty) {
+                  await DashboardDialogs.showError(
+                    dialogContext,
+                    t('please_fill_all_fields'),
+                  );
                   return;
                 }
 
@@ -308,66 +313,80 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                 label: Text(t('add_episode')),
               ),
             ],
-            child: items.isEmpty
-                ? DashboardEmptyState(
-                    icon: Icons.video_collection_outlined,
-                    title: t('no_programs_found'),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                      ),
-                      columns: [
-                        DataColumn(label: Text(t('name_ar'))),
-                        DataColumn(label: Text(t('name_en'))),
-                        DataColumn(label: Text(t('order'))),
-                        DataColumn(label: Text(t('actions'))),
-                      ],
-                      rows: items
-                          .map(
-                            (item) => DataRow(
-                              cells: [
-                                DataCell(Text(item.name)),
-                                DataCell(Text(item.nameEn)),
-                                DataCell(Text(item.orderIndex.toString())),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.video_collection, color: scheme.secondary),
-                                        tooltip: t('manage_episodes'),
-                                        onPressed: () {
-                                          context.push(
-                                            '/dashboard/videos',
-                                            extra: {
-                                              'categoryId': item.id,
-                                              'categoryName': item.name,
-                                            },
-                                          );
-                                        },
+            child:
+                items.isEmpty
+                    ? DashboardEmptyState(
+                      icon: Icons.video_collection_outlined,
+                      title: t('no_programs_found'),
+                    )
+                    : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        columns: [
+                          DataColumn(label: Text(t('name_ar'))),
+                          DataColumn(label: Text(t('name_en'))),
+                          DataColumn(label: Text(t('order'))),
+                          DataColumn(label: Text(t('actions'))),
+                        ],
+                        rows:
+                            items
+                                .map(
+                                  (item) => DataRow(
+                                    cells: [
+                                      DataCell(Text(item.name)),
+                                      DataCell(Text(item.nameEn)),
+                                      DataCell(
+                                        Text(item.orderIndex.toString()),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: scheme.primary),
-                                        onPressed: () => _openForm(
-                                          current: item,
-                                          programs: items,
+                                      DataCell(
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.video_collection,
+                                                color: scheme.secondary,
+                                              ),
+                                              tooltip: t('manage_episodes'),
+                                              onPressed: () {
+                                                context.push(
+                                                  '/dashboard/videos',
+                                                  extra: {
+                                                    'categoryId': item.id,
+                                                    'categoryName': item.name,
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit,
+                                                color: scheme.primary,
+                                              ),
+                                              onPressed:
+                                                  () => _openForm(
+                                                    current: item,
+                                                    programs: items,
+                                                  ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                                color: scheme.error,
+                                              ),
+                                              onPressed: () => _delete(item.id),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: scheme.error),
-                                        onPressed: () => _delete(item.id),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                                )
+                                .toList(),
+                      ),
                     ),
-                  ),
           );
         },
       ),

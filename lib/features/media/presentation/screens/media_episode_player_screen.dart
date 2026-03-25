@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
@@ -20,7 +21,8 @@ class MediaEpisodePlayerScreen extends StatefulWidget {
   final String listTitle;
 
   @override
-  State<MediaEpisodePlayerScreen> createState() => _MediaEpisodePlayerScreenState();
+  State<MediaEpisodePlayerScreen> createState() =>
+      _MediaEpisodePlayerScreenState();
 }
 
 class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
@@ -44,42 +46,44 @@ class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
   }
 
   WebViewController _buildWebViewController() {
-    final controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (request) {
-            final uri = Uri.tryParse(request.url);
-            if (uri == null) return NavigationDecision.prevent;
-            if (uri.scheme == 'about' || uri.scheme == 'data') {
-              return NavigationDecision.navigate;
-            }
-            if (uri.scheme != 'http' && uri.scheme != 'https') {
-              return NavigationDecision.prevent;
-            }
+    final controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(Colors.black)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onNavigationRequest: (request) {
+                final uri = Uri.tryParse(request.url);
+                if (uri == null) return NavigationDecision.prevent;
+                if (uri.scheme == 'about' || uri.scheme == 'data') {
+                  return NavigationDecision.navigate;
+                }
+                if (uri.scheme != 'http' && uri.scheme != 'https') {
+                  return NavigationDecision.prevent;
+                }
 
-            final host = uri.host.toLowerCase();
-            final isYoutubeHost =
-                host.contains('youtube.com') ||
-                host.contains('youtube-nocookie.com') ||
-                host.contains('youtu.be') ||
-                host.contains('googlevideo.com');
-            final isGoogleAuth =
-                host.contains('accounts.google.com') || host.contains('google.com');
-            return (isYoutubeHost || isGoogleAuth)
-                ? NavigationDecision.navigate
-                : NavigationDecision.prevent;
-          },
-          onWebResourceError: (error) {
-            if (error.isForMainFrame == true) {
-              setState(() {
-                _playbackError = 'تعذر تشغيل الفيديو حالياً';
-              });
-            }
-          },
-        ),
-      );
+                final host = uri.host.toLowerCase();
+                final isYoutubeHost =
+                    host.contains('youtube.com') ||
+                    host.contains('youtube-nocookie.com') ||
+                    host.contains('youtu.be') ||
+                    host.contains('googlevideo.com');
+                final isGoogleAuth =
+                    host.contains('accounts.google.com') ||
+                    host.contains('google.com');
+                return (isYoutubeHost || isGoogleAuth)
+                    ? NavigationDecision.navigate
+                    : NavigationDecision.prevent;
+              },
+              onWebResourceError: (error) {
+                if (error.isForMainFrame == true) {
+                  setState(() {
+                    _playbackError = 'تعذر تشغيل الفيديو حالياً';
+                  });
+                }
+              },
+            ),
+          );
 
     if (defaultTargetPlatform == TargetPlatform.android &&
         controller.platform is AndroidWebViewController) {
@@ -103,7 +107,9 @@ class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
   }
 
   void _loadCurrentEpisode() {
-    final id = InAppVideoController.extractYoutubeId(_currentEpisode.youtubeUrl);
+    final id = InAppVideoController.extractYoutubeId(
+      _currentEpisode.youtubeUrl,
+    );
     if (id == null || id.isEmpty) {
       setState(() {
         _playbackError = 'رابط الفيديو غير صالح';
@@ -182,12 +188,18 @@ class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
                   textDirection: direction,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   _episodesLabel(context),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -200,17 +212,19 @@ class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
               itemBuilder: (context, index) {
                 final item = widget.episodes[index];
                 final thumb = _thumbnailOf(item);
-                final date = intl
-                    .DateFormat('yyyy-MM-dd – HH:mm', localeName)
-                    .format(item.publishedAt ?? item.createdAt);
+                final date = intl.DateFormat(
+                  'yyyy-MM-dd – HH:mm',
+                  localeName,
+                ).format(item.publishedAt ?? item.createdAt);
                 final selected = index == _currentIndex;
 
                 return Card(
                   margin: EdgeInsets.zero,
                   clipBehavior: Clip.antiAlias,
-                  color: selected
-                      ? Theme.of(context).colorScheme.primary.withAlpha(18)
-                      : null,
+                  color:
+                      selected
+                          ? Theme.of(context).colorScheme.primary.withAlpha(18)
+                          : null,
                   child: InkWell(
                     onTap: () {
                       if (_currentIndex == index) return;
@@ -229,14 +243,29 @@ class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
                               width: 124,
                               height: 78,
                               color: const Color(0xFFE5EBEF),
-                              child: thumb.isEmpty
-                                  ? const Icon(Icons.play_circle_fill_rounded)
-                                  : Image.network(
-                                      thumb,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          const Icon(Icons.play_circle_fill_rounded),
-                                    ),
+                              child:
+                                  thumb.isEmpty
+                                      ? const Icon(
+                                        Icons.play_circle_fill_rounded,
+                                      )
+                                      : CachedNetworkImage(
+                                        imageUrl: thumb,
+                                        fit: BoxFit.cover,
+                                        placeholder:
+                                            (_, __) => const Center(
+                                              child: SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                ),
+                                              ),
+                                            ),
+                                        errorWidget:
+                                            (_, __, ___) => const Icon(
+                                              Icons.play_circle_fill_rounded,
+                                            ),
+                                      ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -258,7 +287,9 @@ class _MediaEpisodePlayerScreenState extends State<MediaEpisodePlayerScreen> {
                                   textDirection: direction,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontWeight: FontWeight.w700),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const SizedBox(height: 6),
                                 Text(

@@ -12,7 +12,8 @@ class UserReportSubmissionScreen extends StatefulWidget {
       _UserReportSubmissionScreenState();
 }
 
-class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen> {
+class _UserReportSubmissionScreenState
+    extends State<UserReportSubmissionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -54,14 +55,14 @@ class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen>
       _messageController.clear();
       setState(() => _attachmentUrl = null);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.reportSentSuccessfully)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.reportSentSuccessfully)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.reportSendFailed}: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${l10n.reportSendFailed}: $e')));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -84,17 +85,16 @@ class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen>
         _attachmentUrl = uploadedUrl;
         _isUploadingAttachment = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.reportAttachmentUploaded)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.reportAttachmentUploaded)));
     } catch (e) {
       if (!mounted) return;
-      final key = e.toString().contains('attachment_too_large')
-          ? l10n.reportAttachmentTooLarge
-          : l10n.reportAttachmentUploadFailed;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(key)),
-      );
+      final key =
+          e.toString().contains('attachment_too_large')
+              ? l10n.reportAttachmentTooLarge
+              : l10n.reportAttachmentUploadFailed;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(key)));
       setState(() => _isUploadingAttachment = false);
     }
   }
@@ -104,9 +104,7 @@ class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen>
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.userReports),
-      ),
+      appBar: AppBar(title: Text(l10n.userReports)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -158,16 +156,18 @@ class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen>
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: (_isSubmitting || _isUploadingAttachment)
-                      ? null
-                      : _pickAttachment,
-                  icon: _isUploadingAttachment
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.attach_file_rounded),
+                  onPressed:
+                      (_isSubmitting || _isUploadingAttachment)
+                          ? null
+                          : _pickAttachment,
+                  icon:
+                      _isUploadingAttachment
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.attach_file_rounded),
                   label: Text(l10n.reportAttachImage),
                 ),
                 if (_attachmentUrl != null) ...[
@@ -189,9 +189,10 @@ class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen>
                           ),
                         ),
                         IconButton(
-                          onPressed: _isSubmitting
-                              ? null
-                              : () => setState(() => _attachmentUrl = null),
+                          onPressed:
+                              _isSubmitting
+                                  ? null
+                                  : () => setState(() => _attachmentUrl = null),
                           icon: const Icon(Icons.delete_outline_rounded),
                         ),
                       ],
@@ -201,13 +202,14 @@ class _UserReportSubmissionScreenState extends State<UserReportSubmissionScreen>
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _isSubmitting ? null : _submit,
-                  icon: _isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.send_rounded),
+                  icon:
+                      _isSubmitting
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.send_rounded),
                   label: Text(l10n.sendReport),
                 ),
               ],

@@ -37,7 +37,8 @@ class TickerNewsService {
       await _supabase.from('ticker_news').insert(data);
     } catch (e) {
       if (e.toString().contains('ticker_news.priority does not exist')) {
-        final fallbackData = Map<String, dynamic>.from(data)..remove('priority');
+        final fallbackData = Map<String, dynamic>.from(data)
+          ..remove('priority');
         await _supabase.from('ticker_news').insert(fallbackData);
         return;
       }
@@ -49,11 +50,18 @@ class TickerNewsService {
   Future<void> updateTickerNews(TickerNews item) async {
     final data = Map<String, dynamic>.from(item.toJson())..remove('id');
     try {
-      await _supabase.from('ticker_news').update(data).eq('id', _idValue(item.id));
+      await _supabase
+          .from('ticker_news')
+          .update(data)
+          .eq('id', _idValue(item.id));
     } catch (e) {
       if (e.toString().contains('ticker_news.priority does not exist')) {
-        final fallbackData = Map<String, dynamic>.from(data)..remove('priority');
-        await _supabase.from('ticker_news').update(fallbackData).eq('id', _idValue(item.id));
+        final fallbackData = Map<String, dynamic>.from(data)
+          ..remove('priority');
+        await _supabase
+            .from('ticker_news')
+            .update(fallbackData)
+            .eq('id', _idValue(item.id));
         return;
       }
       debugPrint('Error updating ticker news: $e');

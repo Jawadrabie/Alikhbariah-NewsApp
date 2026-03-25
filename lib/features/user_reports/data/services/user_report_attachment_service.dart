@@ -5,22 +5,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserReportAttachmentService {
   static const int _maxFileSizeBytes = 8 * 1024 * 1024;
+  static const String _bucketName = 'news-images';
+  static const String _folderName = 'user-reports';
+  static const List<String> _allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
 
   final SupabaseClient _supabase = Supabase.instance.client;
 
   Future<String?> pickAndUploadAttachment() async {
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
-      withData: true,
-      type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
-    );
+    final file = await _pickAttachment();
+    if (file == null) return null;
 
-    if (result == null || result.files.isEmpty) {
-      return null;
-    }
-
-    final file = result.files.single;
     final bytes = file.bytes;
     if (bytes == null || bytes.isEmpty) {
       throw Exception('empty_attachment');
@@ -30,23 +24,43 @@ class UserReportAttachmentService {
       throw Exception('attachment_too_large');
     }
 
-    final extension = (file.extension ?? 'jpg').toLowerCase();
-    final contentType = _contentTypeFor(extension);
-    final objectPath = 'user-reports/${DateTime.now().millisecondsSinceEpoch}_${_sanitizeFileName(file.name)}';
+    final objectPath = _buildObjectPath(file);
+    final contentType = _contentTypeFor(file.extension);
 
     await _supabase.storage
-        .from('news-images')
+        .from(_bucketName)
         .uploadBinary(
           objectPath,
           Uint8List.fromList(bytes),
           fileOptions: FileOptions(contentType: contentType, upsert: false),
         );
 
-    return _supabase.storage.from('news-images').getPublicUrl(objectPath);
+    return _supabase.storage.from(_bucketName).getPublicUrl(objectPath);
   }
 
-  String _contentTypeFor(String extension) {
-    switch (extension) {
+  Future<PlatformFile?> _pickAttachment() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      withData: true,
+      type: FileType.custom,
+      allowedExtensions: _allowedExtensions,
+    );
+
+    if (result == null || result.files.isEmpty) {
+      return null;
+    }
+
+    return result.files.single;
+  }
+
+  String _buildObjectPath(PlatformFile file) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final sanitizedName = _sanitizeFileName(file.name);
+    return '$_folderName/${timestamp}_$sanitizedName';
+  }
+
+  String _contentTypeFor(String? extension) {
+    switch ((extension ?? 'jpg').toLowerCase()) {
       case 'png':
         return 'image/png';
       case 'webp':

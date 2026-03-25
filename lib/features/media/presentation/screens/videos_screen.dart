@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/localization/l10n_extensions.dart';
 import '../../data/models/video_category_model.dart';
@@ -31,7 +32,8 @@ class _VideosScreenState extends State<VideosScreen> {
   late Future<List<VideoCategoryModel>> _categoriesFuture;
   String _currentLanguageCode = 'ar';
 
-  bool get _isEpisodesMode => widget.programId != null || widget.categoryId != null;
+  bool get _isEpisodesMode =>
+      widget.programId != null || widget.categoryId != null;
 
   @override
   void initState() {
@@ -42,7 +44,8 @@ class _VideosScreenState extends State<VideosScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final nextLanguage = Localizations.localeOf(context).languageCode.toLowerCase();
+    final nextLanguage =
+        Localizations.localeOf(context).languageCode.toLowerCase();
     if (_currentLanguageCode == nextLanguage) {
       return;
     }
@@ -117,11 +120,12 @@ class _VideosScreenState extends State<VideosScreen> {
 
   Widget _buildEpisodesView(BuildContext context) {
     final l10n = context.l10n;
-    final title = widget.categoryName != null
-      ? widget.categoryName!
-      : (widget.programName == null
-        ? l10n.videos
-        : l10n.programEpisodes(widget.programName!));
+    final title =
+        widget.categoryName != null
+            ? widget.categoryName!
+            : (widget.programName == null
+                ? l10n.videos
+                : l10n.programEpisodes(widget.programName!));
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -133,7 +137,9 @@ class _VideosScreenState extends State<VideosScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text(l10n.failedLoadVideos(snapshot.error.toString())));
+            return Center(
+              child: Text(l10n.failedLoadVideos(snapshot.error.toString())),
+            );
           }
 
           final items = snapshot.data ?? const [];
@@ -145,13 +151,14 @@ class _VideosScreenState extends State<VideosScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
             itemCount: items.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _buildEpisodeCard(
-              context: context,
-              item: items[index],
-              allItems: items,
-              index: index,
-              listTitle: title,
-            ),
+            itemBuilder:
+                (context, index) => _buildEpisodeCard(
+                  context: context,
+                  item: items[index],
+                  allItems: items,
+                  index: index,
+                  listTitle: title,
+                ),
           );
         },
       ),
@@ -171,7 +178,9 @@ class _VideosScreenState extends State<VideosScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text(l10n.failedLoadVideos(snapshot.error.toString())));
+            return Center(
+              child: Text(l10n.failedLoadVideos(snapshot.error.toString())),
+            );
           }
 
           final categories = snapshot.data ?? const <VideoCategoryModel>[];
@@ -183,7 +192,8 @@ class _VideosScreenState extends State<VideosScreen> {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
             itemCount: categories.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _buildCategoryCard(categories[index]),
+            itemBuilder:
+                (context, index) => _buildCategoryCard(categories[index]),
           );
         },
       ),
@@ -201,10 +211,11 @@ class _VideosScreenState extends State<VideosScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => VideosScreen(
-                categoryId: category.id,
-                categoryName: category.name,
-              ),
+              builder:
+                  (_) => VideosScreen(
+                    categoryId: category.id,
+                    categoryName: category.name,
+                  ),
             ),
           );
         },
@@ -215,25 +226,39 @@ class _VideosScreenState extends State<VideosScreen> {
             children: [
               category.coverImageUrl == null || category.coverImageUrl!.isEmpty
                   ? Container(
-                      color: const Color(0xFFE5EBEF),
-                      child: const Icon(
-                        Icons.video_library_rounded,
-                        size: 44,
-                        color: Color(0xFF4B5563),
-                      ),
-                    )
-                  : Image.network(
-                      category.coverImageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFFE5EBEF),
-                        child: const Icon(
-                          Icons.video_library_rounded,
-                          size: 44,
-                          color: Color(0xFF4B5563),
-                        ),
-                      ),
+                    color: const Color(0xFFE5EBEF),
+                    child: const Icon(
+                      Icons.video_library_rounded,
+                      size: 44,
+                      color: Color(0xFF4B5563),
                     ),
+                  )
+                  : CachedNetworkImage(
+                    imageUrl: category.coverImageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (_, __) => Container(
+                          color: const Color(0xFFE5EBEF),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                    errorWidget:
+                        (_, __, ___) => Container(
+                          color: const Color(0xFFE5EBEF),
+                          child: const Icon(
+                            Icons.video_library_rounded,
+                            size: 44,
+                            color: Color(0xFF4B5563),
+                          ),
+                        ),
+                  ),
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -286,11 +311,12 @@ class _VideosScreenState extends State<VideosScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MediaEpisodePlayerScreen(
-          episodes: items,
-          initialIndex: initialIndex,
-          listTitle: listTitle,
-        ),
+        builder:
+            (_) => MediaEpisodePlayerScreen(
+              episodes: items,
+              initialIndex: initialIndex,
+              listTitle: listTitle,
+            ),
       ),
     );
   }
@@ -305,19 +331,21 @@ class _VideosScreenState extends State<VideosScreen> {
     final direction = Directionality.of(context);
     final localeName = Localizations.localeOf(context).toString();
     final thumb = _thumbnailOf(item);
-    final date = intl
-        .DateFormat('yyyy-MM-dd – HH:mm', localeName)
-        .format(item.publishedAt ?? item.createdAt);
+    final date = intl.DateFormat(
+      'yyyy-MM-dd – HH:mm',
+      localeName,
+    ).format(item.publishedAt ?? item.createdAt);
 
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => _openEpisodePlayer(
-          items: allItems,
-          initialIndex: index,
-          listTitle: listTitle,
-        ),
+        onTap:
+            () => _openEpisodePlayer(
+              items: allItems,
+              initialIndex: index,
+              listTitle: listTitle,
+            ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -328,14 +356,26 @@ class _VideosScreenState extends State<VideosScreen> {
                   width: 132,
                   height: 84,
                   color: const Color(0xFFE5EBEF),
-                  child: thumb.isEmpty
-                      ? const Icon(Icons.play_circle_fill_rounded)
-                      : Image.network(
-                          thumb,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.play_circle_fill_rounded),
-                        ),
+                  child:
+                      thumb.isEmpty
+                          ? const Icon(Icons.play_circle_fill_rounded)
+                          : CachedNetworkImage(
+                            imageUrl: thumb,
+                            fit: BoxFit.cover,
+                            placeholder:
+                                (_, __) => const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                ),
+                            errorWidget:
+                                (_, __, ___) =>
+                                    const Icon(Icons.play_circle_fill_rounded),
+                          ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -362,7 +402,10 @@ class _VideosScreenState extends State<VideosScreen> {
                     const SizedBox(height: 8),
                     Text(
                       date,
-                      style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                      style: const TextStyle(
+                        color: Color(0xFF6B7280),
+                        fontSize: 12,
+                      ),
                       textDirection: direction,
                     ),
                   ],

@@ -39,17 +39,23 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
     final bottomInset = 12 + mediaQuery.padding.bottom;
     final screenSize = mediaQuery.size;
     final minX = 12.0;
-    final maxX = (screenSize.width - miniWidth - 12).clamp(12.0, screenSize.width);
+    final maxX = (screenSize.width - miniWidth - 12).clamp(
+      12.0,
+      screenSize.width,
+    );
     final minY = 12.0 + mediaQuery.padding.top;
-    final maxY = (screenSize.height - miniHeight - bottomInset)
-        .clamp(minY, screenSize.height);
+    final maxY = (screenSize.height - miniHeight - bottomInset).clamp(
+      minY,
+      screenSize.height,
+    );
 
     return AnimatedBuilder(
       animation: InAppVideoController.instance,
       builder: (context, _) {
         final state = InAppVideoController.instance;
         final playerController = state.webViewController;
-        if (state.viewMode == InAppVideoViewMode.hidden || playerController == null) {
+        if (state.viewMode == InAppVideoViewMode.hidden ||
+            playerController == null) {
           return const SizedBox.shrink();
         }
 
@@ -67,7 +73,9 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              state.title.isNotEmpty ? state.title : l10n.videos,
+                              state.title.isNotEmpty
+                                  ? state.title
+                                  : l10n.videos,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -78,7 +86,10 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close_rounded, color: Colors.white),
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                            ),
                             onPressed: state.close,
                           ),
                         ],
@@ -110,14 +121,21 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 4,
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Material(
                                         color: Colors.transparent,
                                         child: IconButton(
-                                          icon: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white),
+                                          icon: const Icon(
+                                            Icons
+                                                .picture_in_picture_alt_rounded,
+                                            color: Colors.white,
+                                          ),
                                           tooltip: 'عرض',
                                           onPressed: state.minimize,
                                           constraints: const BoxConstraints(
@@ -131,7 +149,10 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                                       Material(
                                         color: Colors.transparent,
                                         child: IconButton(
-                                          icon: const Icon(Icons.open_in_full_rounded, color: Colors.white),
+                                          icon: const Icon(
+                                            Icons.open_in_full_rounded,
+                                            color: Colors.white,
+                                          ),
                                           tooltip: 'تكبير',
                                           onPressed: state.showFullscreen,
                                           constraints: const BoxConstraints(
@@ -221,7 +242,10 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                       bottom: 0,
                       child: Container(
                         color: Colors.black87,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           mainAxisSize: MainAxisSize.max,
@@ -229,7 +253,10 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                             Material(
                               color: Colors.transparent,
                               child: IconButton(
-                                icon: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white),
+                                icon: const Icon(
+                                  Icons.picture_in_picture_alt_rounded,
+                                  color: Colors.white,
+                                ),
                                 tooltip: 'عرض',
                                 onPressed: state.minimize,
                                 constraints: const BoxConstraints(
@@ -243,7 +270,10 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                             Material(
                               color: Colors.transparent,
                               child: IconButton(
-                                icon: const Icon(Icons.open_in_full_rounded, color: Colors.white),
+                                icon: const Icon(
+                                  Icons.open_in_full_rounded,
+                                  color: Colors.white,
+                                ),
                                 tooltip: 'تكبير',
                                 onPressed: state.showFullscreen,
                                 constraints: const BoxConstraints(

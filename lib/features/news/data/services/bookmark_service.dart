@@ -13,11 +13,12 @@ class BookmarkService {
 
   Future<List<NewsModel>> getBookmarks() async {
     final box = await _openBox();
-    final items = box.values
-        .map((item) => _decodeNews(item))
-        .whereType<NewsModel>()
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final items =
+        box.values
+            .map((item) => _decodeNews(item))
+            .whereType<NewsModel>()
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return items;
   }
@@ -25,21 +26,23 @@ class BookmarkService {
   Future<List<NewsModel>> getBookmarksBySavedTime() async {
     final box = await _openBox();
 
-    final decoded = box.values
-        .map((raw) {
-          final data = _decodeMap(raw);
-          if (data == null) return null;
+    final decoded =
+        box.values
+            .map((raw) {
+              final data = _decodeMap(raw);
+              if (data == null) return null;
 
-          final news = NewsModel.fromJson(data);
-          final savedAtRaw = data['saved_at'] as String?;
-          final savedAt = savedAtRaw != null
-              ? DateTime.tryParse(savedAtRaw) ?? news.createdAt
-              : news.createdAt;
+              final news = NewsModel.fromJson(data);
+              final savedAtRaw = data['saved_at'] as String?;
+              final savedAt =
+                  savedAtRaw != null
+                      ? DateTime.tryParse(savedAtRaw) ?? news.createdAt
+                      : news.createdAt;
 
-          return (news: news, savedAt: savedAt);
-        })
-        .whereType<({NewsModel news, DateTime savedAt})>()
-        .toList();
+              return (news: news, savedAt: savedAt);
+            })
+            .whereType<({NewsModel news, DateTime savedAt})>()
+            .toList();
 
     decoded.sort((a, b) => b.savedAt.compareTo(a.savedAt));
     return decoded.map((item) => item.news).toList();

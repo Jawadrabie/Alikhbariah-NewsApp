@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/manual_notification.dart';
 import 'package:newsappjs/dashboard/services/manual_notifications_service.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
@@ -34,77 +35,96 @@ class _ManualNotificationsScreenState extends State<ManualNotificationsScreen> {
     String t(String key) => DashboardI18n.t(context, key);
     final titleController = TextEditingController(text: current?.title ?? '');
     final bodyController = TextEditingController(text: current?.body ?? '');
+    bool isSaving = false;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(current == null ? t('add_manual_notification') : t('edit_manual_notification')),
-          content: SizedBox(
-            width: 460,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomTextField(
-                  controller: titleController,
-                  labelText: t('notification_title'),
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text(
+                current == null
+                    ? t('add_manual_notification')
+                    : t('edit_manual_notification'),
+              ),
+              content: SizedBox(
+                width: 460,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomTextField(
+                      controller: titleController,
+                      labelText: t('notification_title'),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      controller: bodyController,
+                      maxLines: 4,
+                      labelText: t('notification_body'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: bodyController,
-                  maxLines: 4,
-                  labelText: t('notification_body'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isSaving ? null : () => Navigator.of(dialogContext).pop(),
+                  child: Text(t('cancel')),
+                ),
+                FilledButton(
+                  onPressed:
+                      isSaving
+                          ? null
+                          : () async {
+                            if (titleController.text.trim().isEmpty ||
+                                bodyController.text.trim().isEmpty) {
+                              if (!dialogContext.mounted) return;
+                              await DashboardDialogs.showError(
+                                dialogContext,
+                                t('please_fill_all_fields'),
+                              );
+                              return;
+                            }
+
+                            setLocalState(() => isSaving = true);
+                            final item = ManualNotification(
+                              id: current?.id ?? '',
+                              title: titleController.text.trim(),
+                              body: bodyController.text.trim(),
+                              sentAt: current?.sentAt ?? DateTime.now(),
+                              createdBy: current?.createdBy,
+                              viewCount: current?.viewCount ?? 0,
+                            );
+
+                            try {
+                              if (current == null) {
+                                await _service.createNotification(item);
+                              } else {
+                                await _service.updateNotification(item);
+                              }
+                            } catch (e) {
+                              if (!dialogContext.mounted) return;
+                              setLocalState(() => isSaving = false);
+                              await DashboardDialogs.showError(
+                                dialogContext,
+                                '${t('error_saving_manual_notification')}: $e',
+                              );
+                              return;
+                            }
+
+                            if (!dialogContext.mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            _reload();
+                          },
+                  child: DashboardLoadingButtonChild(
+                    isLoading: isSaving,
+                    label: t('save'),
+                  ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(t('cancel')),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (titleController.text.trim().isEmpty || bodyController.text.trim().isEmpty) {
-                  if (!dialogContext.mounted) return;
-                  await DashboardDialogs.showError(
-                    dialogContext,
-                    t('please_fill_all_fields'),
-                  );
-                  return;
-                }
-
-                final item = ManualNotification(
-                  id: current?.id ?? '',
-                  title: titleController.text.trim(),
-                  body: bodyController.text.trim(),
-                  sentAt: current?.sentAt ?? DateTime.now(),
-                  createdBy: current?.createdBy,
-                  viewCount: current?.viewCount ?? 0,
-                );
-
-                try {
-                  if (current == null) {
-                    await _service.createNotification(item);
-                  } else {
-                    await _service.updateNotification(item);
-                  }
-                } catch (e) {
-                  if (!dialogContext.mounted) return;
-                  await DashboardDialogs.showError(
-                    dialogContext,
-                    '${t('error_saving_manual_notification')}: $e',
-                  );
-                  return;
-                }
-
-                if (!dialogContext.mounted) return;
-                Navigator.of(dialogContext).pop();
-                _reload();
-              },
-              child: Text(t('save')),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -162,38 +182,74 @@ class _ManualNotificationsScreenState extends State<ManualNotificationsScreen> {
                   Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
                 columns: [
-                  DataColumn(label: Text(t('title'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('text'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('sent_date'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('view_count'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('actions'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(
+                    label: Text(
+                      t('title'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('text'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('sent_date'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('view_count'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('actions'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
-                rows: items
-                    .map(
-                      (item) => DataRow(
-                        cells: [
-                          DataCell(Text(item.title)),
-                          DataCell(SizedBox(width: 420, child: Text(item.body))),
-                          DataCell(Text(item.sentAt.toString().split('.')[0])),
-                          DataCell(Text(item.viewCount.toString())),
-                          DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit, color: scheme.primary),
-                                  onPressed: () => _openForm(current: item),
+                rows:
+                    items
+                        .map(
+                          (item) => DataRow(
+                            cells: [
+                              DataCell(Text(item.title)),
+                              DataCell(
+                                SizedBox(width: 420, child: Text(item.body)),
+                              ),
+                              DataCell(
+                                Text(item.sentAt.toString().split('.')[0]),
+                              ),
+                              DataCell(Text(item.viewCount.toString())),
+                              DataCell(
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.edit,
+                                        color: scheme.primary,
+                                      ),
+                                      onPressed: () => _openForm(current: item),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: scheme.error,
+                                      ),
+                                      onPressed: () => _delete(item.id),
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: scheme.error),
-                                  onPressed: () => _delete(item.id),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )
-                    .toList(),
+                        )
+                        .toList(),
               ),
             ),
           );

@@ -7,16 +7,19 @@ class AppTheme {
 
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
+    final scheme = base.colorScheme.copyWith(
+      primary: primary,
+      secondary: primary,
+      surface: Colors.white,
+    );
     return base.copyWith(
       scaffoldBackgroundColor: background,
-      colorScheme: base.colorScheme.copyWith(
-        primary: primary,
-        secondary: primary,
-        surface: Colors.white,
-      ),
-      appBarTheme: const AppBarTheme(
+      colorScheme: scheme,
+      appBarTheme: AppBarTheme(
         backgroundColor: primary,
-        foregroundColor: Colors.white,
+        foregroundColor: scheme.onPrimary,
+        iconTheme: IconThemeData(color: scheme.onPrimary),
+        actionsIconTheme: IconThemeData(color: scheme.onPrimary),
         centerTitle: false,
         elevation: 0,
         toolbarHeight: 48,
@@ -37,16 +40,19 @@ class AppTheme {
 
   static ThemeData dark() {
     final base = ThemeData.dark(useMaterial3: true);
+    final scheme = base.colorScheme.copyWith(
+      primary: primary,
+      secondary: primary,
+      surface: const Color(0xFF1E293B),
+    );
     return base.copyWith(
       scaffoldBackgroundColor: const Color(0xFF0F172A),
-      colorScheme: base.colorScheme.copyWith(
-        primary: primary,
-        secondary: primary,
-        surface: const Color(0xFF1E293B),
-      ),
-      appBarTheme: const AppBarTheme(
+      colorScheme: scheme,
+      appBarTheme: AppBarTheme(
         backgroundColor: Color(0xFF111827),
-        foregroundColor: Colors.white,
+        foregroundColor: scheme.onSurface,
+        iconTheme: IconThemeData(color: scheme.onSurface),
+        actionsIconTheme: IconThemeData(color: scheme.onSurface),
         centerTitle: false,
         elevation: 0,
         toolbarHeight: 48,

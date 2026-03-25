@@ -62,7 +62,7 @@ class DashboardRouter {
                   return EditNewsScreen(news: news);
                 },
               ),
-            ]
+            ],
           ),
           GoRoute(
             path: '/dashboard/breaking-news',

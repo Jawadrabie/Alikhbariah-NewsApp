@@ -37,19 +37,26 @@ class CategoryChips extends StatelessWidget {
             return ChoiceChip(
               selected: isSelected,
               label: Text(l10n.allCategories),
-              onSelected: onCategorySelected == null ? null : (_) => onCategorySelected!(null),
-              selectedColor: Theme.of(context).colorScheme.primary.withAlpha(35),
+              onSelected:
+                  onCategorySelected == null
+                      ? null
+                      : (_) => onCategorySelected!(null),
+              selectedColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(35),
               backgroundColor: Colors.white,
               side: BorderSide(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : const Color(0xFFD7DEE3),
+                color:
+                    isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : const Color(0xFFD7DEE3),
               ),
               labelStyle: TextStyle(
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : const Color(0xFF1F2937),
+                color:
+                    isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : const Color(0xFF1F2937),
               ),
             );
           }
@@ -60,21 +67,24 @@ class CategoryChips extends StatelessWidget {
           return ChoiceChip(
             selected: isSelected,
             label: Text(category.name),
-            onSelected: onCategorySelected == null
-                ? null
-                : (_) => onCategorySelected!(category.id),
+            onSelected:
+                onCategorySelected == null
+                    ? null
+                    : (_) => onCategorySelected!(category.id),
             selectedColor: Theme.of(context).colorScheme.primary.withAlpha(35),
             backgroundColor: Colors.white,
             side: BorderSide(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : const Color(0xFFD7DEE3),
+              color:
+                  isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : const Color(0xFFD7DEE3),
             ),
             labelStyle: TextStyle(
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : const Color(0xFF1F2937),
+              color:
+                  isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : const Color(0xFF1F2937),
             ),
           );
         },

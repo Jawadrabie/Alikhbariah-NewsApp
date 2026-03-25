@@ -33,18 +33,20 @@ class VideoItemModel {
 
     return VideoItemModel(
       id: json['id'] as int,
-      title: readText(json['title_$normalizedLanguage']).isNotEmpty
-          ? readText(json['title_$normalizedLanguage'])
-          : (readText(json['title']).isNotEmpty
-              ? readText(json['title'])
-              : readText(json['title_$fallbackLanguage'])),
+      title:
+          readText(json['title_$normalizedLanguage']).isNotEmpty
+              ? readText(json['title_$normalizedLanguage'])
+              : (readText(json['title']).isNotEmpty
+                  ? readText(json['title'])
+                  : readText(json['title_$fallbackLanguage'])),
       youtubeUrl: (json['youtube_url'] as String?) ?? '',
-        categoryId: json['category_id'] as int?,
-        programId: json['program_id'] as int?,
+      categoryId: json['category_id'] as int?,
+      programId: json['program_id'] as int?,
       thumbnailUrl: json['thumbnail_url'] as String?,
-      publishedAt: json['published_at'] == null
-          ? null
-          : DateTime.tryParse(json['published_at'] as String),
+      publishedAt:
+          json['published_at'] == null
+              ? null
+              : DateTime.tryParse(json['published_at'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

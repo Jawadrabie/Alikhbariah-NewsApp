@@ -90,60 +90,80 @@ class _BreakingNewsScreenState extends State<BreakingNewsScreen> {
                 label: Text(t('add_breaking_news')),
               ),
             ],
-            child: items.isEmpty
-                ? DashboardEmptyState(
-                    icon: Icons.new_releases_outlined,
-                    title: t('no_breaking_news_found'),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                      ),
-                      columns: [
-                        DataColumn(label: Text(t('title'))),
-                        DataColumn(label: Text(t('start'))),
-                        DataColumn(label: Text(t('end'))),
-                        DataColumn(label: Text(t('status'))),
-                        DataColumn(label: Text(t('notify'))),
-                        DataColumn(label: Text(t('actions'))),
-                      ],
-                      rows: items
-                          .map(
-                            (item) => DataRow(
-                              cells: [
-                                DataCell(Text(item.title)),
-                                DataCell(Text(_formatDateTime(item.startTime))),
-                                DataCell(Text(_formatDateTime(item.endTime))),
-                                DataCell(Text(_statusOf(item))),
-                                DataCell(Text(item.sendNotification ? t('yes') : t('no'))),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: scheme.primary),
-                                        onPressed: () async {
-                                          await context.push(
-                                            '/dashboard/breaking-news/edit/${item.id}',
-                                            extra: item,
-                                          );
-                                          _reload();
-                                        },
+            child:
+                items.isEmpty
+                    ? DashboardEmptyState(
+                      icon: Icons.new_releases_outlined,
+                      title: t('no_breaking_news_found'),
+                    )
+                    : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        columns: [
+                          DataColumn(label: Text(t('title'))),
+                          DataColumn(label: Text(t('start'))),
+                          DataColumn(label: Text(t('end'))),
+                          DataColumn(label: Text(t('status'))),
+                          DataColumn(label: Text(t('notify'))),
+                          DataColumn(label: Text(t('view_count'))),
+                          DataColumn(label: Text(t('actions'))),
+                        ],
+                        rows:
+                            items
+                                .map(
+                                  (item) => DataRow(
+                                    cells: [
+                                      DataCell(Text(item.title)),
+                                      DataCell(
+                                        Text(_formatDateTime(item.startTime)),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: scheme.error),
-                                        onPressed: () => _delete(item.id),
+                                      DataCell(
+                                        Text(_formatDateTime(item.endTime)),
+                                      ),
+                                      DataCell(Text(_statusOf(item))),
+                                      DataCell(
+                                        Text(
+                                          item.sendNotification
+                                              ? t('yes')
+                                              : t('no'),
+                                        ),
+                                      ),
+                                      DataCell(Text(item.viewCount.toString())),
+                                      DataCell(
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit,
+                                                color: scheme.primary,
+                                              ),
+                                              onPressed: () async {
+                                                await context.push(
+                                                  '/dashboard/breaking-news/edit/${item.id}',
+                                                  extra: item,
+                                                );
+                                                _reload();
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                                color: scheme.error,
+                                              ),
+                                              onPressed: () => _delete(item.id),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                                )
+                                .toList(),
+                      ),
                     ),
-                  ),
           );
         },
       ),

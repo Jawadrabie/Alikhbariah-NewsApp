@@ -5,6 +5,8 @@ import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/breaking_news.dart';
 import 'package:newsappjs/dashboard/services/breaking_news_service.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_form_container.dart';
 
 class EditBreakingNewsScreen extends StatefulWidget {
   final BreakingNews? breakingNews;
@@ -31,10 +33,15 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.breakingNews?.title);
-    _titleEnController = TextEditingController(text: widget.breakingNews?.titleEn);
-    _contentController =
-        TextEditingController(text: widget.breakingNews?.content);
-    _contentEnController = TextEditingController(text: widget.breakingNews?.contentEn);
+    _titleEnController = TextEditingController(
+      text: widget.breakingNews?.titleEn,
+    );
+    _contentController = TextEditingController(
+      text: widget.breakingNews?.content,
+    );
+    _contentEnController = TextEditingController(
+      text: widget.breakingNews?.contentEn,
+    );
     if (widget.breakingNews != null) {
       _startTime = widget.breakingNews!.startTime;
       _endTime = widget.breakingNews!.endTime;
@@ -54,9 +61,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
   String _formatDateTime(DateTime value) {
     final localizations = MaterialLocalizations.of(context);
     final date = localizations.formatFullDate(value);
-    final time = localizations.formatTimeOfDay(
-      TimeOfDay.fromDateTime(value),
-    );
+    final time = localizations.formatTimeOfDay(TimeOfDay.fromDateTime(value));
     return '$date - $time';
   }
 
@@ -158,63 +163,72 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.breakingNews == null
-            ? t('add_breaking_news')
-            : t('edit_breaking_news')),
+        title: Text(
+          widget.breakingNews == null
+              ? t('add_breaking_news')
+              : t('edit_breaking_news'),
+        ),
         actions: [
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            TextButton.icon(
-              icon: const Icon(Icons.save),
-              label: Text(t('save')),
-              style: TextButton.styleFrom(foregroundColor: scheme.primary),
-              onPressed: _saveForm,
+          TextButton.icon(
+            icon: const Icon(Icons.save),
+            label: DashboardLoadingButtonChild(
+              isLoading: _isLoading,
+              label: t('save'),
+              spinnerSize: 16,
             ),
+            style: TextButton.styleFrom(foregroundColor: scheme.primary),
+            onPressed: _isLoading ? null : _saveForm,
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 24.0),
+        child: DashboardFormContainer(
+          maxWidth: null,
+          center: false,
+          child: Form(
+            key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 CustomTextField(
                   controller: _titleController,
                   labelText: t('title_ar'),
-                  validator: (value) =>
-                      value!.isEmpty ? t('please_enter_title') : null,
+                  validator:
+                      (value) =>
+                          value!.isEmpty ? t('please_enter_title') : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _titleEnController,
                   labelText: t('title_en'),
-                  validator: (value) =>
-                      value == null || value.trim().isEmpty ? t('please_enter_title_en') : null,
+                  validator:
+                      (value) =>
+                          value == null || value.trim().isEmpty
+                              ? t('please_enter_title_en')
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _contentController,
                   labelText: t('content_ar'),
-                  maxLines: 3,
-                  validator: (value) =>
-                      value!.isEmpty ? t('please_enter_content') : null,
+                  minLines: 3,
+                  maxLines: null,
+                  validator:
+                      (value) =>
+                          value!.isEmpty ? t('please_enter_content') : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _contentEnController,
                   labelText: t('content_en'),
-                  maxLines: 3,
-                  validator: (value) =>
-                      value == null || value.trim().isEmpty ? t('please_enter_content_en') : null,
+                  minLines: 3,
+                  maxLines: null,
+                  validator:
+                      (value) =>
+                          value == null || value.trim().isEmpty
+                              ? t('please_enter_content_en')
+                              : null,
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -228,7 +242,7 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                     FilledButton.tonal(
                       onPressed: () => _selectDateTime(isStart: true),
                       child: Text(t('select')),
-                    )
+                    ),
                   ],
                 ),
                 Row(
@@ -242,14 +256,14 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                     FilledButton.tonal(
                       onPressed: () => _selectDateTime(isStart: false),
                       child: Text(t('select')),
-                    )
+                    ),
                   ],
                 ),
                 CustomSwitchTile(
                   title: t('send_notification'),
                   value: _sendNotification,
-                  onChanged: (value) =>
-                      setState(() => _sendNotification = value),
+                  onChanged:
+                      (value) => setState(() => _sendNotification = value),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -257,7 +271,14 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                   child: FilledButton.icon(
                     onPressed: _isLoading ? null : _saveForm,
                     icon: const Icon(Icons.save),
-                    label: Text(widget.breakingNews == null ? t('create_breaking_news') : t('save_changes')),
+                    label: DashboardLoadingButtonChild(
+                      isLoading: _isLoading,
+                      label:
+                          widget.breakingNews == null
+                              ? t('create_breaking_news')
+                              : t('save_changes'),
+                      spinnerSize: 16,
+                    ),
                   ),
                 ),
               ],

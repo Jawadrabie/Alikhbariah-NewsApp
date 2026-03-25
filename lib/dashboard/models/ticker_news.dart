@@ -22,7 +22,9 @@ class TickerNews {
       isActive: (json['is_active'] ?? false) as bool,
       priority: (json['priority'] ?? 0) as int,
       linkedNewsId: json['linked_news_id']?.toString(),
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 

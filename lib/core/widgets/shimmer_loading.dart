@@ -89,4 +89,3 @@ class CategoryChipsShimmer extends StatelessWidget {
     );
   }
 }
-

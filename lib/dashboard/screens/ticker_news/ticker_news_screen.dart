@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/ticker_news.dart';
 import 'package:newsappjs/dashboard/services/ticker_news_service.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
 class TickerNewsScreen extends StatefulWidget {
@@ -31,20 +32,25 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
   Future<void> _openForm({TickerNews? current}) async {
     String t(String key) => DashboardI18n.t(context, key);
     final textController = TextEditingController(text: current?.text ?? '');
-    final priorityController =
-        TextEditingController(text: (current?.priority ?? 0).toString());
-    final linkedController =
-        TextEditingController(text: current?.linkedNewsId ?? '');
+    final priorityController = TextEditingController(
+      text: (current?.priority ?? 0).toString(),
+    );
+    final linkedController = TextEditingController(
+      text: current?.linkedNewsId ?? '',
+    );
     bool isActive = current?.isActive ?? true;
+    bool isSaving = false;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(current == null ? t('add_ticker_item') : t('edit_ticker_item')),
-          content: StatefulBuilder(
-            builder: (context, setLocalState) {
-              return SizedBox(
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text(
+                current == null ? t('add_ticker_item') : t('edit_ticker_item'),
+              ),
+              content: SizedBox(
                 width: 420,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -66,55 +72,70 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
                     ),
                     SwitchListTile(
                       value: isActive,
-                      onChanged: (value) => setLocalState(() => isActive = value),
+                      onChanged:
+                          (value) => setLocalState(() => isActive = value),
                       contentPadding: EdgeInsets.zero,
                       title: Text(t('active')),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(t('cancel')),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final item = TickerNews(
-                  id: current?.id ?? '',
-                  text: textController.text.trim(),
-                  isActive: isActive,
-                  priority: int.tryParse(priorityController.text.trim()) ?? 0,
-                  linkedNewsId: linkedController.text.trim().isEmpty
-                      ? null
-                      : linkedController.text.trim(),
-                  createdAt: current?.createdAt ?? DateTime.now(),
-                );
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isSaving ? null : () => Navigator.of(dialogContext).pop(),
+                  child: Text(t('cancel')),
+                ),
+                FilledButton(
+                  onPressed:
+                      isSaving
+                          ? null
+                          : () async {
+                            setLocalState(() => isSaving = true);
+                            final item = TickerNews(
+                              id: current?.id ?? '',
+                              text: textController.text.trim(),
+                              isActive: isActive,
+                              priority:
+                                  int.tryParse(
+                                    priorityController.text.trim(),
+                                  ) ??
+                                  0,
+                              linkedNewsId:
+                                  linkedController.text.trim().isEmpty
+                                      ? null
+                                      : linkedController.text.trim(),
+                              createdAt: current?.createdAt ?? DateTime.now(),
+                            );
 
-                try {
-                  if (current == null) {
-                    await _service.createTickerNews(item);
-                  } else {
-                    await _service.updateTickerNews(item);
-                  }
-                } catch (e) {
-                  if (!dialogContext.mounted) return;
-                  await DashboardDialogs.showError(
-                    dialogContext,
-                    '${t('error_saving_ticker_item')}: $e',
-                  );
-                  return;
-                }
+                            try {
+                              if (current == null) {
+                                await _service.createTickerNews(item);
+                              } else {
+                                await _service.updateTickerNews(item);
+                              }
+                            } catch (e) {
+                              if (!dialogContext.mounted) return;
+                              setLocalState(() => isSaving = false);
+                              await DashboardDialogs.showError(
+                                dialogContext,
+                                '${t('error_saving_ticker_item')}: $e',
+                              );
+                              return;
+                            }
 
-                if (!dialogContext.mounted) return;
-                Navigator.of(dialogContext).pop();
-                _reload();
-              },
-              child: Text(t('save')),
-            ),
-          ],
+                            if (!dialogContext.mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            _reload();
+                          },
+                  child: DashboardLoadingButtonChild(
+                    isLoading: isSaving,
+                    label: t('save'),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -158,52 +179,68 @@ class _TickerNewsScreenState extends State<TickerNewsScreen> {
                 label: Text(t('add_ticker_item')),
               ),
             ],
-            child: rows.isEmpty
-                ? DashboardEmptyState(
-                    icon: Icons.linear_scale,
-                    title: t('no_ticker_items_found'),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                      ),
-                      columns: [
-                        DataColumn(label: Text(t('text'))),
-                        DataColumn(label: Text(t('priority'))),
-                        DataColumn(label: Text(t('active'))),
-                        DataColumn(label: Text(t('linked_news'))),
-                        DataColumn(label: Text(t('actions'))),
-                      ],
-                      rows: rows
-                          .map(
-                            (item) => DataRow(
-                              cells: [
-                                DataCell(Text(item.text)),
-                                DataCell(Text(item.priority.toString())),
-                                DataCell(Text(item.isActive ? t('yes') : t('no'))),
-                                DataCell(Text(item.linkedNewsId ?? t('na'))),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: scheme.primary),
-                                        onPressed: () => _openForm(current: item),
+            child:
+                rows.isEmpty
+                    ? DashboardEmptyState(
+                      icon: Icons.linear_scale,
+                      title: t('no_ticker_items_found'),
+                    )
+                    : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        columns: [
+                          DataColumn(label: Text(t('text'))),
+                          DataColumn(label: Text(t('priority'))),
+                          DataColumn(label: Text(t('active'))),
+                          DataColumn(label: Text(t('linked_news'))),
+                          DataColumn(label: Text(t('actions'))),
+                        ],
+                        rows:
+                            rows
+                                .map(
+                                  (item) => DataRow(
+                                    cells: [
+                                      DataCell(Text(item.text)),
+                                      DataCell(Text(item.priority.toString())),
+                                      DataCell(
+                                        Text(
+                                          item.isActive ? t('yes') : t('no'),
+                                        ),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: scheme.error),
-                                        onPressed: () => _delete(item.id),
+                                      DataCell(
+                                        Text(item.linkedNewsId ?? t('na')),
+                                      ),
+                                      DataCell(
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit,
+                                                color: scheme.primary,
+                                              ),
+                                              onPressed:
+                                                  () =>
+                                                      _openForm(current: item),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                                color: scheme.error,
+                                              ),
+                                              onPressed: () => _delete(item.id),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                                )
+                                .toList(),
+                      ),
                     ),
-                  ),
           );
         },
       ),

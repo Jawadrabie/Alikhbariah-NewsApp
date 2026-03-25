@@ -41,22 +41,88 @@ class Sidebar extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-                _buildNavItem(context, 'home', Icons.dashboard, '/dashboard/home', isActive('/dashboard/home')),
-                _buildNavItem(context, 'main_news', Icons.article, '/dashboard/main-news', isActive('/dashboard/main-news')),
-                _buildNavItem(context, 'breaking_news', Icons.new_releases, '/dashboard/breaking-news', isActive('/dashboard/breaking-news')),
-                _buildNavItem(context, 'live_stream', Icons.live_tv, '/dashboard/live-stream', isActive('/dashboard/live-stream')),
-                _buildNavItem(context, 'videos', Icons.video_library, '/dashboard/videos', isActive('/dashboard/videos')),
-                _buildNavItem(context, 'programs', Icons.video_collection, '/dashboard/programs', isActive('/dashboard/programs')),
-                _buildNavItem(context, 'categories', Icons.category, '/dashboard/categories', isActive('/dashboard/categories')),
-                _buildNavItem(context, 'locations', Icons.location_on, '/dashboard/locations', isActive('/dashboard/locations')),
+                _buildNavItem(
+                  context,
+                  'home',
+                  Icons.dashboard,
+                  '/dashboard/home',
+                  isActive('/dashboard/home'),
+                ),
+                _buildNavItem(
+                  context,
+                  'main_news',
+                  Icons.article,
+                  '/dashboard/main-news',
+                  isActive('/dashboard/main-news'),
+                ),
+                _buildNavItem(
+                  context,
+                  'breaking_news',
+                  Icons.new_releases,
+                  '/dashboard/breaking-news',
+                  isActive('/dashboard/breaking-news'),
+                ),
+                _buildNavItem(
+                  context,
+                  'live_stream',
+                  Icons.live_tv,
+                  '/dashboard/live-stream',
+                  isActive('/dashboard/live-stream'),
+                ),
+                _buildNavItem(
+                  context,
+                  'videos',
+                  Icons.video_library,
+                  '/dashboard/videos',
+                  isActive('/dashboard/videos'),
+                ),
+                _buildNavItem(
+                  context,
+                  'programs',
+                  Icons.video_collection,
+                  '/dashboard/programs',
+                  isActive('/dashboard/programs'),
+                ),
+                _buildNavItem(
+                  context,
+                  'categories',
+                  Icons.category,
+                  '/dashboard/categories',
+                  isActive('/dashboard/categories'),
+                ),
+                _buildNavItem(
+                  context,
+                  'locations',
+                  Icons.location_on,
+                  '/dashboard/locations',
+                  isActive('/dashboard/locations'),
+                ),
                 Divider(color: scheme.outlineVariant, height: 32),
-                _buildNavItem(context, 'manual_notifications', Icons.notifications_active, '/dashboard/manual-notifications', isActive('/dashboard/manual-notifications')),
-                _buildNavItem(context, 'user_reports', Icons.campaign, '/dashboard/user-reports', isActive('/dashboard/user-reports')),
+                _buildNavItem(
+                  context,
+                  'manual_notifications',
+                  Icons.notifications_active,
+                  '/dashboard/manual-notifications',
+                  isActive('/dashboard/manual-notifications'),
+                ),
+                _buildNavItem(
+                  context,
+                  'user_reports',
+                  Icons.campaign,
+                  '/dashboard/user-reports',
+                  isActive('/dashboard/user-reports'),
+                ),
               ],
             ),
           ),
           Divider(color: scheme.outlineVariant, height: 1),
-          _buildNavItem(context, 'settings', Icons.settings, '/dashboard/settings', isActive('/dashboard/settings')),
+          _buildNavItem(
+            context,
+            'settings',
+            Icons.settings,
+            '/dashboard/settings',
+            isActive('/dashboard/settings'),
+          ),
           _buildLogoutItem(context, t),
         ],
       ),
@@ -94,13 +160,22 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, String titleKey, IconData icon, String route, bool isSelected) {
+  Widget _buildNavItem(
+    BuildContext context,
+    String titleKey,
+    IconData icon,
+    String route,
+    bool isSelected,
+  ) {
     String t(String key) => DashboardI18n.t(context, key);
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Material(
-        color: isSelected ? scheme.primary.withValues(alpha: 0.14) : Colors.transparent,
+        color:
+            isSelected
+                ? scheme.primary.withValues(alpha: 0.14)
+                : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: () => context.go(route),
@@ -120,8 +195,10 @@ class Sidebar extends StatelessWidget {
                   child: Text(
                     t(titleKey),
                     style: TextStyle(
-                      color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color:
+                          isSelected ? scheme.primary : scheme.onSurfaceVariant,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                       fontSize: 14,
                     ),
                   ),

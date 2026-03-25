@@ -39,7 +39,9 @@ class News {
       imageUrl: (json['image_url'] ?? '') as String,
       categoryId: (json['category_id'] ?? '').toString(),
       locationId: json['location_id']?.toString(),
-      createdAt: DateTime.tryParse((json['created_at'] ?? '').toString()) ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse((json['created_at'] ?? '').toString()) ??
+          DateTime.now(),
       isHidden: json['is_hidden'] as bool? ?? false,
       isFeatured: json['is_featured'] as bool? ?? false,
       sentNotification: json['sent_notification'] as bool? ?? true,

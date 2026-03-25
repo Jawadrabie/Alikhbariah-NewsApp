@@ -14,19 +14,15 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
   final _supabase = Supabase.instance.client;
   late Future<Map<String, dynamic>> _future;
 
-  Future<int> _countRows(
-    String table, {
-    Map<String, dynamic>? equals,
-  }) async {
-    dynamic query = _supabase.from(table).select('id');
-
+  Future<int> _countRows(String table, {Map<String, dynamic>? equals}) async {
+    dynamic listQuery = _supabase.from(table).select('id');
     if (equals != null) {
       for (final entry in equals.entries) {
-        query = query.eq(entry.key, entry.value);
+        listQuery = listQuery.eq(entry.key, entry.value);
       }
     }
 
-    final response = await query as List<dynamic>;
+    final response = await listQuery as List<dynamic>;
     return response.length;
   }
 
@@ -90,7 +86,13 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
     };
   }
 
-  Widget _kpi(BuildContext context, String title, String value, IconData icon, Color color) {
+  Widget _kpi(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       width: 240, // consistent width for wrap
@@ -166,7 +168,8 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
           }
           final data = snapshot.data ?? {};
           final latestNews = (data['latestNews'] as List<dynamic>? ?? []);
-          final latestBreaking = (data['latestBreaking'] as List<dynamic>? ?? []);
+          final latestBreaking =
+              (data['latestBreaking'] as List<dynamic>? ?? []);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -184,25 +187,70 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                   spacing: 20,
                   runSpacing: 20,
                   children: [
-                    _kpi(context, t('total_news'), '${data['newsCount'] ?? 0}', Icons.article, scheme.primary),
-                    _kpi(context, t('featured_news'), '${data['featuredNewsCount'] ?? 0}', Icons.star, scheme.tertiary),
-                    _kpi(context, t('hidden_news'), '${data['hiddenNewsCount'] ?? 0}', Icons.visibility_off, scheme.outline),
-                    _kpi(context, t('breaking_items'), '${data['breakingCount'] ?? 0}', Icons.flash_on, scheme.error),
-                    _kpi(context, t('videos'), '${data['videosCount'] ?? 0}', Icons.play_circle, scheme.secondary),
-                    _kpi(context, t('programs'), '${data['programsCount'] ?? 0}', Icons.tv, scheme.primaryContainer),
-                    _kpi(context, t('categories'), '${data['categoriesCount'] ?? 0}', Icons.category, scheme.tertiaryContainer),
+                    _kpi(
+                      context,
+                      t('total_news'),
+                      '${data['newsCount'] ?? 0}',
+                      Icons.article,
+                      scheme.primary,
+                    ),
+                    _kpi(
+                      context,
+                      t('featured_news'),
+                      '${data['featuredNewsCount'] ?? 0}',
+                      Icons.star,
+                      scheme.tertiary,
+                    ),
+                    _kpi(
+                      context,
+                      t('hidden_news'),
+                      '${data['hiddenNewsCount'] ?? 0}',
+                      Icons.visibility_off,
+                      scheme.outline,
+                    ),
+                    _kpi(
+                      context,
+                      t('breaking_items'),
+                      '${data['breakingCount'] ?? 0}',
+                      Icons.flash_on,
+                      scheme.error,
+                    ),
+                    _kpi(
+                      context,
+                      t('videos'),
+                      '${data['videosCount'] ?? 0}',
+                      Icons.play_circle,
+                      scheme.secondary,
+                    ),
+                    _kpi(
+                      context,
+                      t('programs'),
+                      '${data['programsCount'] ?? 0}',
+                      Icons.tv,
+                      scheme.primaryContainer,
+                    ),
+                    _kpi(
+                      context,
+                      t('categories'),
+                      '${data['categoriesCount'] ?? 0}',
+                      Icons.category,
+                      scheme.tertiaryContainer,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 48),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     Expanded(
+                    Expanded(
                       child: _buildRecentList(
                         t('latest_news'),
                         latestNews,
                         (item) => ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -218,20 +266,27 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           subtitle: Text(
-                            (item['created_at'] ?? '').toString().split('T').first,
+                            (item['created_at'] ?? '')
+                                .toString()
+                                .split('T')
+                                .first,
                             style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
-                          trailing: ((item['is_hidden'] ?? false) == true)
-                              ? Chip(
-                                  label: Text(
-                                    t('hidden'),
-                                    style: TextStyle(fontSize: 10, color: scheme.onErrorContainer),
-                                  ),
-                                  backgroundColor: scheme.errorContainer,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: EdgeInsets.zero,
-                                )
-                              : null,
+                          trailing:
+                              ((item['is_hidden'] ?? false) == true)
+                                  ? Chip(
+                                    label: Text(
+                                      t('hidden'),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: scheme.onErrorContainer,
+                                      ),
+                                    ),
+                                    backgroundColor: scheme.errorContainer,
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                  )
+                                  : null,
                         ),
                       ),
                     ),
@@ -241,7 +296,10 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                         t('latest_breaking_news'),
                         latestBreaking,
                         (item) => ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           leading: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -258,8 +316,14 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
                           ),
                           subtitle: Text(
                             t('from_to')
-                                .replaceFirst('{start}', _formatIsoTime(item['start_time']))
-                                .replaceFirst('{end}', _formatIsoTime(item['end_time'])),
+                                .replaceFirst(
+                                  '{start}',
+                                  _formatIsoTime(item['start_time']),
+                                )
+                                .replaceFirst(
+                                  '{end}',
+                                  _formatIsoTime(item['end_time']),
+                                ),
                             style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
                         ),
@@ -303,8 +367,13 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: scheme.primary,
                 foregroundColor: scheme.onPrimary,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () => context.push('/dashboard/main-news/add'),
               icon: const Icon(Icons.add, size: 18),
@@ -314,8 +383,13 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: scheme.primary,
                 side: BorderSide(color: scheme.outline),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () => context.push('/dashboard/breaking-news/add'),
               icon: const Icon(Icons.add_alert, size: 18),
@@ -327,7 +401,11 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
     );
   }
 
-  Widget _buildRecentList(String title, List<dynamic> items, Widget Function(dynamic) itemBuilder) {
+  Widget _buildRecentList(
+    String title,
+    List<dynamic> items,
+    Widget Function(dynamic) itemBuilder,
+  ) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
@@ -358,16 +436,23 @@ class _DashboardHomeScreenState extends State<DashboardHomeScreen> {
           ),
           Divider(height: 1, color: scheme.outlineVariant),
           if (items.isEmpty)
-             Padding(
+            Padding(
               padding: const EdgeInsets.all(32),
-              child: Center(child: Text('No items yet', style: TextStyle(color: scheme.onSurfaceVariant))),
+              child: Center(
+                child: Text(
+                  'No items yet',
+                  style: TextStyle(color: scheme.onSurfaceVariant),
+                ),
+              ),
             )
           else
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
+              separatorBuilder:
+                  (_, __) =>
+                      const Divider(height: 1, indent: 16, endIndent: 16),
               itemBuilder: (_, index) => itemBuilder(items[index]),
             ),
         ],

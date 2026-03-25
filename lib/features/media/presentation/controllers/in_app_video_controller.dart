@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-enum InAppVideoViewMode {
-  hidden,
-  fullscreen,
-  mini,
-}
+enum InAppVideoViewMode { hidden, fullscreen, mini }
 
 class InAppVideoController extends ChangeNotifier {
   InAppVideoController._();
@@ -37,7 +33,9 @@ class InAppVideoController extends ChangeNotifier {
 
     final host = uri.host.toLowerCase();
     if (host.contains('youtu.be')) {
-      return uri.pathSegments.isNotEmpty ? _normalizeId(uri.pathSegments.first) : null;
+      return uri.pathSegments.isNotEmpty
+          ? _normalizeId(uri.pathSegments.first)
+          : null;
     }
 
     if (uri.queryParameters['v'] != null) {
@@ -88,7 +86,7 @@ class InAppVideoController extends ChangeNotifier {
     }
 
     final host = uri.host.toLowerCase();
-    
+
     // Allow YouTube domains
     final isYoutubeHost =
         host.contains('youtube.com') ||
@@ -97,33 +95,35 @@ class InAppVideoController extends ChangeNotifier {
         host.contains('googlevideo.com');
 
     // Allow Google accounts for login/auth flows which might be needed
-    final isGoogleAuth = host.contains('accounts.google.com') || host.contains('google.com');
+    final isGoogleAuth =
+        host.contains('accounts.google.com') || host.contains('google.com');
 
     if (isYoutubeHost || isGoogleAuth) {
       return NavigationDecision.navigate;
     }
-    
+
     return NavigationDecision.prevent;
   }
 
   WebViewController _buildWebViewController() {
-    final controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.black)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (request) => _handleNavigation(request.url),
-          onWebResourceError: (error) {
-             // Only report error if it's a main frame failure or similar major issue
-             if (error.isForMainFrame == true) {
-                 _hasPlaybackError = true;
-                 _playbackErrorMessage =
-                     'تعذر تشغيل الفيديو. قد يكون التضمين معطّل من المصدر.';
-                 notifyListeners();
-             }
-          },
-        ),
-      );
+    final controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(Colors.black)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onNavigationRequest: (request) => _handleNavigation(request.url),
+              onWebResourceError: (error) {
+                // Only report error if it's a main frame failure or similar major issue
+                if (error.isForMainFrame == true) {
+                  _hasPlaybackError = true;
+                  _playbackErrorMessage =
+                      'تعذر تشغيل الفيديو. قد يكون التضمين معطّل من المصدر.';
+                  notifyListeners();
+                }
+              },
+            ),
+          );
 
     if (Platform.isAndroid && controller.platform is AndroidWebViewController) {
       final androidController = controller.platform as AndroidWebViewController;
@@ -172,13 +172,14 @@ class InAppVideoController extends ChangeNotifier {
     final embedUri = _embedUriFor(videoId);
     _webViewController!.loadRequest(
       embedUri,
-      headers: {
-        'Referer': 'https://alikhbariah.com/',
-      },
+      headers: {'Referer': 'https://alikhbariah.com/'},
     );
 
     _title = title?.trim().isNotEmpty == true ? title!.trim() : '';
-    _viewMode = openFullscreen ? InAppVideoViewMode.fullscreen : InAppVideoViewMode.hidden;
+    _viewMode =
+        openFullscreen
+            ? InAppVideoViewMode.fullscreen
+            : InAppVideoViewMode.hidden;
     notifyListeners();
     return true;
   }
@@ -196,7 +197,9 @@ class InAppVideoController extends ChangeNotifier {
   }
 
   void close() {
-    _webViewController?.loadHtmlString('<html><body style="background:black;"></body></html>');
+    _webViewController?.loadHtmlString(
+      '<html><body style="background:black;"></body></html>',
+    );
     _title = '';
     _hasPlaybackError = false;
     _playbackErrorMessage = '';

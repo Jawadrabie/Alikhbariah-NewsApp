@@ -91,19 +91,23 @@ class PushNotificationService {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       _onMessageSubscription?.cancel();
-      _onMessageSubscription = FirebaseMessaging.onMessage.listen((message) async {
+      _onMessageSubscription = FirebaseMessaging.onMessage.listen((
+        message,
+      ) async {
         debugPrint('Foreground message: ${message.messageId}');
         await _showForegroundNotification(message);
       });
 
       _onMessageOpenedSubscription?.cancel();
-      _onMessageOpenedSubscription =
-          FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        debugPrint('Opened from notification: ${message.messageId}');
-      });
+      _onMessageOpenedSubscription = FirebaseMessaging.onMessageOpenedApp
+          .listen((message) {
+            debugPrint('Opened from notification: ${message.messageId}');
+          });
 
       _onTokenRefreshSubscription?.cancel();
-      _onTokenRefreshSubscription = _messaging.onTokenRefresh.listen((newToken) {
+      _onTokenRefreshSubscription = _messaging.onTokenRefresh.listen((
+        newToken,
+      ) {
         debugPrint('FCM token refreshed: $newToken');
       });
 
@@ -114,15 +118,20 @@ class PushNotificationService {
   }
 
   static Future<void> _initializeLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettings =
-        InitializationSettings(android: androidSettings);
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const initializationSettings = InitializationSettings(
+      android: androidSettings,
+    );
 
     await _localNotifications.initialize(initializationSettings);
 
     final androidImplementation =
-        _localNotifications.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+        _localNotifications
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
     await androidImplementation?.createNotificationChannel(_androidChannel);
   }
 

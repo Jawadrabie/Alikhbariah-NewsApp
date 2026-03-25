@@ -3,6 +3,7 @@ import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
 import 'package:newsappjs/dashboard/models/location.dart';
 import 'package:newsappjs/dashboard/services/location_service.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
@@ -33,66 +34,83 @@ class _LocationsScreenState extends State<LocationsScreen> {
     String t(String key) => DashboardI18n.t(context, key);
     final nameController = TextEditingController(text: current?.name ?? '');
     final nameEnController = TextEditingController(text: current?.nameEn ?? '');
+    bool isSaving = false;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(current == null ? t('add_location') : t('edit_location')),
-          content: SizedBox(
-            width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomTextField(
-                  controller: nameController,
-                  labelText: t('name'),
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text(
+                current == null ? t('add_location') : t('edit_location'),
+              ),
+              content: SizedBox(
+                width: 420,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomTextField(
+                      controller: nameController,
+                      labelText: t('name'),
+                    ),
+                    CustomTextField(
+                      controller: nameEnController,
+                      labelText: t('name_en'),
+                    ),
+                  ],
                 ),
-                CustomTextField(
-                  controller: nameEnController,
-                  labelText: t('name_en'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isSaving ? null : () => Navigator.of(dialogContext).pop(),
+                  child: Text(t('cancel')),
+                ),
+                FilledButton(
+                  onPressed:
+                      isSaving
+                          ? null
+                          : () async {
+                            setLocalState(() => isSaving = true);
+                            final item = Location(
+                              id: current?.id ?? '',
+                              name: nameController.text.trim(),
+                              nameEn:
+                                  nameEnController.text.trim().isEmpty
+                                      ? null
+                                      : nameEnController.text.trim(),
+                              slug: current?.slug,
+                            );
+
+                            try {
+                              if (current == null) {
+                                await _service.createLocation(item);
+                              } else {
+                                await _service.updateLocation(item);
+                              }
+                            } catch (e) {
+                              if (!dialogContext.mounted) return;
+                              setLocalState(() => isSaving = false);
+                              await DashboardDialogs.showError(
+                                dialogContext,
+                                '${t('error_saving_location')}: $e',
+                              );
+                              return;
+                            }
+
+                            if (!dialogContext.mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            _reload();
+                          },
+                  child: DashboardLoadingButtonChild(
+                    isLoading: isSaving,
+                    label: t('save'),
+                  ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(t('cancel')),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final item = Location(
-                  id: current?.id ?? '',
-                  name: nameController.text.trim(),
-                  nameEn: nameEnController.text.trim().isEmpty
-                      ? null
-                      : nameEnController.text.trim(),
-                  slug: current?.slug,
-                );
-
-                try {
-                  if (current == null) {
-                    await _service.createLocation(item);
-                  } else {
-                    await _service.updateLocation(item);
-                  }
-                } catch (e) {
-                  if (!dialogContext.mounted) return;
-                  await DashboardDialogs.showError(
-                    dialogContext,
-                    '${t('error_saving_location')}: $e',
-                  );
-                  return;
-                }
-
-                if (!dialogContext.mounted) return;
-                Navigator.of(dialogContext).pop();
-                _reload();
-              },
-              child: Text(t('save')),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -137,48 +155,58 @@ class _LocationsScreenState extends State<LocationsScreen> {
                 label: Text(t('add_location')),
               ),
             ],
-            child: items.isEmpty
-                ? DashboardEmptyState(
-                    icon: Icons.location_on_outlined,
-                    title: t('no_locations_found'),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                      ),
-                      columns: [
-                        DataColumn(label: Text(t('name'))),
-                        DataColumn(label: Text(t('name_en'))),
-                        DataColumn(label: Text(t('actions'))),
-                      ],
-                      rows: items
-                          .map(
-                            (item) => DataRow(
-                              cells: [
-                                DataCell(Text(item.name)),
-                                DataCell(Text(item.nameEn ?? t('na'))),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: scheme.primary),
-                                        onPressed: () => _openForm(current: item),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: scheme.error),
-                                        onPressed: () => _delete(item.id),
+            child:
+                items.isEmpty
+                    ? DashboardEmptyState(
+                      icon: Icons.location_on_outlined,
+                      title: t('no_locations_found'),
+                    )
+                    : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        columns: [
+                          DataColumn(label: Text(t('name'))),
+                          DataColumn(label: Text(t('name_en'))),
+                          DataColumn(label: Text(t('actions'))),
+                        ],
+                        rows:
+                            items
+                                .map(
+                                  (item) => DataRow(
+                                    cells: [
+                                      DataCell(Text(item.name)),
+                                      DataCell(Text(item.nameEn ?? t('na'))),
+                                      DataCell(
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit,
+                                                color: scheme.primary,
+                                              ),
+                                              onPressed:
+                                                  () =>
+                                                      _openForm(current: item),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                                color: scheme.error,
+                                              ),
+                                              onPressed: () => _delete(item.id),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                                )
+                                .toList(),
+                      ),
                     ),
-                  ),
           );
         },
       ),

@@ -38,7 +38,8 @@ class ProgramModel {
     return ProgramModel(
       id: json['id'] as int,
       name: pickText('name'),
-      description: pickText('description').isEmpty ? null : pickText('description'),
+      description:
+          pickText('description').isEmpty ? null : pickText('description'),
       imageUrl: json['image_url'] as String?,
       orderIndex: json['order_index'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,

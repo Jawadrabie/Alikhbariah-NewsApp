@@ -38,7 +38,8 @@ class _FeaturedSliderState extends State<FeaturedSlider> {
   @override
   void didUpdateWidget(covariant FeaturedSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.items.length != widget.items.length || oldWidget.autoplay != widget.autoplay) {
+    if (oldWidget.items.length != widget.items.length ||
+        oldWidget.autoplay != widget.autoplay) {
       _timer?.cancel();
       _index = 0;
       _startAutoPlay();
@@ -101,9 +102,10 @@ class _FeaturedSliderState extends State<FeaturedSlider> {
               height: 8,
               margin: const EdgeInsets.symmetric(horizontal: 3),
               decoration: BoxDecoration(
-                color: dotIndex == _index
-                    ? Theme.of(context).colorScheme.primary
-                    : const Color(0xFFD1D5DB),
+                color:
+                    dotIndex == _index
+                        ? Theme.of(context).colorScheme.primary
+                        : const Color(0xFFD1D5DB),
                 borderRadius: BorderRadius.circular(100),
               ),
             ),
@@ -135,21 +137,24 @@ class _FeaturedCard extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: news.imageUrl == null || news.imageUrl!.isEmpty
-                  ? const ColoredBox(color: Color(0xFFE5EBEF))
-                  : CachedNetworkImage(
-                      imageUrl: news.imageUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const ShimmerLoading(
-                        width: double.infinity,
-                        height: double.infinity,
-                        borderRadius: 0,
+              child:
+                  news.imageUrl == null || news.imageUrl!.isEmpty
+                      ? const ColoredBox(color: Color(0xFFE5EBEF))
+                      : CachedNetworkImage(
+                        imageUrl: news.imageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) => const ShimmerLoading(
+                              width: double.infinity,
+                              height: double.infinity,
+                              borderRadius: 0,
+                            ),
+                        errorWidget:
+                            (context, url, error) => const ColoredBox(
+                              color: Color(0xFFE5EBEF),
+                              child: Icon(Icons.broken_image_outlined),
+                            ),
                       ),
-                      errorWidget: (context, url, error) => const ColoredBox(
-                        color: Color(0xFFE5EBEF),
-                        child: Icon(Icons.broken_image_outlined),
-                      ),
-                    ),
             ),
             Positioned.fill(
               child: DecoratedBox(

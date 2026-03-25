@@ -6,11 +6,12 @@ class VideosService {
   final _supabase = Supabase.instance.client;
   dynamic _idValue(String id) => int.tryParse(id) ?? id;
 
-  Future<List<VideoItem>> getVideos({String? programId, String? categoryId}) async {
+  Future<List<VideoItem>> getVideos({
+    String? programId,
+    String? categoryId,
+  }) async {
     try {
-      var query = _supabase
-          .from('videos')
-          .select();
+      var query = _supabase.from('videos').select();
 
       if (categoryId != null && categoryId.isNotEmpty) {
         query = query.eq('category_id', _idValue(categoryId));
@@ -22,9 +23,10 @@ class VideosService {
 
       final response = await query.order('created_at', ascending: false);
 
-      final mapped = (response as List<dynamic>)
-          .map((json) => VideoItem.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final mapped =
+          (response as List<dynamic>)
+              .map((json) => VideoItem.fromJson(json as Map<String, dynamic>))
+              .toList();
       return mapped;
     } catch (e) {
       debugPrint('Error fetching videos: $e');
@@ -34,9 +36,10 @@ class VideosService {
 
   Future<void> createVideo(VideoItem video) async {
     try {
-      final data = Map<String, dynamic>.from(video.toJson())
-        ..remove('id')
-        ..remove('program_id');
+      final data =
+          Map<String, dynamic>.from(video.toJson())
+            ..remove('id')
+            ..remove('program_id');
       await _supabase.from('videos').insert(data);
     } catch (e) {
       debugPrint('Error creating video: $e');
@@ -46,9 +49,10 @@ class VideosService {
 
   Future<void> updateVideo(VideoItem video) async {
     try {
-      final data = Map<String, dynamic>.from(video.toJson())
-        ..remove('id')
-        ..remove('program_id');
+      final data =
+          Map<String, dynamic>.from(video.toJson())
+            ..remove('id')
+            ..remove('program_id');
       await _supabase.from('videos').update(data).eq('id', _idValue(video.id));
     } catch (e) {
       debugPrint('Error updating video: $e');

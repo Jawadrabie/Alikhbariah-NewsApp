@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:hive/hive.dart';
 
-typedef CachedListEntry = ({DateTime cachedAt, List<Map<String, dynamic>> data});
+typedef CachedListEntry =
+    ({DateTime cachedAt, List<Map<String, dynamic>> data});
 typedef CachedMapEntry = ({DateTime cachedAt, Map<String, dynamic> data});
 
 class LocalCacheService {
@@ -35,10 +36,11 @@ class LocalCacheService {
       // 1. Check memory
       final memoryEntry = _memoryCache[key];
       if (memoryEntry != null && memoryEntry.data is List) {
-        final memoryRows = (memoryEntry.data as List)
-            .whereType<Map>()
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList();
+        final memoryRows =
+            (memoryEntry.data as List)
+                .whereType<Map>()
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
         return (cachedAt: memoryEntry.cachedAt, data: memoryRows);
       }
 
@@ -57,10 +59,11 @@ class LocalCacheService {
       final data = decoded['data'];
       if (data is! List) return null;
 
-      final rows = data
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
+      final rows =
+          data
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
 
       // Update memory cache
       _memoryCache[key] = (cachedAt: cachedAt, data: rows);
@@ -99,7 +102,7 @@ class LocalCacheService {
 
       final data = decoded['data'];
       if (data is! Map) return null;
-      
+
       final mapData = Map<String, dynamic>.from(data);
 
       // Update memory cache
@@ -114,10 +117,11 @@ class LocalCacheService {
   Future<CachedListEntry?> readList(String key) async {
     final memoryEntry = _memoryCache[key];
     if (memoryEntry != null && memoryEntry.data is List) {
-      final memoryRows = (memoryEntry.data as List)
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
+      final memoryRows =
+          (memoryEntry.data as List)
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
       return (cachedAt: memoryEntry.cachedAt, data: memoryRows);
     }
 
@@ -127,10 +131,11 @@ class LocalCacheService {
     final data = entry.data['data'];
     if (data is! List) return null;
 
-    final rows = data
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
-        .toList();
+    final rows =
+        data
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
 
     _memoryCache[key] = (cachedAt: entry.cachedAt, data: rows);
 
@@ -155,10 +160,7 @@ class LocalCacheService {
     final mapData = Map<String, dynamic>.from(data);
     _memoryCache[key] = (cachedAt: entry.cachedAt, data: mapData);
 
-    return (
-      cachedAt: entry.cachedAt,
-      data: mapData,
-    );
+    return (cachedAt: entry.cachedAt, data: mapData);
   }
 
   Future<void> writeList(String key, List<Map<String, dynamic>> data) async {
@@ -186,7 +188,9 @@ class LocalCacheService {
     await box.put(key, jsonEncode(payload));
   }
 
-  Future<({DateTime cachedAt, Map<String, dynamic> data})?> _readEntry(String key) async {
+  Future<({DateTime cachedAt, Map<String, dynamic> data})?> _readEntry(
+    String key,
+  ) async {
     final box = await _openBox();
     final raw = box.get(key);
     if (raw == null || raw.isEmpty) return null;

@@ -8,6 +8,7 @@ class BreakingNews {
   final DateTime startTime;
   final DateTime endTime;
   final bool sendNotification;
+  final int viewCount;
 
   BreakingNews({
     required this.id,
@@ -19,6 +20,7 @@ class BreakingNews {
     required this.startTime,
     required this.endTime,
     required this.sendNotification,
+    this.viewCount = 0,
   });
 
   factory BreakingNews.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class BreakingNews {
       startTime: DateTime.parse(json['start_time']),
       endTime: DateTime.parse(json['end_time']),
       sendNotification: json['send_notification'] ?? true,
+      viewCount: (json['view_count'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -46,6 +49,7 @@ class BreakingNews {
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
       'send_notification': sendNotification,
+      'view_count': viewCount,
     };
   }
 

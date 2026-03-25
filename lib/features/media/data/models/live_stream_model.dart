@@ -21,7 +21,8 @@ class LiveStreamModel {
     final fallbackLanguage = normalizedLanguage == 'en' ? 'ar' : 'en';
 
     String? pickText(String baseKey) {
-      final preferred = json['${baseKey}_$normalizedLanguage']?.toString().trim();
+      final preferred =
+          json['${baseKey}_$normalizedLanguage']?.toString().trim();
       if (preferred != null && preferred.isNotEmpty) return preferred;
 
       final base = json[baseKey]?.toString().trim();

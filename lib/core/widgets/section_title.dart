@@ -20,10 +20,7 @@ class SectionTitle extends StatelessWidget {
         alignment: Alignment.centerRight,
         child: Text(
           title,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w700),
         ),
       ),
     );

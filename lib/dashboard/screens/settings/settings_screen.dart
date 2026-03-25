@@ -26,9 +26,9 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 t('appearance_and_language'),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -68,14 +68,8 @@ class SettingsScreen extends StatelessWidget {
                   labelText: t('language'),
                   prefixIcon: const Icon(Icons.language_outlined),
                   items: [
-                    DropdownMenuItem(
-                      value: 'ar',
-                      child: Text(t('arabic')),
-                    ),
-                    DropdownMenuItem(
-                      value: 'en',
-                      child: Text(t('english')),
-                    ),
+                    DropdownMenuItem(value: 'ar', child: Text(t('arabic'))),
+                    DropdownMenuItem(value: 'en', child: Text(t('english'))),
                   ],
                   onChanged: (value) {
                     if (value != null) {

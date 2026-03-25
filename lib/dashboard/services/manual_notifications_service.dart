@@ -11,10 +11,7 @@ class ManualNotificationsService {
       await _supabase.functions.invoke(
         'send-fcm',
         body: {
-          'record': {
-            'title': title,
-            'body': body,
-          },
+          'record': {'title': title, 'body': body},
         },
       );
     } catch (e) {
@@ -29,7 +26,9 @@ class ManualNotificationsService {
           .select()
           .order('sent_at', ascending: false);
       return (response as List<dynamic>)
-          .map((json) => ManualNotification.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => ManualNotification.fromJson(json as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       debugPrint('Error fetching manual notifications: $e');
@@ -39,10 +38,7 @@ class ManualNotificationsService {
 
   Future<void> createNotification(ManualNotification item) async {
     try {
-      final data = <String, dynamic>{
-        'title': item.title,
-        'body': item.body,
-      };
+      final data = <String, dynamic>{'title': item.title, 'body': item.body};
       await _supabase.from('manual_notifications_log').insert(data);
       await _sendPush(title: item.title, body: item.body);
     } catch (e) {

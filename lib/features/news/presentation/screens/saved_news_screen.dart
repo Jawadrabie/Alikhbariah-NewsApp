@@ -65,7 +65,9 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
                   const SizedBox(height: 120),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(l10n.failedLoadSavedNews(snapshot.error.toString())),
+                    child: Text(
+                      l10n.failedLoadSavedNews(snapshot.error.toString()),
+                    ),
                   ),
                 ],
               );
@@ -76,7 +78,11 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
               return ListView(
                 children: [
                   SizedBox(height: 120),
-                  Icon(Icons.bookmark_border_rounded, size: 42, color: Color(0xFF9CA3AF)),
+                  Icon(
+                    Icons.bookmark_border_rounded,
+                    size: 42,
+                    color: Color(0xFF9CA3AF),
+                  ),
                   SizedBox(height: 10),
                   Center(child: Text(l10n.noSavedNewsYet)),
                 ],
@@ -99,7 +105,7 @@ class _SavedNewsScreenState extends State<SavedNewsScreen> {
                   ),
                   onDismissed: (direction) async {
                     await _bookmarkService.removeBookmark(item.id);
-                    
+
                     _refresh();
 
                     if (context.mounted) {

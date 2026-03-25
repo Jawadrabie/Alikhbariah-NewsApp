@@ -28,9 +28,8 @@ class Category {
       coverImageUrl: json['cover_image_url']?.toString(),
       orderIndex: (json['order_index'] ?? 0) as int,
       type: (json['type'] ?? 'news').toString(),
-      videoCount: (json['video_count'] != null)
-          ? (json['video_count'] as int)
-          : 0,
+      videoCount:
+          (json['video_count'] != null) ? (json['video_count'] as int) : 0,
     );
   }
 

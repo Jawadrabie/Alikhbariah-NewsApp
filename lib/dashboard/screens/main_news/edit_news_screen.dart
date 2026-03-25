@@ -10,6 +10,8 @@ import 'package:newsappjs/dashboard/services/location_service.dart';
 import 'package:newsappjs/dashboard/services/news_service.dart';
 import 'package:newsappjs/dashboard/services/storage_service.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_form_container.dart';
 
 class EditNewsScreen extends StatefulWidget {
   final News? news;
@@ -59,9 +61,10 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
     _isHidden = widget.news?.isHidden ?? false;
     _selectedCategoryId = widget.news?.categoryId;
     _selectedLocationId = widget.news?.locationId;
-    _imageSource = (widget.news?.imageUrl != null && widget.news!.imageUrl.isNotEmpty)
-      ? _imageSourceUrl
-      : _imageSourceUpload;
+    _imageSource =
+        (widget.news?.imageUrl != null && widget.news!.imageUrl.isNotEmpty)
+            ? _imageSourceUrl
+            : _imageSourceUpload;
 
     _categoriesFuture = _categoryService.getCategories(type: 'news');
     _locationsFuture = _locationService.getLocations();
@@ -83,7 +86,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
     });
 
     try {
-      final url = await _storageService.pickAndUploadImage(bucketName: 'news-images');
+      final url = await _storageService.pickAndUploadImage(
+        bucketName: 'news-images',
+      );
       if (url != null) {
         setState(() {
           _imageUrlController.text = url;
@@ -143,7 +148,7 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
           );
         }
       } finally {
-        if(mounted) {
+        if (mounted) {
           setState(() {
             _isLoading = false;
           });
@@ -161,47 +166,45 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
       appBar: AppBar(
         title: Text(widget.news == null ? t('add_news') : t('edit_news')),
         actions: [
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            TextButton.icon(
-              icon: const Icon(Icons.save),
-              label: Text(t('save')),
-              style: TextButton.styleFrom(foregroundColor: scheme.primary),
-              onPressed: _saveForm,
+          TextButton.icon(
+            icon: const Icon(Icons.save),
+            label: DashboardLoadingButtonChild(
+              isLoading: _isLoading,
+              label: t('save'),
+              spinnerSize: 16,
             ),
+            style: TextButton.styleFrom(foregroundColor: scheme.primary),
+            onPressed: _isLoading ? null : _saveForm,
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Fixed fields at top
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: DashboardFormContainer(
+          maxWidth: null,
+          center: false,
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 CustomTextField(
                   controller: _titleController,
                   labelText: t('title_ar'),
-                  validator: (value) =>
-                      value!.isEmpty ? t('please_enter_title') : null,
+                  validator:
+                      (value) =>
+                          value!.isEmpty ? t('please_enter_title') : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _titleEnController,
                   labelText: t('title_en'),
-                  validator: (value) =>
-                      value == null || value.trim().isEmpty ? t('please_enter_title_en') : null,
+                  validator:
+                      (value) =>
+                          value == null || value.trim().isEmpty
+                              ? t('please_enter_title_en')
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -209,10 +212,13 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                   labelText: t('content_html_ar'),
                   hintText: t('content_hint'),
                   alignLabelWithHint: true,
-                  minLines: 12,
-                  maxLines: 20,
-                  validator: (value) =>
-                      value == null || value.trim().isEmpty ? t('please_enter_content') : null,
+                  minLines: 3,
+                  maxLines: null,
+                  validator:
+                      (value) =>
+                          value == null || value.trim().isEmpty
+                              ? t('please_enter_content')
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -220,10 +226,13 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                   labelText: t('content_html_en'),
                   hintText: t('content_hint_en'),
                   alignLabelWithHint: true,
-                  minLines: 12,
-                  maxLines: 20,
-                  validator: (value) =>
-                      value == null || value.trim().isEmpty ? t('please_enter_content_en') : null,
+                  minLines: 3,
+                  maxLines: null,
+                  validator:
+                      (value) =>
+                          value == null || value.trim().isEmpty
+                              ? t('please_enter_content_en')
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -233,8 +242,14 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                         value: _imageSource,
                         labelText: t('image_source'),
                         items: [
-                          DropdownMenuItem(value: _imageSourceUrl, child: Text(t('direct_url'))),
-                          DropdownMenuItem(value: _imageSourceUpload, child: Text(t('upload_from_device'))),
+                          DropdownMenuItem(
+                            value: _imageSourceUrl,
+                            child: Text(t('direct_url')),
+                          ),
+                          DropdownMenuItem(
+                            value: _imageSourceUpload,
+                            child: Text(t('upload_from_device')),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value == null) return;
@@ -253,7 +268,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                     controller: _imageUrlController,
                     labelText: t('image_url'),
                     validator: (value) {
-                      if (_imageSource != _imageSourceUrl) return null;
+                      if (_imageSource != _imageSourceUrl) {
+                        return null;
+                      }
                       return value == null || value.isEmpty
                           ? t('please_enter_image_url')
                           : null;
@@ -269,7 +286,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                           labelText: t('uploaded_image_url'),
                           hintText: t('upload_from_device'),
                           validator: (value) {
-                            if (_imageSource != _imageSourceUpload) return null;
+                            if (_imageSource != _imageSourceUpload) {
+                              return null;
+                            }
                             return value == null || value.isEmpty
                                 ? t('please_upload_image')
                                 : null;
@@ -290,7 +309,9 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         _imageUploadError!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
                     ),
                   ),
@@ -315,16 +336,23 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                     return CustomDropdownField<String>(
                       value: _selectedCategoryId,
                       labelText: t('category'),
-                      items: snapshot.data!
-                          .map((category) => DropdownMenuItem(
-                                value: category.id,
-                                child: Text(category.name),
-                              ))
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedCategoryId = value),
-                      validator: (value) =>
-                          value == null ? t('please_select_category') : null,
+                      items:
+                          snapshot.data!
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category.id,
+                                  child: Text(category.name),
+                                ),
+                              )
+                              .toList(),
+                      onChanged:
+                          (value) =>
+                              setState(() => _selectedCategoryId = value),
+                      validator:
+                          (value) =>
+                              value == null
+                                  ? t('please_select_category')
+                                  : null,
                     );
                   },
                 ),
@@ -334,19 +362,24 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                     if (!snapshot.hasData) {
                       return const CircularProgressIndicator();
                     }
+                    final searchController = TextEditingController();
                     return CustomDropdownField<String>(
                       value: _selectedLocationId,
                       labelText: t('location'),
                       items: snapshot.data!
-                          .map((location) => DropdownMenuItem(
-                                value: location.id,
-                                child: Text(location.name),
-                              ))
+                          .map(
+                            (location) => DropdownMenuItem(
+                              value: location.id,
+                              child: Text(location.name),
+                            ),
+                          )
                           .toList(),
                       onChanged: (value) =>
                           setState(() => _selectedLocationId = value),
                       validator: (value) =>
                           value == null ? t('please_select_location') : null,
+                      searchController: searchController,
+                      searchHintText: t('search_location'),
                     );
                   },
                 ),
@@ -360,23 +393,27 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
                   value: _isHidden,
                   onChanged: (value) => setState(() => _isHidden = value),
                 ),
-                    ], // Column children
-                  ), // Column
-                ), // SingleChildScrollView
-              ), // Expanded
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _isLoading ? null : _saveForm,
-                  icon: const Icon(Icons.save),
-                  label: Text(widget.news == null ? t('create_news') : t('save_changes')),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _isLoading ? null : _saveForm,
+                    icon: const Icon(Icons.save),
+                    label: DashboardLoadingButtonChild(
+                      isLoading: _isLoading,
+                      label:
+                          widget.news == null
+                              ? t('create_news')
+                              : t('save_changes'),
+                      spinnerSize: 16,
+                    ),
+                  ),
                 ),
-              ),
-            ], // Column children
-          ), // Column
-        ), // Form
-      ), // Padding
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

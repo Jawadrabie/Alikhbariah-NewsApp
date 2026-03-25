@@ -11,10 +11,7 @@ class BreakingNewsService {
       await _supabase.functions.invoke(
         'send-fcm',
         body: {
-          'record': {
-            'title': title,
-            'body': body,
-          },
+          'record': {'title': title, 'body': body},
         },
       );
     } catch (e) {
@@ -38,14 +35,13 @@ class BreakingNewsService {
 
   Future<void> createBreakingNews(BreakingNews breakingNews) async {
     try {
-      final data = Map<String, dynamic>.from(breakingNews.toJson())..remove('id');
+      final data = Map<String, dynamic>.from(breakingNews.toJson())
+        ..remove('id')
+        ..remove('view_count');
       await _supabase.from('breaking_news').insert(data);
 
       if (breakingNews.sendNotification) {
-        await _sendPush(
-          title: breakingNews.title,
-          body: breakingNews.content,
-        );
+        await _sendPush(title: breakingNews.title, body: breakingNews.content);
       }
     } catch (e) {
       debugPrint('Error creating breaking news: $e');
@@ -55,7 +51,9 @@ class BreakingNewsService {
 
   Future<void> updateBreakingNews(BreakingNews breakingNews) async {
     try {
-      final data = Map<String, dynamic>.from(breakingNews.toJson())..remove('id');
+      final data = Map<String, dynamic>.from(breakingNews.toJson())
+        ..remove('id')
+        ..remove('view_count');
       await _supabase
           .from('breaking_news')
           .update(data)

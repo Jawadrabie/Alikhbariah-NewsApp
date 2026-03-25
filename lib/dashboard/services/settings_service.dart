@@ -7,7 +7,10 @@ class SettingsService {
 
   Future<List<AppSetting>> getSettings() async {
     try {
-      final response = await _supabase.from('app_settings').select().order('key');
+      final response = await _supabase
+          .from('app_settings')
+          .select()
+          .order('key');
       return (response as List<dynamic>)
           .map((json) => AppSetting.fromJson(json as Map<String, dynamic>))
           .toList();

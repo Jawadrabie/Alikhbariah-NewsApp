@@ -35,6 +35,7 @@ class _VideosScreenState extends State<VideosScreen> {
   final VideosService _service = VideosService();
   final CategoryService _categoryService = CategoryService();
   late Future<List<VideoItem>> _future;
+  late Future<List<Category>> _categoriesWithCountsFuture;
   String? _selectedCategoryId;
   bool _didAutoOpenAddForm = false;
 
@@ -50,10 +51,13 @@ class _VideosScreenState extends State<VideosScreen> {
     String? programId,
     String? categoryId,
   }) async {
-    final videos = await _service.getVideos(programId: programId, categoryId: categoryId);
+    final videos = await _service.getVideos(
+      programId: programId,
+      categoryId: categoryId,
+    );
     return _nextVideoOrderIndex(videos);
   }
-  
+
   Future<List<Category>> _loadCategoriesWithCounts() async {
     final categories = await _categoryService.getCategories(type: 'video');
     final futures = categories.map((c) async {
@@ -90,6 +94,7 @@ class _VideosScreenState extends State<VideosScreen> {
   void initState() {
     super.initState();
     _selectedCategoryId = widget.categoryId;
+    _categoriesWithCountsFuture = _loadCategoriesWithCounts();
     _reload();
     if (widget.openAddForm) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -106,6 +111,9 @@ class _VideosScreenState extends State<VideosScreen> {
         programId: widget.programId,
         categoryId: widget.categoryId ?? _selectedCategoryId,
       );
+      if (widget.programId == null && widget.categoryId == null) {
+        _categoriesWithCountsFuture = _loadCategoriesWithCounts();
+      }
     });
   }
 
@@ -113,8 +121,9 @@ class _VideosScreenState extends State<VideosScreen> {
     String t(String key) => DashboardI18n.t(context, key);
     final nameController = TextEditingController(text: current?.name ?? '');
     final nameEnController = TextEditingController(text: current?.nameEn ?? '');
-    final orderController =
-        TextEditingController(text: (current?.orderIndex ?? 0).toString());
+    final orderController = TextEditingController(
+      text: (current?.orderIndex ?? 0).toString(),
+    );
 
     await showDialog<void>(
       context: context,
@@ -206,29 +215,39 @@ class _VideosScreenState extends State<VideosScreen> {
   }) async {
     String t(String key) => DashboardI18n.t(context, key);
     final titleController = TextEditingController(text: current?.title ?? '');
-    final titleEnController = TextEditingController(text: current?.titleEn ?? '');
-    final urlController = TextEditingController(text: current?.youtubeUrl ?? '');
-    
+    final titleEnController = TextEditingController(
+      text: current?.titleEn ?? '',
+    );
+    final urlController = TextEditingController(
+      text: current?.youtubeUrl ?? '',
+    );
+
     // If we are inside a playlist, category is auto-selected by the route scope.
     final isProgramScoped = widget.programId != null;
-    final isRootVideosSection = widget.programId == null && widget.categoryId == null;
+    final isRootVideosSection =
+        widget.programId == null && widget.categoryId == null;
     final lockCategorySelection = widget.categoryId != null || isProgramScoped;
     final shouldShowCategoryTypeSelector =
-        !lockCategorySelection && !isRootVideosSection && defaultCategoryType == null;
-    String selectedCategoryType = defaultCategoryType ?? (isProgramScoped ? 'program' : 'video');
+        !lockCategorySelection &&
+        !isRootVideosSection &&
+        defaultCategoryType == null;
+    String selectedCategoryType =
+        defaultCategoryType ?? (isProgramScoped ? 'program' : 'video');
 
     // In the root "videos news" section, always create/edit against video categories.
     if (isRootVideosSection) {
       selectedCategoryType = 'video';
     }
 
-    final videoCategories = (isProgramScoped || selectedCategoryType == 'program')
-      ? <Category>[]
-      : await _categoryService.getCategories(type: 'video');
-    final programCategories = (isProgramScoped || selectedCategoryType == 'video')
-      ? <Category>[]
-      : await _categoryService.getCategories(type: 'program');
-      
+    final videoCategories =
+        (isProgramScoped || selectedCategoryType == 'program')
+            ? <Category>[]
+            : await _categoryService.getCategories(type: 'video');
+    final programCategories =
+        (isProgramScoped || selectedCategoryType == 'video')
+            ? <Category>[]
+            : await _categoryService.getCategories(type: 'program');
+
     if (!mounted) return;
     String? selectedCategoryId = widget.categoryId ?? current?.categoryId;
 
@@ -236,8 +255,12 @@ class _VideosScreenState extends State<VideosScreen> {
       return type == 'program' ? programCategories : videoCategories;
     }
 
-    if (!lockCategorySelection && selectedCategoryId != null && !isRootVideosSection) {
-      final inProgram = programCategories.any((c) => c.id == selectedCategoryId);
+    if (!lockCategorySelection &&
+        selectedCategoryId != null &&
+        !isRootVideosSection) {
+      final inProgram = programCategories.any(
+        (c) => c.id == selectedCategoryId,
+      );
       selectedCategoryType = inProgram ? 'program' : 'video';
     }
 
@@ -248,15 +271,19 @@ class _VideosScreenState extends State<VideosScreen> {
       }
     }
 
-    final initialOrderIndex = current?.orderIndex ?? (scopedItems != null
-        ? _nextVideoOrderIndex(scopedItems)
-        : await _nextVideoOrderIndexForScope(
-            programId: widget.programId,
-            categoryId: widget.categoryId ?? selectedCategoryId,
-          ));
+    final initialOrderIndex =
+        current?.orderIndex ??
+        (scopedItems != null
+            ? _nextVideoOrderIndex(scopedItems)
+            : await _nextVideoOrderIndexForScope(
+              programId: widget.programId,
+              categoryId: widget.categoryId ?? selectedCategoryId,
+            ));
     if (!mounted) return;
 
-    final orderController = TextEditingController(text: initialOrderIndex.toString());
+    final orderController = TextEditingController(
+      text: initialOrderIndex.toString(),
+    );
     bool isHidden = current?.isHidden ?? false;
 
     await showDialog<void>(
@@ -334,20 +361,24 @@ class _VideosScreenState extends State<VideosScreen> {
                             ),
                           ),
                         ],
-                        onChanged: lockCategorySelection
-                            ? null
-                            : (value) async {
-                          setLocalState(() => selectedCategoryId = value);
-                          if (current != null) return;
-                          final nextIndex = await _nextVideoOrderIndexForScope(
-                            programId: widget.programId,
-                            categoryId: value,
-                          );
-                          if (!context.mounted) return;
-                          setLocalState(() {
-                            orderController.text = nextIndex.toString();
-                          });
-                        },
+                        onChanged:
+                            lockCategorySelection
+                                ? null
+                                : (value) async {
+                                  setLocalState(
+                                    () => selectedCategoryId = value,
+                                  );
+                                  if (current != null) return;
+                                  final nextIndex =
+                                      await _nextVideoOrderIndexForScope(
+                                        programId: widget.programId,
+                                        categoryId: value,
+                                      );
+                                  if (!context.mounted) return;
+                                  setLocalState(() {
+                                    orderController.text = nextIndex.toString();
+                                  });
+                                },
                       ),
                     CustomTextField(
                       controller: orderController,
@@ -356,7 +387,8 @@ class _VideosScreenState extends State<VideosScreen> {
                     ),
                     CustomSwitchTile(
                       value: isHidden,
-                      onChanged: (value) => setLocalState(() => isHidden = value),
+                      onChanged:
+                          (value) => setLocalState(() => isHidden = value),
                       title: t('hidden'),
                     ),
                   ],
@@ -372,7 +404,8 @@ class _VideosScreenState extends State<VideosScreen> {
             FilledButton(
               onPressed: () async {
                 if (!lockCategorySelection &&
-                    (selectedCategoryId == null || selectedCategoryId!.isEmpty)) {
+                    (selectedCategoryId == null ||
+                        selectedCategoryId!.isEmpty)) {
                   await DashboardDialogs.showError(
                     dialogContext,
                     t(
@@ -443,16 +476,21 @@ class _VideosScreenState extends State<VideosScreen> {
     String t(String key) => DashboardI18n.t(context, key);
     final scheme = Theme.of(context).colorScheme;
     final isScoped = widget.categoryId != null || widget.programId != null;
-    final title = widget.categoryName != null
-      ? t('category_videos').replaceAll('{name}', widget.categoryName ?? '')
-      : widget.programName == null
-        ? t('videos')
-        : t('program_episodes').replaceAll('{name}', widget.programName ?? '');
+    final title =
+        widget.categoryName != null
+            ? t(
+              'category_videos',
+            ).replaceAll('{name}', widget.categoryName ?? '')
+            : widget.programName == null
+            ? t('videos')
+            : t(
+              'program_episodes',
+            ).replaceAll('{name}', widget.programName ?? '');
 
     if (!isScoped) {
       return Scaffold(
         body: FutureBuilder<List<Category>>(
-          future: _loadCategoriesWithCounts(),
+          future: _categoriesWithCountsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -484,70 +522,92 @@ class _VideosScreenState extends State<VideosScreen> {
                   label: Text(t('add_new_video_list')),
                 ),
               ],
-              child: categories.isEmpty
-                  ? DashboardEmptyState(
-                      icon: Icons.video_collection_outlined,
-                      title: t('no_categories_found'),
-                    )
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: WidgetStatePropertyAll(
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                        ),
-                        columns: [
-                          DataColumn(label: Text(t('name_ar'))),
-                          DataColumn(label: Text(t('name_en'))),
-                          DataColumn(label: Text(t('order'))),
-                          DataColumn(label: Text(t('views'))),
-                          DataColumn(label: Text(t('actions'))),
-                        ],
-                        rows: categories
-                            .map(
-                              (item) => DataRow(
-                                cells: [
-                                  DataCell(Text(item.name)),
-                                  DataCell(Text(item.nameEn)),
-                                  DataCell(Text(item.orderIndex.toString())),
-                                  DataCell(Text(item.videoCount.toString())),
-                                  DataCell(
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(
-                                            Icons.open_in_new,
-                                            color: scheme.secondary,
+              child:
+                  categories.isEmpty
+                      ? DashboardEmptyState(
+                        icon: Icons.video_collection_outlined,
+                        title: t('no_categories_found'),
+                      )
+                      : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          headingRowColor: WidgetStatePropertyAll(
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                          ),
+                          columns: [
+                            DataColumn(label: Text(t('name_ar'))),
+                            DataColumn(label: Text(t('name_en'))),
+                            DataColumn(label: Text(t('order'))),
+                            DataColumn(label: Text(t('views'))),
+                            DataColumn(label: Text(t('actions'))),
+                          ],
+                          rows:
+                              categories
+                                  .map(
+                                    (item) => DataRow(
+                                      cells: [
+                                        DataCell(Text(item.name)),
+                                        DataCell(Text(item.nameEn)),
+                                        DataCell(
+                                          Text(item.orderIndex.toString()),
+                                        ),
+                                        DataCell(
+                                          Text(item.videoCount.toString()),
+                                        ),
+                                        DataCell(
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.open_in_new,
+                                                  color: scheme.secondary,
+                                                ),
+                                                tooltip: t(
+                                                  'manage_category_videos',
+                                                ),
+                                                onPressed: () {
+                                                  context.push(
+                                                    '/dashboard/videos',
+                                                    extra: {
+                                                      'categoryId': item.id,
+                                                      'categoryName': item.name,
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.edit,
+                                                  color: scheme.primary,
+                                                ),
+                                                tooltip: t('edit_category'),
+                                                onPressed:
+                                                    () => _openCategoryForm(
+                                                      current: item,
+                                                    ),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.delete,
+                                                  color: scheme.error,
+                                                ),
+                                                tooltip: t('delete'),
+                                                onPressed:
+                                                    () => _deleteCategory(
+                                                      item.id,
+                                                    ),
+                                              ),
+                                            ],
                                           ),
-                                          tooltip: t('manage_category_videos'),
-                                          onPressed: () {
-                                            context.push(
-                                              '/dashboard/videos',
-                                              extra: {
-                                                'categoryId': item.id,
-                                                'categoryName': item.name,
-                                              },
-                                            );
-                                          },
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.edit, color: scheme.primary),
-                                          tooltip: t('edit_category'),
-                                          onPressed: () => _openCategoryForm(current: item),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.delete, color: scheme.error),
-                                          tooltip: t('delete'),
-                                          onPressed: () => _deleteCategory(item.id),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                            .toList(),
+                                  )
+                                  .toList(),
+                        ),
                       ),
-                    ),
             );
           },
         ),
@@ -570,61 +630,88 @@ class _VideosScreenState extends State<VideosScreen> {
             title: title,
             actions: [
               FilledButton.icon(
-                onPressed: () => _openForm(scopedItems: items, defaultCategoryType: 'video'),
+                onPressed:
+                    () => _openForm(
+                      scopedItems: items,
+                      defaultCategoryType: 'video',
+                    ),
                 icon: const Icon(Icons.add),
                 label: Text(t('add_news_video')),
               ),
             ],
-            child: items.isEmpty
-                ? DashboardEmptyState(
-                    icon: Icons.ondemand_video_outlined,
-                    title: t('no_videos_found'),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                      ),
-                      columns: [
-                        DataColumn(label: Text(t('title_ar'))),
-                        DataColumn(label: Text(t('title_en'))),
-                        DataColumn(label: Text(t('youtube_url'))),
-                        DataColumn(label: Text(t('order'))),
-                        DataColumn(label: Text(t('hidden'))),
-                        DataColumn(label: Text(t('published_at'))),
-                        DataColumn(label: Text(t('actions'))),
-                      ],
-                      rows: items
-                          .map(
-                            (item) => DataRow(
-                              cells: [
-                                DataCell(Text(item.title)),
-                                DataCell(Text(item.titleEn)),
-                                DataCell(Text(item.youtubeUrl)),
-                                DataCell(Text(item.orderIndex.toString())),
-                                DataCell(Text(item.isHidden ? t('yes') : t('no'))),
-                                DataCell(Text(item.publishedAt?.toString() ?? t('na'))),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: scheme.primary),
-                                        onPressed: () => _openForm(current: item, scopedItems: items),
+            child:
+                items.isEmpty
+                    ? DashboardEmptyState(
+                      icon: Icons.ondemand_video_outlined,
+                      title: t('no_videos_found'),
+                    )
+                    : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        columns: [
+                          DataColumn(label: Text(t('title_ar'))),
+                          DataColumn(label: Text(t('title_en'))),
+                          DataColumn(label: Text(t('youtube_url'))),
+                          DataColumn(label: Text(t('order'))),
+                          DataColumn(label: Text(t('hidden'))),
+                          DataColumn(label: Text(t('published_at'))),
+                          DataColumn(label: Text(t('actions'))),
+                        ],
+                        rows:
+                            items
+                                .map(
+                                  (item) => DataRow(
+                                    cells: [
+                                      DataCell(Text(item.title)),
+                                      DataCell(Text(item.titleEn)),
+                                      DataCell(Text(item.youtubeUrl)),
+                                      DataCell(
+                                        Text(item.orderIndex.toString()),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: scheme.error),
-                                        onPressed: () => _delete(item.id),
+                                      DataCell(
+                                        Text(
+                                          item.isHidden ? t('yes') : t('no'),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          item.publishedAt?.toString() ??
+                                              t('na'),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit,
+                                                color: scheme.primary,
+                                              ),
+                                              onPressed:
+                                                  () => _openForm(
+                                                    current: item,
+                                                    scopedItems: items,
+                                                  ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                                color: scheme.error,
+                                              ),
+                                              onPressed: () => _delete(item.id),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
+                                )
+                                .toList(),
+                      ),
                     ),
-                  ),
           );
         },
       ),

@@ -54,7 +54,9 @@ class StorageService {
 
     try {
       // 5. Upload to Supabase
-      await _supabase.storage.from(bucketName).uploadBinary(
+      await _supabase.storage
+          .from(bucketName)
+          .uploadBinary(
             filePath,
             bytes,
             fileOptions: FileOptions(contentType: mimeType),

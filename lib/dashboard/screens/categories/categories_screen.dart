@@ -74,11 +74,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final nameController = TextEditingController(text: current?.name ?? '');
     final nameEnController = TextEditingController(text: current?.nameEn ?? '');
     final initialType = current?.type ?? _normalizeCategoryType(presetType);
-    final orderController =
-        TextEditingController(
-          text: (current?.orderIndex ?? _nextOrderIndexForType(categories, initialType))
+    final orderController = TextEditingController(
+      text:
+          (current?.orderIndex ??
+                  _nextOrderIndexForType(categories, initialType))
               .toString(),
-        );
+    );
     String selectedType = initialType;
     String? coverImageUrl = current?.coverImageUrl;
     String? coverUploadError;
@@ -127,60 +128,75 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           selectedType = value;
                           if (current == null) {
                             orderController.text =
-                                _nextOrderIndexForType(categories, selectedType)
-                                    .toString();
+                                _nextOrderIndexForType(
+                                  categories,
+                                  selectedType,
+                                ).toString();
                           }
                         });
                       },
                     ),
-                    if (selectedType == 'video' || selectedType == 'program') ...[
+                    if (selectedType == 'video' ||
+                        selectedType == 'program') ...[
                       const SizedBox(height: 10),
                       Row(
                         children: [
                           FilledButton.tonalIcon(
-                            onPressed: uploadingCover
-                                ? null
-                                : () async {
-                                    setLocalState(() {
-                                      uploadingCover = true;
-                                      coverUploadError = null;
-                                    });
+                            onPressed:
+                                uploadingCover
+                                    ? null
+                                    : () async {
+                                      setLocalState(() {
+                                        uploadingCover = true;
+                                        coverUploadError = null;
+                                      });
 
-                                    try {
-                                      final url = await _storageService.pickAndUploadImage(
-                                        bucketName: 'news-images',
-                                        folder: 'category-covers',
-                                      );
-                                      if (!context.mounted) return;
-                                      setLocalState(() {
-                                        if (url != null && url.isNotEmpty) {
-                                          coverImageUrl = url;
-                                        }
-                                        uploadingCover = false;
-                                      });
-                                    } catch (e) {
-                                      if (!context.mounted) return;
-                                      setLocalState(() {
-                                        uploadingCover = false;
-                                        if (e.toString().contains('file_too_large')) {
-                                          coverUploadError = t('image_too_large');
-                                        } else {
-                                          coverUploadError = t('image_upload_failed');
-                                        }
-                                      });
-                                    }
-                                  },
-                            icon: uploadingCover
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.image_outlined),
+                                      try {
+                                        final url = await _storageService
+                                            .pickAndUploadImage(
+                                              bucketName: 'news-images',
+                                              folder: 'category-covers',
+                                            );
+                                        if (!context.mounted) return;
+                                        setLocalState(() {
+                                          if (url != null && url.isNotEmpty) {
+                                            coverImageUrl = url;
+                                          }
+                                          uploadingCover = false;
+                                        });
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                        setLocalState(() {
+                                          uploadingCover = false;
+                                          if (e.toString().contains(
+                                            'file_too_large',
+                                          )) {
+                                            coverUploadError = t(
+                                              'image_too_large',
+                                            );
+                                          } else {
+                                            coverUploadError = t(
+                                              'image_upload_failed',
+                                            );
+                                          }
+                                        });
+                                      }
+                                    },
+                            icon:
+                                uploadingCover
+                                    ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Icon(Icons.image_outlined),
                             label: Text(t('upload_cover_image')),
                           ),
                           const SizedBox(width: 8),
-                          if (coverImageUrl != null && coverImageUrl!.isNotEmpty)
+                          if (coverImageUrl != null &&
+                              coverImageUrl!.isNotEmpty)
                             IconButton(
                               tooltip: t('delete'),
                               onPressed: () {
@@ -191,10 +207,31 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         ],
                       ),
                       if (coverImageUrl != null && coverImageUrl!.isNotEmpty)
-                        CustomTextField(
-                          readOnly: true,
-                          controller: TextEditingController(text: coverImageUrl),
-                          labelText: t('uploaded_image_url'),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              t('uploaded_image_url'),
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                              ),
+                              child: SelectableText(
+                                coverImageUrl!,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
                         ),
                       if (coverUploadError != null)
                         Padding(
@@ -303,21 +340,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           }
 
           final items = snapshot.data ?? [];
-            final newsCategories = items.where((item) => item.type == 'news').toList();
-            final videoCategories = items.where((item) => item.type == 'video').toList();
-            final programCategories = items.where((item) => item.type == 'program').toList();
-            
+          final newsCategories =
+              items.where((item) => item.type == 'news').toList();
+          final videoCategories =
+              items.where((item) => item.type == 'video').toList();
+          final programCategories =
+              items.where((item) => item.type == 'program').toList();
 
-            if (!_didTriggerAutoOpen && widget.autoOpenCreateForm) {
-              _didTriggerAutoOpen = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                _openForm(
-                  categories: items,
-                  presetType: widget.presetCategoryType,
-                );
-              });
-            }
+          if (!_didTriggerAutoOpen && widget.autoOpenCreateForm) {
+            _didTriggerAutoOpen = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _openForm(
+                categories: items,
+                presetType: widget.presetCategoryType,
+              );
+            });
+          }
 
           return DashboardSectionView(
             title: t('categories'),
@@ -328,56 +367,57 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 label: Text(t('add_category')),
               ),
             ],
-                child: newsCategories.isEmpty &&
-                  videoCategories.isEmpty &&
-                  programCategories.isEmpty
-                ? DashboardEmptyState(
-                    icon: Icons.category_outlined,
-                    title: t('no_categories_found'),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t('news_categories'),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCategoriesTable(
-                        context: context,
-                        categories: newsCategories,
-                        scheme: scheme,
-                        t: t,
-                        showManageVideosAction: false,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        t('video_categories'),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCategoriesTable(
-                        context: context,
-                        categories: videoCategories,
-                        scheme: scheme,
-                        t: t,
-                        showManageVideosAction: true,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        t('program_categories'),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildCategoriesTable(
-                        context: context,
-                        categories: programCategories,
-                        scheme: scheme,
-                        t: t,
-                        showManageVideosAction: true,
-                      ),
-                    ],
-                  ),
+            child:
+                newsCategories.isEmpty &&
+                        videoCategories.isEmpty &&
+                        programCategories.isEmpty
+                    ? DashboardEmptyState(
+                      icon: Icons.category_outlined,
+                      title: t('no_categories_found'),
+                    )
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t('news_categories'),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildCategoriesTable(
+                          context: context,
+                          categories: newsCategories,
+                          scheme: scheme,
+                          t: t,
+                          showManageVideosAction: false,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          t('video_categories'),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildCategoriesTable(
+                          context: context,
+                          categories: videoCategories,
+                          scheme: scheme,
+                          t: t,
+                          showManageVideosAction: true,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          t('program_categories'),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildCategoriesTable(
+                          context: context,
+                          categories: programCategories,
+                          scheme: scheme,
+                          t: t,
+                          showManageVideosAction: true,
+                        ),
+                      ],
+                    ),
           );
         },
       ),
@@ -410,50 +450,54 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           DataColumn(label: Text(t('order'))),
           DataColumn(label: Text(t('actions'))),
         ],
-        rows: categories
-            .map(
-              (item) => DataRow(
-                cells: [
-                  DataCell(Text(item.name)),
-                  DataCell(Text(item.nameEn)),
-                  DataCell(Text(item.orderIndex.toString())),
-                  DataCell(
-                    Row(
-                      children: [
-                        if (showManageVideosAction)
-                          IconButton(
-                            icon: Icon(Icons.video_library, color: scheme.secondary),
-                            tooltip: t('manage_category_videos'),
-                            onPressed: () {
-                              context.push(
-                                '/dashboard/videos',
-                                extra: {
-                                  'categoryId': item.id,
-                                  'categoryName': item.name,
+        rows:
+            categories
+                .map(
+                  (item) => DataRow(
+                    cells: [
+                      DataCell(Text(item.name)),
+                      DataCell(Text(item.nameEn)),
+                      DataCell(Text(item.orderIndex.toString())),
+                      DataCell(
+                        Row(
+                          children: [
+                            if (showManageVideosAction)
+                              IconButton(
+                                icon: Icon(
+                                  Icons.video_library,
+                                  color: scheme.secondary,
+                                ),
+                                tooltip: t('manage_category_videos'),
+                                onPressed: () {
+                                  context.push(
+                                    '/dashboard/videos',
+                                    extra: {
+                                      'categoryId': item.id,
+                                      'categoryName': item.name,
+                                    },
+                                  );
                                 },
-                              );
-                            },
-                          ),
-                        IconButton(
-                          icon: Icon(Icons.edit, color: scheme.primary),
-                          onPressed: () => _openForm(
-                            current: item,
-                            categories: categories,
-                          ),
+                              ),
+                            IconButton(
+                              icon: Icon(Icons.edit, color: scheme.primary),
+                              onPressed:
+                                  () => _openForm(
+                                    current: item,
+                                    categories: categories,
+                                  ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: scheme.error),
+                              onPressed: () => _delete(item.id),
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: scheme.error),
-                          onPressed: () => _delete(item.id),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )
-            .toList(),
+                )
+                .toList(),
       ),
     );
   }
-
 }

@@ -65,5 +65,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'alikhbariah-newsapp.firebasestorage.app',
     iosBundleId: 'com.example.newsappjs',
   );
-
 }

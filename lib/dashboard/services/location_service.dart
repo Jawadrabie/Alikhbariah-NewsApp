@@ -16,7 +16,9 @@ class LocationService {
     final lower = value.toLowerCase().trim();
     final cleaned = lower.replaceAll(RegExp(r'[^a-z0-9\\s-]'), ' ');
     final collapsed = cleaned.replaceAll(RegExp(r'\\s+'), '-');
-    final normalized = collapsed.replaceAll(RegExp(r'-+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+    final normalized = collapsed
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
     return normalized;
   }
 
@@ -29,18 +31,23 @@ class LocationService {
     return 'location-${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  Map<String, dynamic> _buildPayload(Location location, {required bool includeNameEn}) {
+  Map<String, dynamic> _buildPayload(
+    Location location, {
+    required bool includeNameEn,
+  }) {
     final payload = <String, dynamic>{
       'name': location.name.trim(),
-      'slug': (location.slug == null || location.slug!.trim().isEmpty)
-          ? _buildAutoSlug(location)
-          : location.slug!.trim(),
+      'slug':
+          (location.slug == null || location.slug!.trim().isEmpty)
+              ? _buildAutoSlug(location)
+              : location.slug!.trim(),
     };
 
     if (includeNameEn) {
-      payload['name_en'] = location.nameEn?.trim().isEmpty == true
-          ? null
-          : location.nameEn?.trim();
+      payload['name_en'] =
+          location.nameEn?.trim().isEmpty == true
+              ? null
+              : location.nameEn?.trim();
     }
 
     return payload;
@@ -99,7 +106,10 @@ class LocationService {
   Future<void> updateLocation(Location location) async {
     try {
       final data = _buildPayload(location, includeNameEn: true);
-      await _supabase.from('locations').update(data).eq('id', _idValue(location.id));
+      await _supabase
+          .from('locations')
+          .update(data)
+          .eq('id', _idValue(location.id));
     } on PostgrestException catch (e) {
       if (!_isMissingNameEnColumnError(e)) {
         debugPrint('Error updating locations: $e');
@@ -107,7 +117,10 @@ class LocationService {
       }
 
       final fallback = _buildPayload(location, includeNameEn: false);
-      await _supabase.from('locations').update(fallback).eq('id', _idValue(location.id));
+      await _supabase
+          .from('locations')
+          .update(fallback)
+          .eq('id', _idValue(location.id));
     } catch (e) {
       debugPrint('Error updating locations: $e');
       rethrow;

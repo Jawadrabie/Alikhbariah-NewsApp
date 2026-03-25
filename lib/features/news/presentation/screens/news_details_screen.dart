@@ -161,134 +161,184 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     final relativeDate = formatRelativeTime(context, publishedAt);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.articleDetails),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.text_increase),
-            onPressed: _increaseFontSize,
-            tooltip: l10n.increaseFontSize,
-          ),
-          IconButton(
-            icon: const Icon(Icons.text_decrease),
-            onPressed: _decreaseFontSize,
-            tooltip: l10n.decreaseFontSize,
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _shareArticle,
-            tooltip: l10n.share,
-          ),
-          IconButton(
-            icon: Icon(
-              _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-            ),
-            onPressed: _bookmarkLoading ? null : _toggleBookmark,
-            tooltip: _isBookmarked ? l10n.removeFromSaved : l10n.saveNews,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (imageUrl != null)
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                width: double.infinity,
-                height: 250,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const ShimmerLoading(
-                  width: double.infinity,
-                  height: 250,
-                  borderRadius: 0,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 320,
+            pinned: true,
+            stretch: true,
+            elevation: 0,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            title: Text(l10n.articleDetails, style: const TextStyle(fontWeight: FontWeight.bold)),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.text_increase),
+                onPressed: _increaseFontSize,
+                tooltip: l10n.increaseFontSize,
+              ),
+              IconButton(
+                icon: const Icon(Icons.text_decrease),
+                onPressed: _decreaseFontSize,
+                tooltip: l10n.decreaseFontSize,
+              ),
+              IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: _shareArticle,
+                tooltip: l10n.share,
+              ),
+              IconButton(
+                icon: Icon(
+                  _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
                 ),
-                errorWidget: (context, url, error) => Container(
-                  height: 250,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.broken_image),
+                onPressed: _bookmarkLoading ? null : _toggleBookmark,
+                tooltip: _isBookmarked ? l10n.removeFromSaved : l10n.saveNews,
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Hero(
+                tag: 'news_image_${widget.news.id}',
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (imageUrl != null)
+                      CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const ShimmerLoading(
+                          width: double.infinity,
+                          height: double.infinity,
+                          borderRadius: 0,
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.broken_image, size: 50),
+                        ),
+                      )
+                    else
+                      Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.article, size: 70, color: Colors.grey),
+                      ),
+                    // Gradient overlay for better text readability and seamless transition
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black54,
+                            Colors.transparent,
+                            Colors.black87,
+                          ],
+                          stops: [0.0, 0.4, 1.0],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF2C3E50), // Dark Blue
-                        ),
-                    textAlign: TextAlign.start,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '$relativeDate • $formattedDate',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              transform: Matrix4.translationValues(0, -20, 0),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC0392B), // Dark Red
-                          borderRadius: BorderRadius.circular(4),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
-                        child: Text(
-                          category,
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                            height: 1.3,
+                          ),
+                      textAlign: TextAlign.start,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time_rounded, size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 6),
+                        Text(
+                          relativeDate,
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w500),
                         ),
+                        const SizedBox(width: 12),
+                        Icon(Icons.calendar_today_rounded, size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 6),
+                        Text(
+                          formattedDate,
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 48, thickness: 1),
+                    // Content with HTML rendering
+                    Directionality(
+                      textDirection: Directionality.of(context),
+                      child: HtmlWidget(
+                        content,
+                        textStyle: TextStyle(
+                          fontSize: _fontSize,
+                          height: 1.8,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
+                        ),
+                        onTapUrl: (url) async {
+                          if (!await launchUrl(Uri.parse(url))) {
+                            throw Exception(l10n.openLinkFailed);
+                          }
+                          return true;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    if (!_relatedLoading && _relatedNews.isNotEmpty) ...[
+                      Text(
+                        l10n.relatedNews,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                        textAlign: TextAlign.start,
+                      ),
+                      const SizedBox(height: 16),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _relatedNews.length,
+                        itemBuilder: (context, index) {
+                          return NewsCard(news: _relatedNews[index]);
+                        },
                       ),
                     ],
-                  ),
-                  const Divider(height: 32),
-                  // Content with HTML rendering
-                  Directionality(
-                    textDirection: Directionality.of(context),
-                    child: HtmlWidget(
-                      content,
-                      textStyle: TextStyle(
-                        fontSize: _fontSize,
-                        height: 1.6,
-                        color: Colors.black87,
-                      ),
-                      onTapUrl: (url) async {
-                        if (!await launchUrl(Uri.parse(url))) {
-                          throw Exception(l10n.openLinkFailed);
-                        }
-                        return true;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.relatedNews,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                    textAlign: TextAlign.start,
-                  ),
-                  const SizedBox(height: 12),
-                  if (_relatedLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (_relatedNews.isEmpty)
-                    const SizedBox.shrink()
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _relatedNews.length,
-                      itemBuilder: (context, index) {
-                        return NewsCard(news: _relatedNews[index]);
-                      },
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

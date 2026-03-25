@@ -42,7 +42,9 @@ class BreakingTicker extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: Color(0xFFC0392B),
-              borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
+              borderRadius: const BorderRadius.horizontal(
+                right: Radius.circular(7),
+              ),
             ),
             height: double.infinity,
             alignment: Alignment.center,

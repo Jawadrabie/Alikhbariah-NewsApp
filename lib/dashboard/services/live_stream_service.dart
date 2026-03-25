@@ -40,11 +40,12 @@ class LiveStreamService {
       }
     } catch (e) {
       if (_isMissingLiveStreamColumn(e)) {
-        final legacyData = Map<String, dynamic>.from(stream.toJson())
-          ..remove('broadcast_title_en')
-          ..remove('fallback_message_en')
-          ..remove('broadcast_title')
-          ..['title'] = stream.broadcastTitle;
+        final legacyData =
+            Map<String, dynamic>.from(stream.toJson())
+              ..remove('broadcast_title_en')
+              ..remove('fallback_message_en')
+              ..remove('broadcast_title')
+              ..['title'] = stream.broadcastTitle;
 
         if (stream.id.isEmpty) {
           legacyData.remove('id');

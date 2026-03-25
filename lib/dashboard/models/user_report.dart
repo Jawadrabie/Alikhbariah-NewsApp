@@ -24,7 +24,9 @@ class UserReport {
       phone: json['phone']?.toString(),
       message: (json['message'] ?? '') as String,
       attachmentUrl: json['attachment_url']?.toString(),
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       isReviewed: (json['is_reviewed'] ?? false) as bool,
     );
   }

@@ -15,9 +15,13 @@ class CategoryService {
     return text.contains('cover_image_url') && text.contains('42703');
   }
 
-  Future<List<Category>> getCategories({String? type, bool forceRefresh = false}) async {
+  Future<List<Category>> getCategories({
+    String? type,
+    bool forceRefresh = false,
+  }) async {
     final cacheKey = type ?? 'all';
-    final hasFreshCache = !forceRefresh &&
+    final hasFreshCache =
+        !forceRefresh &&
         _categoriesCache.containsKey(cacheKey) &&
         _categoriesCacheAt.containsKey(cacheKey) &&
         DateTime.now().difference(_categoriesCacheAt[cacheKey]!) < _cacheTtl;
@@ -34,7 +38,7 @@ class CategoryService {
       if (type != null && type.isNotEmpty) {
         query = query.eq('type', type);
       }
-      
+
       dynamic response;
       try {
         response = await query.order('order_index', ascending: true);
@@ -82,9 +86,8 @@ class CategoryService {
   }
 
   String _buildAutoSlug(Category category) {
-    final base = category.nameEn.trim().isNotEmpty
-        ? category.nameEn
-        : category.name;
+    final base =
+        category.nameEn.trim().isNotEmpty ? category.nameEn : category.name;
     final normalized = _slugify(base);
     return '${category.type}-$normalized-${DateTime.now().millisecondsSinceEpoch}';
   }
@@ -115,11 +118,17 @@ class CategoryService {
     try {
       final data = Map<String, dynamic>.from(category.toJson())..remove('id');
       try {
-        await _supabase.from('categories').update(data).eq('id', _idValue(category.id));
+        await _supabase
+            .from('categories')
+            .update(data)
+            .eq('id', _idValue(category.id));
       } catch (e) {
         if (!_isMissingCoverColumnError(e)) rethrow;
         data.remove('cover_image_url');
-        await _supabase.from('categories').update(data).eq('id', _idValue(category.id));
+        await _supabase
+            .from('categories')
+            .update(data)
+            .eq('id', _idValue(category.id));
       }
 
       _invalidateCategoriesCache();

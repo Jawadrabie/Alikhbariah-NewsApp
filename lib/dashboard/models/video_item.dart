@@ -36,7 +36,9 @@ class VideoItem {
       thumbnailUrl: json['thumbnail_url']?.toString(),
       orderIndex: (json['order_index'] ?? 0) as int,
       publishedAt: DateTime.tryParse(json['published_at']?.toString() ?? ''),
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       isHidden: (json['is_hidden'] ?? false) as bool,
     );
   }

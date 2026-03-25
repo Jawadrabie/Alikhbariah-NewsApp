@@ -57,12 +57,14 @@ class _HomeDrawerState extends State<HomeDrawer> {
             children: [
               ListTile(
                 title: Text(l10n.languageArabic),
-                trailing: current == 'ar' ? const Icon(Icons.check_rounded) : null,
+                trailing:
+                    current == 'ar' ? const Icon(Icons.check_rounded) : null,
                 onTap: () => Navigator.of(context).pop('ar'),
               ),
               ListTile(
                 title: Text(l10n.languageEnglish),
-                trailing: current == 'en' ? const Icon(Icons.check_rounded) : null,
+                trailing:
+                    current == 'en' ? const Icon(Icons.check_rounded) : null,
                 onTap: () => Navigator.of(context).pop('en'),
               ),
               ListTile(

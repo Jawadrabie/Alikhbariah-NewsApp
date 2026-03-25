@@ -4,12 +4,7 @@ class Location {
   final String? nameEn;
   final String? slug;
 
-  Location({
-    required this.id,
-    required this.name,
-    this.nameEn,
-    this.slug,
-  });
+  Location({required this.id, required this.name, this.nameEn, this.slug});
 
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
@@ -21,11 +16,6 @@ class Location {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'name_en': nameEn,
-      'slug': slug,
-    };
+    return {'id': id, 'name': name, 'name_en': nameEn, 'slug': slug};
   }
 }

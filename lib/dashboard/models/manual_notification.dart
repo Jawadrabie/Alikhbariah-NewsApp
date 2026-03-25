@@ -20,7 +20,9 @@ class ManualNotification {
       id: json['id'].toString(),
       title: (json['title'] ?? '') as String,
       body: (json['body'] ?? '') as String,
-      sentAt: DateTime.tryParse(json['sent_at']?.toString() ?? '') ?? DateTime.now(),
+      sentAt:
+          DateTime.tryParse(json['sent_at']?.toString() ?? '') ??
+          DateTime.now(),
       createdBy: json['created_by']?.toString(),
       viewCount: (json['view_count'] ?? 0) as int,
     );

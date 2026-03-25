@@ -47,11 +47,7 @@ class DashboardSectionView extends StatelessWidget {
               ),
             ),
             if (actions != null && actions!.isNotEmpty)
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: actions!,
-              ),
+              Wrap(spacing: 10, runSpacing: 10, children: actions!),
           ],
         ),
         const SizedBox(height: 18),
@@ -87,10 +83,7 @@ class DashboardSurfaceCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+      child: Padding(padding: padding, child: child),
     );
   }
 }

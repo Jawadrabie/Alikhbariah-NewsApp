@@ -27,11 +27,12 @@ class VideoCategoryModel {
 
     return VideoCategoryModel(
       id: json['id'] as int,
-      name: readText(json['name_$normalizedLanguage']).isNotEmpty
-          ? readText(json['name_$normalizedLanguage'])
-          : (readText(json['name']).isNotEmpty
-              ? readText(json['name'])
-              : readText(json['name_$fallbackLanguage'])),
+      name:
+          readText(json['name_$normalizedLanguage']).isNotEmpty
+              ? readText(json['name_$normalizedLanguage'])
+              : (readText(json['name']).isNotEmpty
+                  ? readText(json['name'])
+                  : readText(json['name_$fallbackLanguage'])),
       slug: (json['slug'] as String?) ?? '',
       coverImageUrl: json['cover_image_url']?.toString(),
       orderIndex: json['order_index'] as int? ?? 0,

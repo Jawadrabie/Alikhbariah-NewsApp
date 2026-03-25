@@ -87,73 +87,128 @@ class _UserReportsScreenState extends State<UserReportsScreen> {
                   Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
                 columns: [
-                  DataColumn(label: Text(t('report_name'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('report_phone'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('report_text'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('attachment'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('date'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('report_status'), style: const TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text(t('actions'), style: const TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(
+                    label: Text(
+                      t('report_name'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('report_phone'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('report_text'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('attachment'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('date'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('report_status'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      t('actions'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
-                rows: items
-                    .map(
-                      (item) => DataRow(
-                        cells: [
-                          DataCell(Text(item.name ?? t('na'))),
-                          DataCell(Text(item.phone ?? t('na'))),
-                          DataCell(SizedBox(width: 360, child: Text(item.message))),
-                          DataCell(Text(item.attachmentUrl ?? t('na'))),
-                          DataCell(Text(item.createdAt.toString().split('.')[0])),
-                          DataCell(
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: item.isReviewed
-                                    ? scheme.secondaryContainer
-                                    : scheme.tertiaryContainer,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: item.isReviewed ? scheme.secondary : scheme.tertiary,
-                                ),
+                rows:
+                    items
+                        .map(
+                          (item) => DataRow(
+                            cells: [
+                              DataCell(Text(item.name ?? t('na'))),
+                              DataCell(Text(item.phone ?? t('na'))),
+                              DataCell(
+                                SizedBox(width: 360, child: Text(item.message)),
                               ),
-                              child: Text(
-                                item.isReviewed ? t('read') : t('unread'),
-                                style: TextStyle(
-                                  color: item.isReviewed
-                                      ? scheme.onSecondaryContainer
-                                      : scheme.onTertiaryContainer,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
+                              DataCell(Text(item.attachmentUrl ?? t('na'))),
+                              DataCell(
+                                Text(item.createdAt.toString().split('.')[0]),
                               ),
-                            ),
-                          ),
-                          DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    item.isReviewed
-                                        ? Icons.mark_email_unread
-                                        : Icons.mark_email_read,
-                                    color: item.isReviewed ? scheme.tertiary : scheme.secondary,
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
-                                  tooltip: item.isReviewed
-                                      ? t('mark_as_unread')
-                                      : t('mark_as_read'),
-                                  onPressed: () => _toggleReviewed(item),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        item.isReviewed
+                                            ? scheme.secondaryContainer
+                                            : scheme.tertiaryContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color:
+                                          item.isReviewed
+                                              ? scheme.secondary
+                                              : scheme.tertiary,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    item.isReviewed ? t('read') : t('unread'),
+                                    style: TextStyle(
+                                      color:
+                                          item.isReviewed
+                                              ? scheme.onSecondaryContainer
+                                              : scheme.onTertiaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: scheme.error),
-                                  onPressed: () => _delete(item.id),
+                              ),
+                              DataCell(
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        item.isReviewed
+                                            ? Icons.mark_email_unread
+                                            : Icons.mark_email_read,
+                                        color:
+                                            item.isReviewed
+                                                ? scheme.tertiary
+                                                : scheme.secondary,
+                                      ),
+                                      tooltip:
+                                          item.isReviewed
+                                              ? t('mark_as_unread')
+                                              : t('mark_as_read'),
+                                      onPressed: () => _toggleReviewed(item),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: scheme.error,
+                                      ),
+                                      onPressed: () => _delete(item.id),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )
-                    .toList(),
+                        )
+                        .toList(),
               ),
             ),
           );

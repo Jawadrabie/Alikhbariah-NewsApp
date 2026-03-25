@@ -75,8 +75,10 @@ class DashboardI18n {
       'upload_image': 'Upload Image',
       'please_enter_image_url': 'Please enter an image URL',
       'please_upload_image': 'Please upload an image',
-      'image_too_large': 'Image is larger than 5 MB — please choose a smaller image.',
-      'image_upload_failed': 'Unable to upload image right now, please try again.',
+      'image_too_large':
+          'Image is larger than 5 MB — please choose a smaller image.',
+      'image_upload_failed':
+          'Unable to upload image right now, please try again.',
       'choose_image_then_save': 'Choose image from device then save the news.',
       'provide_url_then_save': 'Provide a direct image URL then save the news.',
       'please_select_category': 'Please select a category',
@@ -184,7 +186,8 @@ class DashboardI18n {
       'view_count': 'View Count',
       'no_manual_notifications': 'No manual notifications yet',
       'error_saving_manual_notification': 'Error saving manual notification',
-      'error_deleting_manual_notification': 'Error deleting manual notification',
+      'error_deleting_manual_notification':
+          'Error deleting manual notification',
       'please_fill_all_fields': 'Please fill all fields',
 
       'report_name': 'Name',

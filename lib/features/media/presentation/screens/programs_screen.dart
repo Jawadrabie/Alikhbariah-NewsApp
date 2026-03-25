@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/localization/l10n_extensions.dart';
 import '../../data/models/video_category_model.dart';
@@ -29,7 +30,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final nextLanguage = Localizations.localeOf(context).languageCode.toLowerCase();
+    final nextLanguage =
+        Localizations.localeOf(context).languageCode.toLowerCase();
     if (_currentLanguageCode == nextLanguage) {
       return;
     }
@@ -54,7 +56,9 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text(l10n.failedLoadPrograms(snapshot.error.toString())));
+            return Center(
+              child: Text(l10n.failedLoadPrograms(snapshot.error.toString())),
+            );
           }
 
           final items = snapshot.data ?? const [];
@@ -78,10 +82,11 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => VideosScreen(
-                          categoryId: item.id,
-                          categoryName: item.name,
-                        ),
+                        builder:
+                            (_) => VideosScreen(
+                              categoryId: item.id,
+                              categoryName: item.name,
+                            ),
                       ),
                     );
                   },
@@ -95,19 +100,32 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                             width: 128,
                             height: 82,
                             color: const Color(0xFFE5EBEF),
-                            child: item.coverImageUrl == null || item.coverImageUrl!.isEmpty
-                                ? const Icon(
-                                    Icons.video_collection_rounded,
-                                    size: 30,
-                                  )
-                                : Image.network(
-                                    item.coverImageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(
+                            child:
+                                item.coverImageUrl == null ||
+                                        item.coverImageUrl!.isEmpty
+                                    ? const Icon(
                                       Icons.video_collection_rounded,
                                       size: 30,
+                                    )
+                                    : CachedNetworkImage(
+                                      imageUrl: item.coverImageUrl!,
+                                      fit: BoxFit.cover,
+                                      placeholder:
+                                          (_, __) => const Center(
+                                            child: SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            ),
+                                          ),
+                                      errorWidget:
+                                          (_, __, ___) => const Icon(
+                                            Icons.video_collection_rounded,
+                                            size: 30,
+                                          ),
                                     ),
-                                  ),
                           ),
                         ),
                         const SizedBox(width: 12),

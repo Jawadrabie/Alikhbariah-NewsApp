@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/category_model.dart';
 import '../models/news_model.dart';
 import '../services/supabase_service.dart';
@@ -173,12 +174,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       margin: const EdgeInsets.all(8.0),
                       child: ListTile(
                         leading: news.imageUrl != null
-                            ? Image.network(
-                                news.imageUrl!,
+                            ? CachedNetworkImage(
+                                imageUrl: news.imageUrl!,
                                 width: 80,
                                 height: 80,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
+                                placeholder: (context, url) => const SizedBox(
+                                  width: 80,
+                                  height: 80,
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) =>
                                     const Icon(Icons.broken_image, size: 40),
                               )
                             : const Icon(Icons.article, size: 40),

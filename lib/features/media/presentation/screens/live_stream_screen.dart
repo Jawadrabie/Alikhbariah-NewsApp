@@ -22,10 +22,14 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _currentLanguageCode = Localizations.localeOf(context).languageCode.toLowerCase();
+    _currentLanguageCode =
+        Localizations.localeOf(context).languageCode.toLowerCase();
   }
 
-  Future<void> _openInlineLive({required String url, required String title}) async {
+  Future<void> _openInlineLive({
+    required String url,
+    required String title,
+  }) async {
     final l10n = context.l10n;
     final didStart = InAppVideoController.instance.prepareInline(
       youtubeUrl: url,
@@ -34,9 +38,9 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
 
     if (!didStart) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.failedOpenLiveLink)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.failedOpenLiveLink)));
       return;
     }
 
@@ -63,7 +67,6 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
     }
 
     return WebViewWidget(controller: controller);
-
   }
 
   @override
@@ -73,14 +76,18 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.liveStream)),
       body: FutureBuilder(
-        future: _repository.getActiveLiveStream(languageCode: _currentLanguageCode),
+        future: _repository.getActiveLiveStream(
+          languageCode: _currentLanguageCode,
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text(l10n.failedLoadLiveStream(snapshot.error.toString())));
+            return Center(
+              child: Text(l10n.failedLoadLiveStream(snapshot.error.toString())),
+            );
           }
 
           final stream = snapshot.data;
@@ -88,9 +95,10 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
             return Center(child: Text(l10n.noLiveNow));
           }
 
-          final title = stream.broadcastTitle?.isNotEmpty == true
-              ? stream.broadcastTitle!
-              : l10n.defaultLiveTitle;
+          final title =
+              stream.broadcastTitle?.isNotEmpty == true
+                  ? stream.broadcastTitle!
+                  : l10n.defaultLiveTitle;
           _ensureAutoPlay(url: stream.youtubeUrl, title: title);
 
           return AnimatedBuilder(
@@ -112,7 +120,10 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                             title,
                             textAlign: TextAlign.center,
                             textDirection: Directionality.of(context),
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                            ),
                           ),
                         ),
                       ],
@@ -135,7 +146,9 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                               if (playerController != null)
                                 _buildPlayer(playerController)
                               else
-                                const Center(child: CircularProgressIndicator()),
+                                const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                               if (playerState.hasPlaybackError)
                                 Container(
                                   color: Colors.black54,
@@ -152,14 +165,20 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                         ),
                         Container(
                           color: Colors.black87,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Material(
                                 color: Colors.transparent,
                                 child: IconButton(
-                                  icon: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white),
+                                  icon: const Icon(
+                                    Icons.picture_in_picture_alt_rounded,
+                                    color: Colors.white,
+                                  ),
                                   tooltip: 'عرض',
                                   onPressed: playerState.minimize,
                                   constraints: const BoxConstraints(
@@ -173,7 +192,10 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                               Material(
                                 color: Colors.transparent,
                                 child: IconButton(
-                                  icon: const Icon(Icons.open_in_full_rounded, color: Colors.white),
+                                  icon: const Icon(
+                                    Icons.open_in_full_rounded,
+                                    color: Colors.white,
+                                  ),
                                   tooltip: 'تكبير',
                                   onPressed: playerState.showFullscreen,
                                   constraints: const BoxConstraints(
@@ -190,23 +212,23 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              stream.fallbackMessage?.isNotEmpty == true
-                                  ? stream.fallbackMessage!
-                                  : l10n.defaultLiveMessage,
-                              textAlign: TextAlign.center,
-                              textDirection: Directionality.of(context),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            stream.fallbackMessage?.isNotEmpty == true
+                                ? stream.fallbackMessage!
+                                : l10n.defaultLiveMessage,
+                            textAlign: TextAlign.center,
+                            textDirection: Directionality.of(context),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
                   const SizedBox(height: 12),
                 ],
               );

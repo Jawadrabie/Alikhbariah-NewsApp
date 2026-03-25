@@ -19,22 +19,26 @@ class NewsModel {
     this.viewCount = 0,
   });
 
-  factory NewsModel.fromJson(Map<String, dynamic> json, {String languageCode = 'ar'}) {
+  factory NewsModel.fromJson(
+    Map<String, dynamic> json, {
+    String languageCode = 'ar',
+  }) {
     final normalizedLanguage = languageCode.toLowerCase();
-    
+
     String localized(String key) {
-        // 1. Try key_lang (e.g. title_en)
-        final localizedKey = '${key}_$normalizedLanguage';
-        if (json[localizedKey] != null && json[localizedKey].toString().isNotEmpty) {
-            return json[localizedKey].toString();
-        }
-        // 2. Try default key (e.g. title) - assumed to be Arabic or primary
-        if (json[key] != null && json[key].toString().isNotEmpty) {
-            return json[key].toString();
-        }
-        // 3. Try other lang (e.g. title_ar if we asked for en but it's missing)
-        // Just fallback to empty if nothing works
-        return '';
+      // 1. Try key_lang (e.g. title_en)
+      final localizedKey = '${key}_$normalizedLanguage';
+      if (json[localizedKey] != null &&
+          json[localizedKey].toString().isNotEmpty) {
+        return json[localizedKey].toString();
+      }
+      // 2. Try default key (e.g. title) - assumed to be Arabic or primary
+      if (json[key] != null && json[key].toString().isNotEmpty) {
+        return json[key].toString();
+      }
+      // 3. Try other lang (e.g. title_ar if we asked for en but it's missing)
+      // Just fallback to empty if nothing works
+      return '';
     }
 
     return NewsModel(
@@ -49,4 +53,3 @@ class NewsModel {
     );
   }
 }
-

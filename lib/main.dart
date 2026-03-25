@@ -47,10 +47,7 @@ class DashboardApp extends StatelessWidget {
         return MaterialApp.router(
           title: 'Alikhbariah Dashboard',
           locale: DashboardPreferencesService.instance.locale,
-          supportedLocales: const [
-            Locale('ar'),
-            Locale('en'),
-          ],
+          supportedLocales: const [Locale('ar'), Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,

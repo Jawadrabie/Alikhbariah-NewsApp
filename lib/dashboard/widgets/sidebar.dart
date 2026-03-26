@@ -132,28 +132,32 @@ class Sidebar extends StatelessWidget {
   Widget _buildHeader(BuildContext context, String Function(String) t) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      height: 80,
+      height: 150,
       alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       decoration: BoxDecoration(
         color: scheme.primaryContainer,
         border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.newspaper, color: scheme.onPrimaryContainer, size: 32),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              t('dashboard_title'),
-              style: TextStyle(
-                color: scheme.onPrimaryContainer,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-              overflow: TextOverflow.ellipsis,
+          Image.asset(
+            'assets/images/logo.webp',
+            height: 60,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            t('dashboard_title'),
+            style: TextStyle(
+              color: scheme.onPrimaryContainer,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

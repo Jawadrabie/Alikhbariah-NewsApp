@@ -177,6 +177,23 @@ class LocalCacheService {
     await box.delete(key);
   }
 
+  Future<void> deleteByPrefix(String prefix) async {
+    final box = await _openBox();
+    final keys =
+        <String>{
+          ..._memoryCache.keys,
+          ...box.keys.whereType<String>(),
+        }.where((key) => key.startsWith(prefix)).toList();
+
+    if (keys.isEmpty) return;
+
+    for (final key in keys) {
+      _memoryCache.remove(key);
+    }
+
+    await box.deleteAll(keys);
+  }
+
   Future<void> _writeEntry(String key, Object data) async {
     final box = await _openBox();
     final cachedAt = DateTime.now();

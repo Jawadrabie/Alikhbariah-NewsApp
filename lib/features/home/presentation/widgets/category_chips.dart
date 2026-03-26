@@ -18,6 +18,7 @@ class CategoryChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
 
     if (categories.isEmpty) {
       return SizedBox(
@@ -41,22 +42,20 @@ class CategoryChips extends StatelessWidget {
                   onCategorySelected == null
                       ? null
                       : (_) => onCategorySelected!(null),
-              selectedColor: Theme.of(
-                context,
-              ).colorScheme.primary.withAlpha(35),
-              backgroundColor: Colors.white,
+              selectedColor: scheme.primaryContainer,
+              backgroundColor: scheme.surface,
               side: BorderSide(
                 color:
                     isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : const Color(0xFFD7DEE3),
+                        ? scheme.primary
+                        : scheme.outlineVariant,
               ),
               labelStyle: TextStyle(
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color:
                     isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : const Color(0xFF1F2937),
+                        ? scheme.primary
+                        : scheme.onSurface,
               ),
             );
           }
@@ -71,20 +70,20 @@ class CategoryChips extends StatelessWidget {
                 onCategorySelected == null
                     ? null
                     : (_) => onCategorySelected!(category.id),
-            selectedColor: Theme.of(context).colorScheme.primary.withAlpha(35),
-            backgroundColor: Colors.white,
+            selectedColor: scheme.primaryContainer,
+            backgroundColor: scheme.surface,
             side: BorderSide(
               color:
                   isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : const Color(0xFFD7DEE3),
+                      ? scheme.primary
+                      : scheme.outlineVariant,
             ),
             labelStyle: TextStyle(
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color:
                   isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : const Color(0xFF1F2937),
+                      ? scheme.primary
+                      : scheme.onSurface,
             ),
           );
         },

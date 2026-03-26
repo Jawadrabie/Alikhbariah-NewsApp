@@ -1,9 +1,13 @@
+import '../../../../core/utils/image_url_utils.dart';
+
 class NewsModel {
   final int id;
   final String title;
   final String content;
   final String? imageUrl;
   final int? categoryId;
+  final int? locationId;
+  final String? locationName;
   final DateTime createdAt;
   final bool isFeatured;
   final int viewCount;
@@ -14,6 +18,8 @@ class NewsModel {
     required this.content,
     this.imageUrl,
     this.categoryId,
+    this.locationId,
+    this.locationName,
     required this.createdAt,
     this.isFeatured = false,
     this.viewCount = 0,
@@ -24,6 +30,12 @@ class NewsModel {
     String languageCode = 'ar',
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
+    final locationMap =
+        json['location'] is Map
+            ? Map<String, dynamic>.from(json['location'] as Map)
+            : json['locations'] is Map
+            ? Map<String, dynamic>.from(json['locations'] as Map)
+            : null;
 
     String localized(String key) {
       // 1. Try key_lang (e.g. title_en)
@@ -41,12 +53,36 @@ class NewsModel {
       return '';
     }
 
+    String? readText(dynamic value) {
+      if (value == null) return null;
+      final parsed = value.toString().trim();
+      return parsed.isEmpty ? null : parsed;
+    }
+
+    int? readInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value.toString());
+    }
+
+    final locationNameAr =
+        readText(locationMap?['name']) ?? readText(json['location_name']);
+    final locationNameEn =
+        readText(locationMap?['name_en']) ?? readText(json['location_name_en']);
+    final resolvedLocationName =
+        normalizedLanguage == 'en'
+            ? (locationNameEn ?? locationNameAr)
+            : (locationNameAr ?? locationNameEn);
+
     return NewsModel(
       id: json['id'] as int,
       title: localized('title'),
       content: localized('content'),
-      imageUrl: json['image_url'] as String?,
+      imageUrl: normalizeRemoteImageUrl(json['image_url'] as String?),
       categoryId: json['category_id'] as int?,
+      locationId: readInt(json['location_id']),
+      locationName: resolvedLocationName,
       createdAt: DateTime.parse(json['created_at'] as String),
       isFeatured: json['is_featured'] as bool? ?? false,
       viewCount: (json['view_count'] as num?)?.toInt() ?? 0,

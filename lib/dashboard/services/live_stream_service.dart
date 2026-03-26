@@ -36,12 +36,14 @@ class LiveStreamService {
         data.remove('id');
         await _supabase.from('live_stream').insert(data);
       } else {
+        data.remove('id');
         await _supabase.from('live_stream').update(data).eq('id', stream.id);
       }
     } catch (e) {
       if (_isMissingLiveStreamColumn(e)) {
         final legacyData =
             Map<String, dynamic>.from(stream.toJson())
+              ..remove('id')
               ..remove('broadcast_title_en')
               ..remove('fallback_message_en')
               ..remove('broadcast_title')

@@ -124,6 +124,11 @@ class _FeaturedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textDirection = Directionality.of(context);
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context).clamp(1.0, 3.0);
+    final cacheWidth =
+        (MediaQuery.sizeOf(context).width * 0.93 * pixelRatio).round();
+    final cacheHeight = (220 * pixelRatio).round();
+
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -143,6 +148,13 @@ class _FeaturedCard extends StatelessWidget {
                       : CachedNetworkImage(
                         imageUrl: news.imageUrl!,
                         fit: BoxFit.cover,
+                        fadeInDuration: Duration.zero,
+                        fadeOutDuration: Duration.zero,
+                        useOldImageOnUrlChange: true,
+                        memCacheWidth: cacheWidth,
+                        memCacheHeight: cacheHeight,
+                        maxWidthDiskCache: cacheWidth,
+                        maxHeightDiskCache: cacheHeight,
                         placeholder:
                             (context, url) => const ShimmerLoading(
                               width: double.infinity,

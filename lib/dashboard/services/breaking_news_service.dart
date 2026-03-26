@@ -35,9 +35,10 @@ class BreakingNewsService {
 
   Future<void> createBreakingNews(BreakingNews breakingNews) async {
     try {
-      final data = Map<String, dynamic>.from(breakingNews.toJson())
-        ..remove('id')
-        ..remove('view_count');
+      final data =
+          Map<String, dynamic>.from(breakingNews.toJson())
+            ..remove('id')
+            ..remove('view_count');
       await _supabase.from('breaking_news').insert(data);
 
       if (breakingNews.sendNotification) {
@@ -51,9 +52,10 @@ class BreakingNewsService {
 
   Future<void> updateBreakingNews(BreakingNews breakingNews) async {
     try {
-      final data = Map<String, dynamic>.from(breakingNews.toJson())
-        ..remove('id')
-        ..remove('view_count');
+      final data =
+          Map<String, dynamic>.from(breakingNews.toJson())
+            ..remove('id')
+            ..remove('view_count');
       await _supabase
           .from('breaking_news')
           .update(data)

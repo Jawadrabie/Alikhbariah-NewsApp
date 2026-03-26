@@ -80,7 +80,11 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const FlutterLogo(size: 80),
+                  Image.asset(
+                    'assets/images/logo.webp',
+                    height: 72,
+                    fit: BoxFit.contain,
+                  ),
                   const SizedBox(height: 24),
                   Text(
                     t('dashboard_login'),

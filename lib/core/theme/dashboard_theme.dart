@@ -9,8 +9,14 @@ class DashboardTheme {
       useMaterial3: true,
     );
 
-    final scheme = base.colorScheme;
+    final scheme = base.colorScheme.copyWith(
+      tertiary: const Color(0xFF0E7490),
+      onTertiary: Colors.white,
+      tertiaryContainer: const Color(0xFFBFEAF5),
+      onTertiaryContainer: const Color(0xFF083344),
+    );
     return base.copyWith(
+      colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       cardTheme: CardThemeData(
         color: scheme.surface,
@@ -40,8 +46,14 @@ class DashboardTheme {
       useMaterial3: true,
     );
 
-    final scheme = base.colorScheme;
+    final scheme = base.colorScheme.copyWith(
+      tertiary: const Color(0xFF67E8F9),
+      onTertiary: const Color(0xFF083344),
+      tertiaryContainer: const Color(0xFF164E63),
+      onTertiaryContainer: const Color(0xFFBAE6FD),
+    );
     return base.copyWith(
+      colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       cardTheme: CardThemeData(
         color: scheme.surface,

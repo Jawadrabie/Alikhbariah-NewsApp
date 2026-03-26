@@ -21,6 +21,7 @@ class BreakingTicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textDirection = Directionality.of(context);
+    final isRtl = textDirection == TextDirection.rtl;
     if (titles.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -74,7 +75,7 @@ class BreakingTicker extends StatelessWidget {
               scrollAxis: Axis.horizontal,
               crossAxisAlignment: CrossAxisAlignment.center,
               blankSpace: 50.0,
-              velocity: 30.0,
+              velocity: isRtl ? -30.0 : 30.0,
               startPadding: 10.0,
               textDirection: textDirection,
             ),

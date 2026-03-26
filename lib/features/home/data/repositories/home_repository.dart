@@ -6,20 +6,24 @@ import '../models/category_model.dart';
 import '../models/featured_slider_settings_model.dart';
 import '../models/news_model.dart';
 
-class HomeRepository {
-  static const Duration _categoriesCacheTtl = Duration(hours: 6);
-  static const Duration _newsCacheTtl = Duration(minutes: 10);
-  static const Duration _featuredCacheTtl = Duration(minutes: 10);
-  static const Duration _breakingCacheTtl = Duration(seconds: 30);
-  static const Duration _settingsCacheTtl = Duration(hours: 1);
-  static const int _defaultSliderIntervalSeconds = 3;
+part 'home_repository_cache.dart';
+part 'home_repository_mapping.dart';
 
+const Duration _categoriesCacheTtl = Duration(hours: 6);
+const Duration _newsCacheTtl = Duration(minutes: 10);
+const Duration _featuredCacheTtl = Duration(minutes: 10);
+const Duration _breakingCacheTtl = Duration(seconds: 30);
+const Duration _settingsCacheTtl = Duration(hours: 1);
+const int _defaultSliderIntervalSeconds = 3;
+
+class HomeRepository {
   SupabaseClient get _client => Supabase.instance.client;
   final LocalCacheService _cache = LocalCacheService.instance;
 
   List<CategoryModel>? getCachedCategories({String languageCode = 'ar'}) {
     return _readCachedListSync(
-      cacheKey: _categoriesCacheKey(languageCode),
+      cache: _cache,
+      cacheKey: _categoriesCacheKey,
       map: (rows) => _mapCategories(rows, languageCode: languageCode),
     );
   }
@@ -32,8 +36,8 @@ class HomeRepository {
     String? searchQuery,
   }) {
     return _readCachedListSync(
+      cache: _cache,
       cacheKey: _latestNewsCacheKey(
-        languageCode: languageCode,
         limit: limit,
         offset: offset,
         categoryId: categoryId,
@@ -48,7 +52,8 @@ class HomeRepository {
     int limit = 5,
   }) {
     return _readCachedListSync(
-      cacheKey: _featuredCacheKey(languageCode, limit),
+      cache: _cache,
+      cacheKey: _featuredCacheKey(limit),
       map: (rows) => _mapNews(rows, languageCode: languageCode),
     );
   }
@@ -56,7 +61,8 @@ class HomeRepository {
   List<String>? getCachedBreakingNewsTitles({String languageCode = 'ar'}) {
     final normalizedLanguage = languageCode.toLowerCase();
     return _readCachedListSync(
-      cacheKey: _breakingCacheKey(normalizedLanguage),
+      cache: _cache,
+      cacheKey: _breakingCacheKey,
       map: (rows) => _mapBreakingTitles(rows, languageCode: normalizedLanguage),
     );
   }
@@ -66,7 +72,8 @@ class HomeRepository {
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
     return _readCachedListSync(
-      cacheKey: _breakingCacheKey(normalizedLanguage),
+      cache: _cache,
+      cacheKey: _breakingCacheKey,
       map:
           (rows) =>
               _mapBreakingHeadlines(rows, languageCode: normalizedLanguage),
@@ -75,6 +82,7 @@ class HomeRepository {
 
   FeaturedSliderSettingsModel? getCachedFeaturedSliderSettings() {
     return _readCachedMapSync(
+      cache: _cache,
       cacheKey: _featuredSliderSettingsCacheKey,
       map:
           (map) => _settingsFromMap(
@@ -89,7 +97,8 @@ class HomeRepository {
     bool forceRefresh = false,
   }) {
     return _loadCachedList(
-      cacheKey: _categoriesCacheKey(languageCode),
+      cache: _cache,
+      cacheKey: _categoriesCacheKey,
       ttl: _categoriesCacheTtl,
       forceRefresh: forceRefresh,
       fetch: () async {
@@ -113,8 +122,8 @@ class HomeRepository {
     bool forceRefresh = false,
   }) {
     return _loadCachedList(
+      cache: _cache,
       cacheKey: _latestNewsCacheKey(
-        languageCode: languageCode,
         limit: limit,
         offset: offset,
         categoryId: categoryId,
@@ -124,7 +133,7 @@ class HomeRepository {
       forceRefresh: forceRefresh,
       fetch: () async {
         PostgrestFilterBuilder<List<Map<String, dynamic>>> query =
-            _newsBaseQuery();
+            _newsBaseQuery(_client);
 
         if (categoryId != null) {
           query = query.eq('category_id', categoryId);
@@ -135,7 +144,9 @@ class HomeRepository {
           final safeSearch = _sanitizeSearchTerm(normalizedSearch);
           if (safeSearch.isNotEmpty) {
             final pattern = '%$safeSearch%';
-            query = query.or('title.ilike.$pattern,content.ilike.$pattern');
+            query = query.or(
+              'title.ilike.$pattern,title_en.ilike.$pattern,content.ilike.$pattern,content_en.ilike.$pattern',
+            );
           }
         }
 
@@ -145,6 +156,14 @@ class HomeRepository {
         return _toMapList(response);
       },
       map: (rows) => _mapNews(rows, languageCode: languageCode),
+      onFetched:
+          (_) => _clearSupersededLatestNewsPages(
+            cache: _cache,
+            forceRefresh: forceRefresh,
+            offset: offset,
+            categoryId: categoryId,
+            searchQuery: searchQuery,
+          ),
     );
   }
 
@@ -153,7 +172,7 @@ class HomeRepository {
     int limit = 5,
     bool forceRefresh = false,
   }) async {
-    final cacheKey = _featuredCacheKey(languageCode, limit);
+    final cacheKey = _featuredCacheKey(limit);
     final cached = await _cache.readList(cacheKey);
 
     if (_hasFreshCache(cached?.cachedAt, _featuredCacheTtl, forceRefresh)) {
@@ -161,9 +180,9 @@ class HomeRepository {
     }
 
     try {
-      final response = await _newsBaseQuery()
-          .eq('is_featured', true)
-          .limit(limit);
+      final response = await _newsBaseQuery(
+        _client,
+      ).eq('is_featured', true).limit(limit);
       final featuredRows = _toMapList(response);
       final featured = _mapNews(featuredRows, languageCode: languageCode);
 
@@ -199,7 +218,8 @@ class HomeRepository {
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
     return _loadCachedList(
-      cacheKey: _breakingCacheKey(normalizedLanguage),
+      cache: _cache,
+      cacheKey: _breakingCacheKey,
       ttl: _breakingCacheTtl,
       forceRefresh: forceRefresh,
       fetch: () async {
@@ -223,7 +243,8 @@ class HomeRepository {
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
     return _loadCachedList(
-      cacheKey: _breakingCacheKey(normalizedLanguage),
+      cache: _cache,
+      cacheKey: _breakingCacheKey,
       ttl: _breakingCacheTtl,
       forceRefresh: forceRefresh,
       fetch: () async {
@@ -254,6 +275,7 @@ class HomeRepository {
     bool forceRefresh = false,
   }) {
     return _loadCachedMap(
+      cache: _cache,
       cacheKey: _featuredSliderSettingsCacheKey,
       ttl: _settingsCacheTtl,
       forceRefresh: forceRefresh,
@@ -278,222 +300,5 @@ class HomeRepository {
             defaultInterval: _defaultSliderIntervalSeconds,
           ),
     );
-  }
-
-  List<T>? _readCachedListSync<T>({
-    required String cacheKey,
-    required List<T> Function(List<Map<String, dynamic>> rows) map,
-  }) {
-    final cached = _cache.readListSync(cacheKey);
-    if (cached == null) return null;
-    return _tryOrNull(() => map(cached.data));
-  }
-
-  T? _readCachedMapSync<T>({
-    required String cacheKey,
-    required T Function(Map<String, dynamic> map) map,
-  }) {
-    final cached = _cache.readMapSync(cacheKey);
-    if (cached == null) return null;
-    return _tryOrNull(() => map(cached.data));
-  }
-
-  Future<List<T>> _loadCachedList<T>({
-    required String cacheKey,
-    required Duration ttl,
-    required bool forceRefresh,
-    required Future<List<Map<String, dynamic>>> Function() fetch,
-    required List<T> Function(List<Map<String, dynamic>> rows) map,
-  }) async {
-    final cached = await _cache.readList(cacheKey);
-
-    if (_hasFreshCache(cached?.cachedAt, ttl, forceRefresh)) {
-      return map(cached!.data);
-    }
-
-    try {
-      final rows = await fetch();
-      await _cache.writeList(cacheKey, rows);
-      return map(rows);
-    } catch (_) {
-      if (cached != null) {
-        return map(cached.data);
-      }
-      rethrow;
-    }
-  }
-
-  Future<T> _loadCachedMap<T>({
-    required String cacheKey,
-    required Duration ttl,
-    required bool forceRefresh,
-    required Future<Map<String, dynamic>> Function() fetch,
-    required T Function(Map<String, dynamic> map) map,
-  }) async {
-    final cached = await _cache.readMap(cacheKey);
-
-    if (_hasFreshCache(cached?.cachedAt, ttl, forceRefresh)) {
-      return map(cached!.data);
-    }
-
-    try {
-      final data = await fetch();
-      await _cache.writeMap(cacheKey, data);
-      return map(data);
-    } catch (_) {
-      if (cached != null) {
-        return map(cached.data);
-      }
-      rethrow;
-    }
-  }
-
-  bool _hasFreshCache(DateTime? cachedAt, Duration ttl, bool forceRefresh) {
-    return !forceRefresh &&
-        cachedAt != null &&
-        DateTime.now().difference(cachedAt) < ttl;
-  }
-
-  T? _tryOrNull<T>(T Function() action) {
-    try {
-      return action();
-    } catch (_) {
-      return null;
-    }
-  }
-
-  List<CategoryModel> _mapCategories(
-    List<Map<String, dynamic>> rows, {
-    required String languageCode,
-  }) {
-    return rows
-        .map((item) => CategoryModel.fromJson(item, languageCode: languageCode))
-        .toList();
-  }
-
-  List<NewsModel> _mapNews(
-    List<Map<String, dynamic>> rows, {
-    required String languageCode,
-  }) {
-    return rows
-        .map((item) => NewsModel.fromJson(item, languageCode: languageCode))
-        .toList();
-  }
-
-  List<String> _mapBreakingTitles(
-    List<Map<String, dynamic>> rows, {
-    required String languageCode,
-  }) {
-    final fallbackLanguage = languageCode == 'en' ? 'ar' : 'en';
-
-    return rows
-        .map(
-          (item) =>
-              _readText(item['title_$languageCode']) ??
-              _readText(item['title']) ??
-              _readText(item['title_$fallbackLanguage']) ??
-              '',
-        )
-        .where((title) => title.trim().isNotEmpty)
-        .toList();
-  }
-
-  List<BreakingNewsHeadlineModel> _mapBreakingHeadlines(
-    List<Map<String, dynamic>> rows, {
-    required String languageCode,
-  }) {
-    final fallbackLanguage = languageCode == 'en' ? 'ar' : 'en';
-
-    return rows
-        .map((item) {
-          final id = (item['id'] as num?)?.toInt();
-          final title =
-              _readText(item['title_$languageCode']) ??
-              _readText(item['title']) ??
-              _readText(item['title_$fallbackLanguage']) ??
-              '';
-
-          if (id == null || title.trim().isEmpty) {
-            return null;
-          }
-
-          return BreakingNewsHeadlineModel(id: id, title: title);
-        })
-        .whereType<BreakingNewsHeadlineModel>()
-        .toList();
-  }
-
-  PostgrestFilterBuilder<List<Map<String, dynamic>>> _newsBaseQuery() {
-    return _client.from('news').select('*').eq('is_hidden', false);
-  }
-
-  String _categoriesCacheKey(String languageCode) {
-    return 'home_categories_${languageCode.toLowerCase()}';
-  }
-
-  String _featuredCacheKey(String languageCode, int limit) {
-    return 'home_featured_${languageCode.toLowerCase()}_$limit';
-  }
-
-  String _breakingCacheKey(String languageCode) {
-    return 'home_breaking_$languageCode';
-  }
-
-  String get _featuredSliderSettingsCacheKey => 'home_featured_slider_settings';
-
-  String _latestNewsCacheKey({
-    required String languageCode,
-    required int limit,
-    required int offset,
-    required int? categoryId,
-    required String? searchQuery,
-  }) {
-    final query = searchQuery?.trim() ?? '';
-    final normalizedQuery =
-        query.isEmpty ? '' : Uri.encodeComponent(query.toLowerCase());
-
-    return 'home_news_${languageCode.toLowerCase()}_${categoryId ?? 'all'}_${offset}_${limit}_$normalizedQuery';
-  }
-
-  String _sanitizeSearchTerm(String value) {
-    return value
-        .replaceAll(',', ' ')
-        .replaceAll('(', ' ')
-        .replaceAll(')', ' ')
-        .trim();
-  }
-
-  String? _readText(dynamic value) {
-    if (value == null) return null;
-    if (value is String) return value;
-    return value.toString();
-  }
-
-  FeaturedSliderSettingsModel _settingsFromMap(
-    Map<String, dynamic> map, {
-    required int defaultInterval,
-  }) {
-    final values = map.map(
-      (key, value) => MapEntry(key, value?.toString() ?? ''),
-    );
-
-    final autoplay =
-        (values['featured_slider_autoplay']?.toLowerCase() ?? 'true') == 'true';
-    final interval =
-        int.tryParse(
-          values['featured_slider_interval_seconds'] ?? '$defaultInterval',
-        ) ??
-        defaultInterval;
-
-    return FeaturedSliderSettingsModel(
-      autoplay: autoplay,
-      intervalSeconds: interval < 1 ? defaultInterval : interval,
-    );
-  }
-
-  List<Map<String, dynamic>> _toMapList(dynamic response) {
-    return (response as List<dynamic>)
-        .map((item) => Map<String, dynamic>.from(item as Map))
-        .toList();
   }
 }

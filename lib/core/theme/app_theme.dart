@@ -10,6 +10,10 @@ class AppTheme {
     final scheme = base.colorScheme.copyWith(
       primary: primary,
       secondary: primary,
+      tertiary: const Color(0xFF0E7490),
+      onTertiary: Colors.white,
+      tertiaryContainer: const Color(0xFFBFEAF5),
+      onTertiaryContainer: const Color(0xFF083344),
       surface: Colors.white,
     );
     return base.copyWith(
@@ -43,6 +47,10 @@ class AppTheme {
     final scheme = base.colorScheme.copyWith(
       primary: primary,
       secondary: primary,
+      tertiary: const Color(0xFF67E8F9),
+      onTertiary: const Color(0xFF083344),
+      tertiaryContainer: const Color(0xFF164E63),
+      onTertiaryContainer: const Color(0xFFBAE6FD),
       surface: const Color(0xFF1E293B),
     );
     return base.copyWith(

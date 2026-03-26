@@ -10,6 +10,10 @@ class NewsCard extends StatelessWidget {
   const NewsCard({super.key, required this.news});
 
   static const double _thumbnailSize = 100;
+  static const int _thumbnailMemCacheWidth = 240;
+  static const int _thumbnailMemCacheHeight = 240;
+  static const int _thumbnailDiskCacheWidth = 320;
+  static const int _thumbnailDiskCacheHeight = 320;
 
   final NewsModel news;
 
@@ -184,6 +188,13 @@ class _NewsThumbnail extends StatelessWidget {
           width: NewsCard._thumbnailSize,
           height: NewsCard._thumbnailSize,
           fit: BoxFit.cover,
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
+          useOldImageOnUrlChange: true,
+          memCacheWidth: NewsCard._thumbnailMemCacheWidth,
+          memCacheHeight: NewsCard._thumbnailMemCacheHeight,
+          maxWidthDiskCache: NewsCard._thumbnailDiskCacheWidth,
+          maxHeightDiskCache: NewsCard._thumbnailDiskCacheHeight,
           placeholder:
               (_, __) => ColoredBox(
                 color: backgroundColor,

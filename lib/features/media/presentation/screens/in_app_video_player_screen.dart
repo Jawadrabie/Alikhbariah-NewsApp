@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../../../../core/localization/l10n_extensions.dart';
 import '../controllers/in_app_video_controller.dart';
@@ -29,12 +29,59 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
     return WebViewWidget(controller: controller);
   }
 
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: Material(
+        color: Colors.black38,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: IconButton(
+          onPressed: onPressed,
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+          iconSize: 18,
+          icon: Icon(icon, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOverlayControls({
+    required VoidCallback onMinimize,
+    required VoidCallback onExpand,
+  }) {
+    return Positioned(
+      bottom: 8,
+      right: 8,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildControlButton(
+            icon: Icons.fit_screen_rounded,
+            onPressed: onExpand,
+          ),
+          const SizedBox(height: 4),
+          _buildControlButton(
+            icon: Icons.picture_in_picture_alt_rounded,
+            onPressed: onMinimize,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final mediaQuery = MediaQuery.of(context);
     final maxWidth = mediaQuery.size.width;
-    final miniWidth = maxWidth < 420 ? maxWidth - 24 : 300.0;
+    final miniWidth = (maxWidth * 0.48).clamp(180.0, 240.0).toDouble();
     final miniHeight = miniWidth * 9 / 16;
     final bottomInset = 12 + mediaQuery.padding.bottom;
     final screenSize = mediaQuery.size;
@@ -112,60 +159,9 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
                                   style: const TextStyle(color: Colors.white),
                                 ),
                               ),
-                            Positioned(
-                              bottom: 12,
-                              right: 12,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons
-                                                .picture_in_picture_alt_rounded,
-                                            color: Colors.white,
-                                          ),
-                                          tooltip: 'عرض',
-                                          onPressed: state.minimize,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 34,
-                                            minHeight: 34,
-                                          ),
-                                          padding: const EdgeInsets.all(4),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.open_in_full_rounded,
-                                            color: Colors.white,
-                                          ),
-                                          tooltip: 'تكبير',
-                                          onPressed: state.showFullscreen,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 34,
-                                            minHeight: 34,
-                                          ),
-                                          padding: const EdgeInsets.all(4),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                            _buildOverlayControls(
+                              onMinimize: state.minimize,
+                              onExpand: state.showFullscreen,
                             ),
                           ],
                         ),
@@ -205,87 +201,28 @@ class _InAppMiniPlayerOverlayState extends State<InAppMiniPlayerOverlay> {
               clipBehavior: Clip.antiAlias,
               child: SizedBox(
                 width: miniWidth,
-                height: miniHeight + 52,
+                height: miniHeight,
                 child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      child: SizedBox(
-                        height: miniHeight,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            _buildPlayer(playerController),
-                            if (state.hasPlaybackError)
-                              Container(
-                                color: Colors.black54,
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.all(8),
-                                child: Text(
-                                  state.playbackErrorMessage,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                          ],
+                    _buildPlayer(playerController),
+                    if (state.hasPlaybackError)
+                      Container(
+                        color: Colors.black54,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          state.playbackErrorMessage,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        color: Colors.black87,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Material(
-                              color: Colors.transparent,
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.picture_in_picture_alt_rounded,
-                                  color: Colors.white,
-                                ),
-                                tooltip: 'عرض',
-                                onPressed: state.minimize,
-                                constraints: const BoxConstraints(
-                                  minWidth: 34,
-                                  minHeight: 34,
-                                ),
-                                padding: const EdgeInsets.all(4),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Material(
-                              color: Colors.transparent,
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.open_in_full_rounded,
-                                  color: Colors.white,
-                                ),
-                                tooltip: 'تكبير',
-                                onPressed: state.showFullscreen,
-                                constraints: const BoxConstraints(
-                                  minWidth: 34,
-                                  minHeight: 34,
-                                ),
-                                padding: const EdgeInsets.all(4),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    _buildOverlayControls(
+                      onMinimize: state.minimize,
+                      onExpand: state.showFullscreen,
                     ),
                   ],
                 ),

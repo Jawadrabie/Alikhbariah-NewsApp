@@ -17,9 +17,10 @@ class MediaRepository {
 
   List<VideoCategoryModel>? getCachedVideoCategories({
     String languageCode = 'ar',
+    String categoryType = 'video',
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
-    final cacheKey = 'media_video_categories_$normalizedLanguage';
+    final cacheKey = 'media_${categoryType}_categories';
     final cached = _cache.readListSync(cacheKey);
     if (cached != null) {
       return cached.data
@@ -41,8 +42,7 @@ class MediaRepository {
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
     final effectiveCategoryId = categoryId ?? programId;
-    final cacheKey =
-        'media_videos_${normalizedLanguage}_${effectiveCategoryId ?? 'all'}';
+    final cacheKey = 'media_videos_${effectiveCategoryId ?? 'all'}';
     final cached = _cache.readListSync(cacheKey);
     if (cached != null) {
       return cached.data
@@ -56,13 +56,31 @@ class MediaRepository {
 
   // --- End Synchronous Getters ---
 
+  LiveStreamModel? getCachedActiveLiveStream({String languageCode = 'ar'}) {
+    final normalizedLanguage = languageCode.toLowerCase();
+    final cached = _cache.readMapSync('media_live_stream');
+    if (cached == null || cached.data['has_data'] != true) {
+      return null;
+    }
+
+    final row = cached.data['row'];
+    if (row is! Map) {
+      return null;
+    }
+
+    return LiveStreamModel.fromJson(
+      Map<String, dynamic>.from(row),
+      languageCode: normalizedLanguage,
+    );
+  }
+
   Future<List<VideoCategoryModel>> getVideoCategories({
     String languageCode = 'ar',
     String categoryType = 'video',
     bool forceRefresh = false,
   }) async {
     final normalizedLanguage = languageCode.toLowerCase();
-    final cacheKey = 'media_${categoryType}_categories_$normalizedLanguage';
+    final cacheKey = 'media_${categoryType}_categories';
     final cached = await _cache.readList(cacheKey);
     final hasFreshCache =
         !forceRefresh &&
@@ -133,8 +151,7 @@ class MediaRepository {
   }) async {
     final effectiveCategoryId = categoryId ?? programId;
     final normalizedLanguage = languageCode.toLowerCase();
-    final cacheKey =
-        'media_videos_${normalizedLanguage}_${effectiveCategoryId ?? 'all'}';
+    final cacheKey = 'media_videos_${effectiveCategoryId ?? 'all'}';
     final cached = await _cache.readList(cacheKey);
     final hasFreshCache =
         !forceRefresh &&
@@ -193,7 +210,7 @@ class MediaRepository {
     bool forceRefresh = false,
   }) async {
     final normalizedLanguage = languageCode.toLowerCase();
-    final cacheKey = 'media_live_stream_$normalizedLanguage';
+    final cacheKey = 'media_live_stream';
     final cached = await _cache.readMap(cacheKey);
     final hasFreshCache =
         !forceRefresh &&

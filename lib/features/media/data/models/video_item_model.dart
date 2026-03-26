@@ -1,3 +1,5 @@
+import '../../../../core/utils/image_url_utils.dart';
+
 class VideoItemModel {
   final int id;
   final String title;
@@ -42,7 +44,7 @@ class VideoItemModel {
       youtubeUrl: (json['youtube_url'] as String?) ?? '',
       categoryId: json['category_id'] as int?,
       programId: json['program_id'] as int?,
-      thumbnailUrl: json['thumbnail_url'] as String?,
+      thumbnailUrl: normalizeRemoteImageUrl(json['thumbnail_url'] as String?),
       publishedAt:
           json['published_at'] == null
               ? null

@@ -1,3 +1,5 @@
+import '../../../../core/utils/image_url_utils.dart';
+
 class ProgramModel {
   final int id;
   final String name;
@@ -40,7 +42,7 @@ class ProgramModel {
       name: pickText('name'),
       description:
           pickText('description').isEmpty ? null : pickText('description'),
-      imageUrl: json['image_url'] as String?,
+      imageUrl: normalizeRemoteImageUrl(json['image_url'] as String?),
       orderIndex: json['order_index'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
     );

@@ -21,10 +21,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   @override
   void initState() {
     super.initState();
-    _programsFuture = _repository.getVideoCategories(
-      languageCode: _currentLanguageCode,
-      categoryType: 'program',
-    );
+    _programsFuture = Future.value(const <VideoCategoryModel>[]);
+    _loadPrograms();
   }
 
   @override
@@ -36,10 +34,41 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
       return;
     }
     _currentLanguageCode = nextLanguage;
-    _programsFuture = _repository.getVideoCategories(
-      languageCode: _currentLanguageCode,
-      categoryType: 'program',
+    _loadPrograms();
+  }
+
+  void _loadPrograms() {
+    _programsFuture = _seedFutureFromCache(
+      cachedValue: _repository.getCachedVideoCategories(
+        languageCode: _currentLanguageCode,
+        categoryType: 'program',
+      ),
+      assign: (future) => _programsFuture = future,
+      load:
+          (forceRefresh) => _repository.getVideoCategories(
+            languageCode: _currentLanguageCode,
+            categoryType: 'program',
+            forceRefresh: forceRefresh,
+          ),
     );
+  }
+
+  Future<T> _seedFutureFromCache<T>({
+    required T? cachedValue,
+    required void Function(Future<T> future) assign,
+    required Future<T> Function(bool forceRefresh) load,
+  }) {
+    if (cachedValue != null) {
+      load(true).then((fresh) {
+        if (!mounted) return;
+        setState(() {
+          assign(Future.value(fresh));
+        });
+      });
+      return Future.value(cachedValue);
+    }
+
+    return load(false);
   }
 
   @override
@@ -51,17 +80,18 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
       body: FutureBuilder<List<VideoCategoryModel>>(
         future: _programsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          final items = snapshot.data ?? const <VideoCategoryModel>[];
 
-          if (snapshot.hasError) {
+          if (snapshot.hasError && items.isEmpty) {
             return Center(
               child: Text(l10n.failedLoadPrograms(snapshot.error.toString())),
             );
           }
 
-          final items = snapshot.data ?? const [];
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
           if (items.isEmpty) {
             return Center(child: Text(l10n.noProgramsNow));
           }
@@ -110,6 +140,8 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
                                     : CachedNetworkImage(
                                       imageUrl: item.coverImageUrl!,
                                       fit: BoxFit.cover,
+                                      fadeInDuration: Duration.zero,
+                                      fadeOutDuration: Duration.zero,
                                       placeholder:
                                           (_, __) => const Center(
                                             child: SizedBox(

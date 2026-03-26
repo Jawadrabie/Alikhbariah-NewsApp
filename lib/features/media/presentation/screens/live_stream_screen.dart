@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../../../../core/localization/l10n_extensions.dart';
-import '../controllers/in_app_video_controller.dart';
 import '../../data/repositories/media_repository.dart';
+import '../controllers/in_app_video_controller.dart';
 
 class LiveStreamScreen extends StatefulWidget {
   const LiveStreamScreen({super.key});
@@ -69,6 +69,50 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
     return WebViewWidget(controller: controller);
   }
 
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: Material(
+        color: Colors.black38,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: IconButton(
+          onPressed: onPressed,
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+          iconSize: 18,
+          icon: Icon(icon, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOverlayControls(InAppVideoController playerState) {
+    return Positioned(
+      bottom: 8,
+      right: 8,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildControlButton(
+            icon: Icons.fit_screen_rounded,
+            onPressed: playerState.showFullscreen,
+          ),
+          const SizedBox(height: 4),
+          _buildControlButton(
+            icon: Icons.picture_in_picture_alt_rounded,
+            onPressed: playerState.minimize,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -106,6 +150,8 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
             builder: (context, _) {
               final playerState = InAppVideoController.instance;
               final playerController = playerState.webViewController;
+              final isMiniMode =
+                  playerState.viewMode == InAppVideoViewMode.mini;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -130,87 +176,38 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Material(
-                    elevation: 2,
-                    color: Theme.of(context).colorScheme.surface,
-                    shadowColor: Colors.black26,
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              if (playerController != null)
-                                _buildPlayer(playerController)
-                              else
-                                const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              if (playerState.hasPlaybackError)
-                                Container(
-                                  color: Colors.black54,
-                                  alignment: Alignment.center,
-                                  padding: const EdgeInsets.all(16),
-                                  child: Text(
-                                    playerState.playbackErrorMessage,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          color: Colors.black87,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Material(
-                                color: Colors.transparent,
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.picture_in_picture_alt_rounded,
-                                    color: Colors.white,
-                                  ),
-                                  tooltip: 'عرض',
-                                  onPressed: playerState.minimize,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 34,
-                                    minHeight: 34,
-                                  ),
-                                  padding: const EdgeInsets.all(4),
+                  if (!isMiniMode)
+                    Material(
+                      elevation: 2,
+                      color: Theme.of(context).colorScheme.surface,
+                      shadowColor: Colors.black26,
+                      clipBehavior: Clip.antiAlias,
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (playerController != null)
+                              _buildPlayer(playerController)
+                            else
+                              const Center(child: CircularProgressIndicator()),
+                            if (playerState.hasPlaybackError)
+                              Container(
+                                color: Colors.black54,
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  playerState.playbackErrorMessage,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Material(
-                                color: Colors.transparent,
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.open_in_full_rounded,
-                                    color: Colors.white,
-                                  ),
-                                  tooltip: 'تكبير',
-                                  onPressed: playerState.showFullscreen,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 34,
-                                    minHeight: 34,
-                                  ),
-                                  padding: const EdgeInsets.all(4),
-                                ),
-                              ),
-                            ],
-                          ),
+                            _buildOverlayControls(playerState),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  if (isMiniMode) const SizedBox(height: 4),
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

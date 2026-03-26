@@ -79,6 +79,8 @@ class BookmarkService {
       'content': news.content,
       'image_url': news.imageUrl,
       'category_id': news.categoryId,
+      'location_id': news.locationId,
+      'location_name': news.locationName,
       'created_at': news.createdAt.toIso8601String(),
       'is_featured': news.isFeatured,
       'saved_at': DateTime.now().toIso8601String(),

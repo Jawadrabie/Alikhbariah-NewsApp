@@ -1,3 +1,5 @@
+import '../../../../core/utils/image_url_utils.dart';
+
 class VideoCategoryModel {
   final int id;
   final String name;
@@ -34,7 +36,7 @@ class VideoCategoryModel {
                   ? readText(json['name'])
                   : readText(json['name_$fallbackLanguage'])),
       slug: (json['slug'] as String?) ?? '',
-      coverImageUrl: json['cover_image_url']?.toString(),
+      coverImageUrl: normalizeRemoteImageUrl(json['cover_image_url']?.toString()),
       orderIndex: json['order_index'] as int? ?? 0,
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -67,10 +68,39 @@ class InAppVideoController extends ChangeNotifier {
     return cleaned;
   }
 
+  bool get _supportsLandscapeFullscreen => Platform.isAndroid || Platform.isIOS;
+
+  void _enterLandscapeFullscreen() {
+    if (!_supportsLandscapeFullscreen) return;
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  void _restorePortraitMode() {
+    if (!_supportsLandscapeFullscreen) return;
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
   Uri _embedUriFor(String videoId) {
-    return Uri.parse(
-      'https://www.youtube.com/embed/$videoId?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0&fs=0&disablekb=1&iv_load_policy=3',
-    );
+    return Uri.https('www.youtube-nocookie.com', '/embed/$videoId', const {
+      'autoplay': '1',
+      'playsinline': '1',
+      'rel': '0',
+      'modestbranding': '1',
+      'controls': '0',
+      'fs': '0',
+      'disablekb': '1',
+      'iv_load_policy': '3',
+      'cc_load_policy': '0',
+      'enablejsapi': '1',
+    });
   }
 
   NavigationDecision _handleNavigation(String url) {
@@ -86,6 +116,7 @@ class InAppVideoController extends ChangeNotifier {
     }
 
     final host = uri.host.toLowerCase();
+    final path = uri.path.toLowerCase();
 
     // Allow YouTube domains
     final isYoutubeHost =
@@ -94,9 +125,22 @@ class InAppVideoController extends ChangeNotifier {
         host.contains('youtu.be') ||
         host.contains('googlevideo.com');
 
+    final isYoutubeWatchLikePage =
+        (host.contains('youtube.com') ||
+            host.contains('youtube-nocookie.com')) &&
+        (path == '/watch' ||
+            path.startsWith('/shorts/') ||
+            path.startsWith('/live/') ||
+            path.startsWith('/channel/') ||
+            path.startsWith('/@'));
+
     // Allow Google accounts for login/auth flows which might be needed
     final isGoogleAuth =
         host.contains('accounts.google.com') || host.contains('google.com');
+
+    if (isYoutubeWatchLikePage) {
+      return NavigationDecision.prevent;
+    }
 
     if (isYoutubeHost || isGoogleAuth) {
       return NavigationDecision.navigate;
@@ -186,17 +230,20 @@ class InAppVideoController extends ChangeNotifier {
 
   void minimize() {
     if (_webViewController == null) return;
+    _restorePortraitMode();
     _viewMode = InAppVideoViewMode.mini;
     notifyListeners();
   }
 
   void showFullscreen() {
     if (_webViewController == null) return;
+    _enterLandscapeFullscreen();
     _viewMode = InAppVideoViewMode.fullscreen;
     notifyListeners();
   }
 
   void close() {
+    _restorePortraitMode();
     _webViewController?.loadHtmlString(
       '<html><body style="background:black;"></body></html>',
     );

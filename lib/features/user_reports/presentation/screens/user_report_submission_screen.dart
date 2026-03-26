@@ -99,6 +99,60 @@ class _UserReportSubmissionScreenState
     }
   }
 
+  Future<void> _openAttachmentPreview() async {
+    if (_attachmentUrl == null) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Image.network(
+                    _attachmentUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          size: 40,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black54,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    tooltip: 'Close',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -180,20 +234,53 @@ class _UserReportSubmissionScreenState
                         color: Theme.of(context).colorScheme.outlineVariant,
                       ),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: Text(
-                            l10n.reportAttachmentReady,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                        GestureDetector(
+                          onTap: _openAttachmentPreview,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Image.network(
+                                _attachmentUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceContainerHighest,
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.broken_image_outlined,
+                                      size: 28,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         ),
-                        IconButton(
-                          onPressed:
-                              _isSubmitting
-                                  ? null
-                                  : () => setState(() => _attachmentUrl = null),
-                          icon: const Icon(Icons.delete_outline_rounded),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.reportAttachmentReady,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed:
+                                  _isSubmitting
+                                      ? null
+                                      : () =>
+                                          setState(() => _attachmentUrl = null),
+                              icon: const Icon(Icons.delete_outline_rounded),
+                            ),
+                          ],
                         ),
                       ],
                     ),

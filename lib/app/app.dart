@@ -4,7 +4,7 @@ import '../core/localization/generated/app_localizations.dart';
 
 import '../core/settings/app_settings_controller.dart';
 import '../core/theme/app_theme.dart';
-import '../features/home/presentation/screens/home_screen.dart';
+import '../features/splash/presentation/screens/splash_screen.dart';
 import '../features/media/presentation/screens/in_app_video_player_screen.dart';
 
 class NewsApp extends StatelessWidget {
@@ -37,7 +37,7 @@ class NewsApp extends StatelessWidget {
               ],
             );
           },
-          home: const HomeScreen(),
+          home: const SplashScreen(),
         );
       },
     );

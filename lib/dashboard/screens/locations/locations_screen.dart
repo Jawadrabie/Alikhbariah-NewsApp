@@ -161,50 +161,106 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       icon: Icons.location_on_outlined,
                       title: t('no_locations_found'),
                     )
-                    : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: WidgetStatePropertyAll(
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                    : Align(
+                      alignment: AlignmentDirectional.topStart,
+                      child: Card(
+                        elevation: 0,
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: scheme.outlineVariant.withValues(alpha: 0.4),
+                          ),
                         ),
-                        columns: [
-                          DataColumn(label: Text(t('name'))),
-                          DataColumn(label: Text(t('name_en'))),
-                          DataColumn(label: Text(t('actions'))),
-                        ],
-                        rows:
-                            items
-                                .map(
-                                  (item) => DataRow(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            headingRowColor: WidgetStatePropertyAll(
+                              scheme.surfaceContainerHighest.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                            dataRowMaxHeight: 60,
+                            columns: [
+                              DataColumn(
+                                label: Text(
+                                  t('name'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  t('name_en'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  t('actions'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            rows:
+                                items.map((item) {
+                                  return DataRow(
                                     cells: [
-                                      DataCell(Text(item.name)),
+                                      DataCell(
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.location_on_rounded,
+                                              size: 18,
+                                              color: scheme.primary,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              item.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                       DataCell(Text(item.nameEn ?? t('na'))),
                                       DataCell(
                                         Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
                                             IconButton(
                                               icon: Icon(
-                                                Icons.edit,
+                                                Icons.edit_rounded,
                                                 color: scheme.primary,
                                               ),
+                                              tooltip: t('edit'),
                                               onPressed:
                                                   () =>
                                                       _openForm(current: item),
                                             ),
                                             IconButton(
                                               icon: Icon(
-                                                Icons.delete,
+                                                Icons.delete_rounded,
                                                 color: scheme.error,
                                               ),
+                                              tooltip: t('delete'),
                                               onPressed: () => _delete(item.id),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ],
-                                  ),
-                                )
-                                .toList(),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
                       ),
                     ),
           );

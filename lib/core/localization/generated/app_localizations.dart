@@ -473,6 +473,72 @@ abstract class AppLocalizations {
   /// **'إرسال بلاغ أو معلومة تصل مباشرة إلى الداشبورد'**
   String get userReportsDrawerSubtitle;
 
+  /// No description provided for @channelSectionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عن القناة'**
+  String get channelSectionTitle;
+
+  /// No description provided for @aboutUs.
+  ///
+  /// In ar, this message translates to:
+  /// **'من نحن'**
+  String get aboutUs;
+
+  /// No description provided for @aboutUsDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'الموقع الإلكتروني لقناة الإخبارية السورية، وهي القناة الرسمية للجمهورية العربية السورية، ويهدف الموقع إلى تقديم تغطية إعلامية مهنية ومتوازنة، تعكس توجهات الدولة في بناء سوريا الحديثة، ويتناول مختلف قضايا السياسة والاقتصاد والأخبار المحلية، بالإضافة إلى أهم الأخبار العربية والدولية.'**
+  String get aboutUsDescription;
+
+  /// No description provided for @channelFrequencies.
+  ///
+  /// In ar, this message translates to:
+  /// **'ترددات القناة'**
+  String get channelFrequencies;
+
+  /// No description provided for @nilesat.
+  ///
+  /// In ar, this message translates to:
+  /// **'قمر النايلسات'**
+  String get nilesat;
+
+  /// No description provided for @frequencySd.
+  ///
+  /// In ar, this message translates to:
+  /// **'SD'**
+  String get frequencySd;
+
+  /// No description provided for @frequencyHd.
+  ///
+  /// In ar, this message translates to:
+  /// **'HD'**
+  String get frequencyHd;
+
+  /// No description provided for @developmentTeam.
+  ///
+  /// In ar, this message translates to:
+  /// **'فريق التطوير'**
+  String get developmentTeam;
+
+  /// No description provided for @developerRole.
+  ///
+  /// In ar, this message translates to:
+  /// **'مطور تطبيق'**
+  String get developerRole;
+
+  /// No description provided for @developerNameAbduljawad.
+  ///
+  /// In ar, this message translates to:
+  /// **'عبدالجواد الحاج ربيع'**
+  String get developerNameAbduljawad;
+
+  /// No description provided for @developerNameAsmaa.
+  ///
+  /// In ar, this message translates to:
+  /// **'أسماء حموي'**
+  String get developerNameAsmaa;
+
   /// No description provided for @reportName.
   ///
   /// In ar, this message translates to:

@@ -252,6 +252,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get userReportsDrawerSubtitle => 'Send a report that appears directly in the dashboard';
 
   @override
+  String get channelSectionTitle => 'About Channel';
+
+  @override
+  String get aboutUs => 'About Us';
+
+  @override
+  String get aboutUsDescription => 'The official website of the Syrian News channel of the Syrian Arab Republic. The platform provides professional and balanced media coverage that reflects the state\'s direction toward building a modern Syria, covering politics, economy, local news, and key Arab and international headlines.';
+
+  @override
+  String get channelFrequencies => 'Channel Frequencies';
+
+  @override
+  String get nilesat => 'Nilesat';
+
+  @override
+  String get frequencySd => 'SD';
+
+  @override
+  String get frequencyHd => 'HD';
+
+  @override
+  String get developmentTeam => 'Development Team';
+
+  @override
+  String get developerRole => 'App Developer';
+
+  @override
+  String get developerNameAbduljawad => 'عبدالجواد الحاج ربيع';
+
+  @override
+  String get developerNameAsmaa => 'أسماء حموي';
+
+  @override
   String get reportName => 'Name (optional)';
 
   @override

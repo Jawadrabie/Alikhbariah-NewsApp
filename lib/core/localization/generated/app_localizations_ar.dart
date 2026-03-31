@@ -264,6 +264,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get userReportsDrawerSubtitle => 'إرسال بلاغ أو معلومة تصل مباشرة إلى الداشبورد';
 
   @override
+  String get channelSectionTitle => 'عن القناة';
+
+  @override
+  String get aboutUs => 'من نحن';
+
+  @override
+  String get aboutUsDescription => 'الموقع الإلكتروني لقناة الإخبارية السورية، وهي القناة الرسمية للجمهورية العربية السورية، ويهدف الموقع إلى تقديم تغطية إعلامية مهنية ومتوازنة، تعكس توجهات الدولة في بناء سوريا الحديثة، ويتناول مختلف قضايا السياسة والاقتصاد والأخبار المحلية، بالإضافة إلى أهم الأخبار العربية والدولية.';
+
+  @override
+  String get channelFrequencies => 'ترددات القناة';
+
+  @override
+  String get nilesat => 'قمر النايلسات';
+
+  @override
+  String get frequencySd => 'SD';
+
+  @override
+  String get frequencyHd => 'HD';
+
+  @override
+  String get developmentTeam => 'فريق التطوير';
+
+  @override
+  String get developerRole => 'مطور تطبيق';
+
+  @override
+  String get developerNameAbduljawad => 'عبدالجواد الحاج ربيع';
+
+  @override
+  String get developerNameAsmaa => 'أسماء حموي';
+
+  @override
   String get reportName => 'الاسم (اختياري)';
 
   @override

@@ -161,8 +161,9 @@ extension _HomeScreenNewsLoading on _HomeScreenState {
         limit: 5,
         forceRefresh: true,
       );
-      _videoCategoriesFuture = _mediaRepository.getVideoCategories(
+      _latestVideosFuture = _mediaRepository.getVideos(
         languageCode: _currentLanguageCode,
+        limit: _HomeScreenState._pageSize,
         forceRefresh: true,
       );
       _sliderSettingsFuture = _repository.getFeaturedSliderSettings(
@@ -170,7 +171,7 @@ extension _HomeScreenNewsLoading on _HomeScreenState {
       );
     });
     _warmNewsImagesFromFuture(_featuredFuture);
-    _warmVideoCategoryImagesFromFuture(_videoCategoriesFuture);
+    _warmVideoImagesFromFuture(_latestVideosFuture);
 
     await _loadBreakingTitles(forceRefresh: true);
     await _loadInitialNews(forceRefresh: true);
@@ -182,7 +183,7 @@ extension _HomeScreenNewsLoading on _HomeScreenState {
     await Future.wait<void>([
       _categoriesFuture.then((_) => null),
       _featuredFuture.then((_) => null),
-      _videoCategoriesFuture.then((_) => null),
+      _latestVideosFuture.then((_) => null),
       _sliderSettingsFuture.then((_) => null),
     ]);
   }

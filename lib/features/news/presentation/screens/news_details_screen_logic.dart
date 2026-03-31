@@ -153,10 +153,25 @@ extension _NewsDetailsScreenLogic on _NewsDetailsScreenState {
     });
   }
 
+  String _shareableContent(String htmlContent) {
+    final plain = htmlContent
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (plain.isEmpty) return '';
+    if (plain.length <= 600) return plain;
+    return '${plain.substring(0, 600)}...';
+  }
+
   Future<void> _shareArticle() async {
     final title = widget.news.title;
-    final url = 'https://newsapp.example.com/news/${widget.news.id}';
-    await SharePlus.instance.share(ShareParams(text: '$title\n\n$url'));
+    // We construct a clickable HTTPS URL pointing to the Supabase Edge Function
+    final url = '${AppEnv.supabaseUrl}/functions/v1/share?id=${widget.news.id}';
+    final content = _shareableContent(widget.news.content);
+    final text = content.isEmpty
+        ? '$title\n\n$url'
+        : '$title\n\n$content\n\n$url';
+    await SharePlus.instance.share(ShareParams(text: text));
   }
 
   Future<void> _toggleBookmark() async {

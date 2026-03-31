@@ -9,6 +9,7 @@ import '../../../../core/localization/l10n_extensions.dart';
 import '../../../media/presentation/screens/live_stream_screen.dart';
 import '../../../media/presentation/screens/programs_screen.dart';
 import '../../../media/presentation/screens/videos_screen.dart';
+import '../screens/channel_info_screen.dart';
 import '../../../news/presentation/screens/saved_news_screen.dart';
 import '../../../user_reports/presentation/screens/user_report_submission_screen.dart';
 
@@ -159,6 +160,14 @@ class _HomeDrawerState extends State<HomeDrawer> {
               title: Text(l10n.userReports),
               subtitle: Text(l10n.userReportsDrawerSubtitle),
               onTap: () => _openScreen(const UserReportSubmissionScreen()),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline_rounded),
+              title: Text(l10n.channelSectionTitle),
+              subtitle: Text(
+                '${l10n.aboutUs} • ${l10n.channelFrequencies} • ${l10n.developmentTeam}',
+              ),
+              onTap: () => _openScreen(const ChannelInfoScreen()),
             ),
             const Divider(height: 28),
             SwitchListTile.adaptive(

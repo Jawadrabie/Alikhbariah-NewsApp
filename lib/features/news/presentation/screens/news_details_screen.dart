@@ -10,6 +10,7 @@ import '../../../../core/localization/l10n_extensions.dart';
 import '../../../../core/utils/image_prefetch_guard.dart';
 import '../../../../core/utils/relative_time_formatter.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
+import '../../../../core/config/app_env.dart';
 import '../../../home/data/models/news_model.dart';
 import '../../../home/data/repositories/home_repository.dart';
 import '../../data/services/bookmark_service.dart';

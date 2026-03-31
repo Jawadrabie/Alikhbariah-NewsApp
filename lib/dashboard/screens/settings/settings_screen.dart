@@ -39,6 +39,7 @@ class SettingsScreen extends StatelessWidget {
                 child: CustomDropdownField<ThemeMode>(
                   value: prefs.themeMode,
                   labelText: t('theme'),
+                  enableSearch: false,
                   prefixIcon: const Icon(Icons.brightness_6_outlined),
                   items: [
                     DropdownMenuItem(
@@ -56,7 +57,9 @@ class SettingsScreen extends StatelessWidget {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                      prefs.setThemeMode(value);
+                      Future<void>.microtask(() {
+                        prefs.setThemeMode(value);
+                      });
                     }
                   },
                 ),
@@ -66,6 +69,7 @@ class SettingsScreen extends StatelessWidget {
                 child: CustomDropdownField<String>(
                   value: prefs.locale.languageCode,
                   labelText: t('language'),
+                  enableSearch: false,
                   prefixIcon: const Icon(Icons.language_outlined),
                   items: [
                     DropdownMenuItem(value: 'ar', child: Text(t('arabic'))),
@@ -73,7 +77,9 @@ class SettingsScreen extends StatelessWidget {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                      prefs.setLocale(Locale(value));
+                      Future<void>.microtask(() {
+                        prefs.setLocale(Locale(value));
+                      });
                     }
                   },
                 ),

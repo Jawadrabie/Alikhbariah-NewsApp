@@ -54,7 +54,7 @@ class CategoryChips extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color:
                     isSelected
-                        ? scheme.primary
+                        ? scheme.onPrimaryContainer
                         : scheme.onSurface,
               ),
             );
@@ -82,7 +82,7 @@ class CategoryChips extends StatelessWidget {
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color:
                   isSelected
-                      ? scheme.primary
+                      ? scheme.onPrimaryContainer
                       : scheme.onSurface,
             ),
           );

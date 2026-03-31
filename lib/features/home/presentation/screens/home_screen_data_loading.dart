@@ -30,14 +30,16 @@ extension _HomeScreenDataLoading on _HomeScreenState {
           ),
     );
 
-    _videoCategoriesFuture = _seedFutureFromCache(
-      cachedValue: _mediaRepository.getCachedVideoCategories(
+    _latestVideosFuture = _seedFutureFromCache(
+      cachedValue: _mediaRepository.getCachedVideos(
         languageCode: _currentLanguageCode,
+        limit: _HomeScreenState._pageSize,
       ),
-      assign: (future) => _videoCategoriesFuture = future,
+      assign: (future) => _latestVideosFuture = future,
       load:
-          (forceRefresh) => _mediaRepository.getVideoCategories(
+          (forceRefresh) => _mediaRepository.getVideos(
             languageCode: _currentLanguageCode,
+            limit: _HomeScreenState._pageSize,
             forceRefresh: forceRefresh,
           ),
     );
@@ -50,7 +52,7 @@ extension _HomeScreenDataLoading on _HomeScreenState {
           (forceRefresh) =>
               _repository.getFeaturedSliderSettings(forceRefresh: forceRefresh),
     );
-    _warmVideoCategoryImagesFromFuture(_videoCategoriesFuture);
+    _warmVideoImagesFromFuture(_latestVideosFuture);
 
     _loadBreakingTitles(useCache: true);
     _loadInitialNews(useCache: true);
@@ -78,18 +80,16 @@ extension _HomeScreenDataLoading on _HomeScreenState {
     future.then(_warmNewsImages).catchError((_) {});
   }
 
-  void _warmVideoCategoryImagesFromFuture(
-    Future<List<VideoCategoryModel>> future,
-  ) {
-    future.then(_warmVideoCategoryImages).catchError((_) {});
+  void _warmVideoImagesFromFuture(Future<List<VideoItemModel>> future) {
+    future.then(_warmVideoImages).catchError((_) {});
   }
 
   void _warmNewsImages(Iterable<NewsModel> items) {
     _warmImageUrls(items.map((item) => item.imageUrl));
   }
 
-  void _warmVideoCategoryImages(Iterable<VideoCategoryModel> items) {
-    _warmImageUrls(items.map((item) => item.coverImageUrl));
+  void _warmVideoImages(Iterable<VideoItemModel> items) {
+    _warmImageUrls(items.map((item) => item.thumbnailUrl));
   }
 
   void _warmImageUrls(Iterable<String?> urls) {

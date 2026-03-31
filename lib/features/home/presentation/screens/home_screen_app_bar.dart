@@ -77,9 +77,11 @@ extension _HomeScreenView on _HomeScreenState {
         newsFuture: _featuredFuture,
         settingsFuture: _sliderSettingsFuture,
       ),
-      _VideoCategoriesSection(
-        future: _videoCategoriesFuture,
-        title: l10n.videos,
+      _LatestVideosHorizontalSection(
+        future: _latestVideosFuture,
+        title:
+            _currentLanguageCode == 'en' ? 'Latest Videos' : 'آخر الفيديوهات',
+        viewAllText: l10n.viewAll,
       ),
       _LatestNewsSection(
         title: l10n.latestNews,

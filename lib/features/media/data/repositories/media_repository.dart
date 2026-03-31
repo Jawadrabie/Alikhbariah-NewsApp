@@ -39,10 +39,12 @@ class MediaRepository {
     String languageCode = 'ar',
     int? programId,
     int? categoryId,
+    int? limit,
   }) {
     final normalizedLanguage = languageCode.toLowerCase();
     final effectiveCategoryId = categoryId ?? programId;
-    final cacheKey = 'media_videos_${effectiveCategoryId ?? 'all'}';
+    final limitToken = limit == null ? 'all' : 'limit_$limit';
+    final cacheKey = 'media_videos_${effectiveCategoryId ?? 'all'}_$limitToken';
     final cached = _cache.readListSync(cacheKey);
     if (cached != null) {
       return cached.data
@@ -147,11 +149,13 @@ class MediaRepository {
     String languageCode = 'ar',
     int? programId,
     int? categoryId,
+    int? limit,
     bool forceRefresh = false,
   }) async {
     final effectiveCategoryId = categoryId ?? programId;
     final normalizedLanguage = languageCode.toLowerCase();
-    final cacheKey = 'media_videos_${effectiveCategoryId ?? 'all'}';
+    final limitToken = limit == null ? 'all' : 'limit_$limit';
+    final cacheKey = 'media_videos_${effectiveCategoryId ?? 'all'}_$limitToken';
     final cached = await _cache.readList(cacheKey);
     final hasFreshCache =
         !forceRefresh &&
@@ -178,9 +182,14 @@ class MediaRepository {
     }
 
     try {
-      final response = await query
+      dynamic sortedQuery = query
           .order('published_at', ascending: false)
           .order('created_at', ascending: false);
+      if (limit != null && limit > 0) {
+        sortedQuery = sortedQuery.limit(limit);
+      }
+
+      final response = await sortedQuery;
 
       final rows = _toMapList(response);
       await _cache.writeList(cacheKey, rows);

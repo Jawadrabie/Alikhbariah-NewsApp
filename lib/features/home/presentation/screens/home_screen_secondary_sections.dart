@@ -1,10 +1,71 @@
 part of 'home_screen.dart';
 
-class _VideoCategoriesSection extends StatelessWidget {
-  const _VideoCategoriesSection({required this.future, required this.title});
+String _homeExtractYoutubeId(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return '';
 
-  final Future<List<VideoCategoryModel>> future;
+  if (uri.host.contains('youtu.be')) {
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+  }
+
+  if (uri.queryParameters.containsKey('v')) {
+    return uri.queryParameters['v'] ?? '';
+  }
+
+  final segments = uri.pathSegments;
+  final index = segments.indexOf('embed');
+  if (index != -1 && segments.length > index + 1) {
+    return segments[index + 1];
+  }
+
+  return '';
+}
+
+String _homeThumbnailOfVideo(VideoItemModel item) {
+  if (item.thumbnailUrl != null && item.thumbnailUrl!.isNotEmpty) {
+    return item.thumbnailUrl!;
+  }
+
+  final id = _homeExtractYoutubeId(item.youtubeUrl);
+  if (id.isEmpty) {
+    return '';
+  }
+
+  return 'https://img.youtube.com/vi/$id/hqdefault.jpg';
+}
+
+String _homeVideoDateTimeLabel(DateTime value, String localeName) {
+  final now = DateTime.now();
+  final elapsed = now.isAfter(value) ? now.difference(value) : Duration.zero;
+  final isEnglish = localeName.toLowerCase().startsWith('en');
+
+  if (elapsed < const Duration(hours: 24)) {
+    if (elapsed.inMinutes < 1) {
+      return isEnglish ? 'Just now' : 'الآن';
+    }
+    if (elapsed.inHours < 1) {
+      final minutes = elapsed.inMinutes.clamp(1, 59);
+      return isEnglish ? '$minutes min ago' : 'منذ $minutes دقيقة';
+    }
+    final hours = elapsed.inHours.clamp(1, 23);
+    return isEnglish ? '$hours h ago' : 'منذ $hours ساعة';
+  }
+
+  final datePart = intl.DateFormat('d MMM', localeName).format(value);
+  final timePart = intl.DateFormat.Hm(localeName).format(value);
+  return '$datePart • $timePart';
+}
+
+class _LatestVideosHorizontalSection extends StatelessWidget {
+  const _LatestVideosHorizontalSection({
+    required this.future,
+    required this.title,
+    required this.viewAllText,
+  });
+
+  final Future<List<VideoItemModel>> future;
   final String title;
+  final String viewAllText;
 
   @override
   Widget build(BuildContext context) {
@@ -17,31 +78,45 @@ class _VideoCategoriesSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => const VideosScreen(showLatestVideos: true),
+                    ),
+                  );
+                },
+                child: Text(viewAllText),
               ),
             ],
           ),
         ),
-        FutureBuilder<List<VideoCategoryModel>>(
+        FutureBuilder<List<VideoItemModel>>(
           future: future,
           builder: (context, snapshot) {
-            final categories = snapshot.data ?? const <VideoCategoryModel>[];
+            final videos = snapshot.data ?? const <VideoItemModel>[];
 
-            if (snapshot.hasError && categories.isEmpty) {
+            if (snapshot.hasError && videos.isEmpty) {
               return _SectionMessage(
                 text: l10n.failedLoadVideos(snapshot.error.toString()),
               );
             }
 
             if (snapshot.connectionState == ConnectionState.waiting &&
-                categories.isEmpty) {
+                videos.isEmpty) {
               return SizedBox(
-                height: 120,
+                height: 170,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -49,28 +124,33 @@ class _VideoCategoriesSection extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
                   itemBuilder:
                       (context, index) => const ShimmerLoading(
-                        width: 180,
-                        height: 120,
+                        width: 300,
+                        height: 170,
                         borderRadius: 14,
                       ),
                 ),
               );
             }
 
-            if (categories.isEmpty) {
+            if (videos.isEmpty) {
               return _SectionMessage(text: l10n.noVideosNow);
             }
 
             return SizedBox(
-              height: 120,
+              height: 170,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: categories.length,
+                itemCount: videos.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder:
-                    (context, index) =>
-                        _VideoCategoryCard(category: categories[index]),
+                itemBuilder: (context, index) {
+                  return _LatestVideoCard(
+                    item: videos[index],
+                    allItems: videos,
+                    index: index,
+                    listTitle: title,
+                  );
+                },
               ),
             );
           },
@@ -80,26 +160,38 @@ class _VideoCategoriesSection extends StatelessWidget {
   }
 }
 
-class _VideoCategoryCard extends StatelessWidget {
-  const _VideoCategoryCard({required this.category});
+class _LatestVideoCard extends StatelessWidget {
+  const _LatestVideoCard({
+    required this.item,
+    required this.allItems,
+    required this.index,
+    required this.listTitle,
+  });
 
-  final VideoCategoryModel category;
+  final VideoItemModel item;
+  final List<VideoItemModel> allItems;
+  final int index;
+  final String listTitle;
 
   @override
   Widget build(BuildContext context) {
-    final hasCover =
-        category.coverImageUrl != null && category.coverImageUrl!.isNotEmpty;
+    final thumb = _homeThumbnailOfVideo(item);
+    final hasCover = thumb.isNotEmpty;
+    final localeName = Localizations.localeOf(context).toString();
+    final publishedOn = item.publishedAt ?? item.createdAt;
+    final direction = Directionality.of(context);
+    final dateTimeLabel = _homeVideoDateTimeLabel(publishedOn, localeName);
     final pixelRatio = MediaQuery.devicePixelRatioOf(context).clamp(1.0, 3.0);
-    final cacheWidth = (180 * pixelRatio).round();
-    final cacheHeight = (120 * pixelRatio).round();
+    final cacheWidth = (300 * pixelRatio).round();
+    final cacheHeight = (170 * pixelRatio).round();
     final placeholder = Container(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       alignment: Alignment.center,
-      child: const Icon(Icons.video_library_rounded, size: 30),
+      child: const Icon(Icons.play_circle_fill_rounded, size: 34),
     );
 
     return SizedBox(
-      width: 180,
+      width: 300,
       child: Card(
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
@@ -109,9 +201,10 @@ class _VideoCategoryCard extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder:
-                    (_) => VideosScreen(
-                      categoryId: category.id,
-                      categoryName: category.name,
+                    (_) => MediaEpisodePlayerScreen(
+                      episodes: allItems,
+                      initialIndex: index,
+                      listTitle: listTitle,
                     ),
               ),
             );
@@ -121,7 +214,7 @@ class _VideoCategoryCard extends StatelessWidget {
             children: [
               if (hasCover)
                 CachedNetworkImage(
-                  imageUrl: category.coverImageUrl!,
+                  imageUrl: thumb,
                   fit: BoxFit.cover,
                   fadeInDuration: Duration.zero,
                   fadeOutDuration: Duration.zero,
@@ -137,33 +230,87 @@ class _VideoCategoryCard extends StatelessWidget {
                 placeholder,
               Align(
                 alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
+                child: IgnorePointer(
+                  child: Container(
+                    height: 84,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.0),
+                          Colors.black.withValues(alpha: 0.72),
+                        ],
+                      ),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.05),
-                        Colors.black.withValues(alpha: 0.6),
+                ),
+              ),
+              PositionedDirectional(
+                start: 10,
+                end: 10,
+                bottom: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textDirection: direction,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 6,
+                            color: Color(0x90000000),
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.schedule_rounded,
+                          size: 13,
+                          color: Color(0xFFE5E7EB),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            dateTimeLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textDirection: direction,
+                            style: const TextStyle(
+                              color: Color(0xFFE5E7EB),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  child: Text(
-                    category.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textDirection: TextDirection.rtl,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                  ],
+                ),
+              ),
+              const Align(
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.play_circle_fill_rounded,
+                  color: Colors.white,
+                  size: 36,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 8,
+                      color: Color(0x80000000),
+                      offset: Offset(0, 1),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],

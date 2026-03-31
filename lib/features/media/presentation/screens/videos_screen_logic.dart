@@ -32,6 +32,18 @@ extension _VideosScreenLogic on _VideosScreenState {
               forceRefresh: forceRefresh,
             ),
       );
+    } else if (widget.showLatestVideos) {
+      _videosFuture = _seedFutureFromCache(
+        cachedValue: _repository.getCachedVideos(
+          languageCode: _currentLanguageCode,
+        ),
+        assign: (future) => _videosFuture = future,
+        load:
+            (forceRefresh) => _repository.getVideos(
+              languageCode: _currentLanguageCode,
+              forceRefresh: forceRefresh,
+            ),
+      );
     } else {
       _categoriesFuture = _seedFutureFromCache(
         cachedValue: _repository.getCachedVideoCategories(

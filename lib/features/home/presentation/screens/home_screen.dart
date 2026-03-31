@@ -1,19 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../../../../core/localization/generated/app_localizations.dart';
 import '../../../../core/localization/l10n_extensions.dart';
 import '../../../../core/utils/image_prefetch_guard.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
-import '../../../media/data/models/video_category_model.dart';
+import '../../../media/data/models/video_item_model.dart';
 import '../../../media/data/repositories/media_repository.dart';
+import '../../../media/presentation/screens/media_episode_player_screen.dart';
 import '../../../media/presentation/screens/videos_screen.dart';
 import '../../data/models/breaking_news_headline_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/featured_slider_settings_model.dart';
 import '../../data/models/news_model.dart';
 import '../../data/repositories/home_repository.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../widgets/breaking_ticker.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/featured_slider.dart';
@@ -44,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Future<List<CategoryModel>> _categoriesFuture;
   late Future<List<NewsModel>> _featuredFuture;
-  late Future<List<VideoCategoryModel>> _videoCategoriesFuture;
+  late Future<List<VideoItemModel>> _latestVideosFuture;
   late Future<FeaturedSliderSettingsModel> _sliderSettingsFuture;
 
   List<NewsModel> _latestNews = const [];
@@ -64,12 +67,24 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _categoriesFuture = Future.value(const <CategoryModel>[]);
     _featuredFuture = Future.value(const <NewsModel>[]);
-    _videoCategoriesFuture = Future.value(const <VideoCategoryModel>[]);
+    _latestVideosFuture = Future.value(const <VideoItemModel>[]);
     _sliderSettingsFuture = Future.value(
       const FeaturedSliderSettingsModel(autoplay: false, intervalSeconds: 0),
     );
     _loadData();
     _scrollController.addListener(_onScroll);
+    
+    // Initialize Deep Links listener
+    DeepLinkService.instance.initialize();
+  }
+
+  @override
+  void dispose() {
+    // We shouldn't strictly dispose it here if HomeScreen lives forever, 
+    // but good practice if it ever gets destroyed
+    DeepLinkService.instance.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -88,12 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_selectedCategoryId != null) {
       _onCategorySelected(_selectedCategoryId);
     }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   @override

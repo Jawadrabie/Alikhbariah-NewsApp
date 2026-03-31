@@ -18,12 +18,16 @@ class VideosScreen extends StatefulWidget {
     this.programName,
     this.categoryId,
     this.categoryName,
+    this.showLatestVideos = false,
+    this.latestVideosTitle,
   });
 
   final int? programId;
   final String? programName;
   final int? categoryId;
   final String? categoryName;
+  final bool showLatestVideos;
+  final String? latestVideosTitle;
 
   @override
   State<VideosScreen> createState() => _VideosScreenState();
@@ -36,7 +40,9 @@ class _VideosScreenState extends State<VideosScreen> {
   String _currentLanguageCode = 'ar';
 
   bool get _isEpisodesMode =>
-      widget.programId != null || widget.categoryId != null;
+      widget.programId != null ||
+      widget.categoryId != null ||
+      widget.showLatestVideos;
 
   @override
   void initState() {

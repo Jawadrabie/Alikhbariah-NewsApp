@@ -52,9 +52,10 @@ class _CustomDropdownFieldState<T> extends State<CustomDropdownField<T>> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final localeCode = Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
     final effectiveHint =
         widget.hintText ??
-        (Localizations.localeOf(context).languageCode == 'ar'
+      (localeCode == 'ar'
             ? 'اضغط للاختيار'
             : 'Tap to select');
     final outerPadding =
@@ -67,7 +68,6 @@ class _CustomDropdownFieldState<T> extends State<CustomDropdownField<T>> {
       child: Padding(
         padding: outerPadding,
         child: FormField<T>(
-          key: ValueKey<Object?>(_currentValue),
           initialValue: _currentValue,
           validator:
               widget.validator ??
@@ -121,6 +121,7 @@ class _CustomDropdownFieldState<T> extends State<CustomDropdownField<T>> {
                                     fieldState.value,
                                     widget.enableSearch,
                                   );
+                              if (!mounted) return;
                               if (selectedResult == null ||
                                   !selectedResult.didSelect) {
                                 return;
@@ -129,10 +130,10 @@ class _CustomDropdownFieldState<T> extends State<CustomDropdownField<T>> {
                               if (selected == fieldState.value) {
                                 return;
                               }
+                              fieldState.didChange(selected);
                               setState(() {
                                 _currentValue = selected;
                               });
-                              fieldState.didChange(selected);
                               widget.onChanged?.call(selected);
                             },
                     child: AnimatedContainer(
@@ -240,246 +241,249 @@ Future<_DropdownSelectionResult<T>?> _showSelectionDialog<T>(
 ) async {
   final searchController = TextEditingController();
   final listScrollController = ScrollController();
-  final locale = Localizations.localeOf(context).languageCode;
+  final locale = Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
+  // Keep search for larger datasets only; short lists are faster to scan directly.
+  final effectiveEnableSearch = enableSearch && items.length > 6;
   var query = '';
 
-  final chosen = await showDialog<_DropdownSelectionResult<T>>(
-    context: context,
-    builder: (dialogContext) {
-      final scheme = Theme.of(dialogContext).colorScheme;
+  try {
+    return await showDialog<_DropdownSelectionResult<T>>(
+      context: context,
+      builder: (dialogContext) {
+        final scheme = Theme.of(dialogContext).colorScheme;
 
-      return StatefulBuilder(
-        builder: (context, setLocalState) {
-          final filteredItems =
-              !enableSearch || query.isEmpty
-                  ? items
-                  : items.where((item) {
-                    final label = _dialogItemLabel(item.child).toLowerCase();
-                    return label.contains(query.toLowerCase());
-                  }).toList();
-          final screenHeight = MediaQuery.of(dialogContext).size.height;
-          final maxListHeight = screenHeight * 0.52;
-          final visibleCount =
-              filteredItems.isEmpty
-                  ? 1
-                  : filteredItems.length.clamp(1, 7).toInt();
-          final estimatedListHeight =
-              filteredItems.isEmpty
-                  ? 96.0
-                  : visibleCount * 58.0 + (visibleCount - 1) * 6.0 + 24.0;
-          final listHeight =
-              estimatedListHeight.clamp(96.0, maxListHeight).toDouble();
+        return StatefulBuilder(
+          builder: (dialogBodyContext, setLocalState) {
+            final filteredItems =
+                !effectiveEnableSearch || query.isEmpty
+                    ? items
+                    : items.where((item) {
+                      final label = _dialogItemLabel(item.child).toLowerCase();
+                      return label.contains(query.toLowerCase());
+                    }).toList();
+            final screenHeight = MediaQuery.of(dialogContext).size.height;
+            final maxListHeight = screenHeight * 0.52;
+            final visibleCount =
+                filteredItems.isEmpty
+                    ? 1
+                    : filteredItems.length.clamp(1, 7).toInt();
+            final estimatedListHeight =
+                filteredItems.isEmpty
+                    ? 96.0
+                    : visibleCount * 58.0 + (visibleCount - 1) * 6.0 + 24.0;
+            final listHeight =
+                estimatedListHeight.clamp(96.0, maxListHeight).toDouble();
 
-          return Dialog(
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 24,
-            ),
-            backgroundColor: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 520),
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: scheme.outlineVariant),
-                boxShadow: [
-                  BoxShadow(
-                    color: scheme.shadow.withValues(alpha: 0.22),
-                    blurRadius: 30,
-                    offset: const Offset(0, 16),
-                  ),
-                ],
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 16, 10, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.tune_rounded,
-                            color: scheme.primary,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: Theme.of(dialogContext).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: locale == 'ar' ? 'إغلاق' : 'Close',
-                          onPressed: () => Navigator.of(dialogContext).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
+              backgroundColor: Colors.transparent,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 520),
+                decoration: BoxDecoration(
+                  color: scheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: scheme.outlineVariant),
+                  boxShadow: [
+                    BoxShadow(
+                      color: scheme.shadow.withValues(alpha: 0.22),
+                      blurRadius: 30,
+                      offset: const Offset(0, 16),
                     ),
-                  ),
-                  if (enableSearch)
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
-                      child: TextField(
-                        controller: searchController,
-                        onChanged:
-                            (value) =>
-                                setLocalState(() => query = value.trim()),
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          hintText:
-                              locale == 'ar'
-                                  ? 'ابحث داخل الخيارات'
-                                  : 'Search options',
-                          filled: true,
-                          fillColor: scheme.surfaceContainerLowest,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(
-                              color: scheme.outlineVariant,
+                      padding: const EdgeInsets.fromLTRB(18, 16, 10, 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: scheme.primary.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(
-                              color: scheme.outlineVariant,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(
+                            child: Icon(
+                              Icons.tune_rounded,
                               color: scheme.primary,
-                              width: 1.4,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: Theme.of(dialogContext).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: locale == 'ar' ? 'إغلاق' : 'Close',
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (effectiveEnableSearch)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+                        child: TextField(
+                          controller: searchController,
+                          onChanged:
+                              (value) =>
+                                  setLocalState(() => query = value.trim()),
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            hintText:
+                                locale == 'ar'
+                                    ? 'ابحث داخل الخيارات'
+                                    : 'Search options',
+                            filled: true,
+                            fillColor: scheme.surfaceContainerLowest,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: scheme.outlineVariant,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: scheme.outlineVariant,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: scheme.primary,
+                                width: 1.4,
+                              ),
                             ),
                           ),
                         ),
                       ),
+                    Divider(
+                      height: 1,
+                      color: scheme.outlineVariant.withValues(alpha: 0.7),
                     ),
-                  Divider(
-                    height: 1,
-                    color: scheme.outlineVariant.withValues(alpha: 0.7),
-                  ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOutCubic,
-                    height: listHeight,
-                    child:
-                        filteredItems.isEmpty
-                            ? Center(
-                              child: Text(
-                                locale == 'ar'
-                                    ? 'لا توجد نتائج مطابقة'
-                                    : 'No matching results',
-                                style: Theme.of(
-                                  dialogContext,
-                                ).textTheme.bodyLarge?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w600,
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOutCubic,
+                      height: listHeight,
+                      child:
+                          filteredItems.isEmpty
+                              ? Center(
+                                child: Text(
+                                  locale == 'ar'
+                                      ? 'لا توجد نتائج مطابقة'
+                                      : 'No matching results',
+                                  style: Theme.of(
+                                    dialogContext,
+                                  ).textTheme.bodyLarge?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            )
-                            : Scrollbar(
-                              controller: listScrollController,
-                              thumbVisibility: true,
-                              child: ListView.separated(
+                              )
+                              : Scrollbar(
                                 controller: listScrollController,
-                                padding: const EdgeInsets.all(12),
-                                itemCount: filteredItems.length,
-                                separatorBuilder:
-                                    (_, __) => const SizedBox(height: 6),
-                                itemBuilder: (context, index) {
-                                  final item = filteredItems[index];
-                                  final isSelected =
-                                      item.value == selectedValue;
+                                thumbVisibility: true,
+                                child: ListView.separated(
+                                  controller: listScrollController,
+                                  padding: const EdgeInsets.all(12),
+                                  itemCount: filteredItems.length,
+                                  separatorBuilder:
+                                      (_, __) => const SizedBox(height: 6),
+                                  itemBuilder: (dialogBodyContext, index) {
+                                    final item = filteredItems[index];
+                                    final isSelected =
+                                        item.value == selectedValue;
 
-                                  return Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(16),
-                                      onTap: () {
-                                        Navigator.of(dialogContext).pop(
-                                          _DropdownSelectionResult<T>(
-                                            didSelect: true,
-                                            value: item.value,
+                                    return Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(16),
+                                        onTap: () {
+                                          Navigator.of(dialogContext).pop(
+                                            _DropdownSelectionResult<T>(
+                                              didSelect: true,
+                                              value: item.value,
+                                            ),
+                                          );
+                                        },
+                                        child: Ink(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 14,
                                           ),
-                                        );
-                                      },
-                                      child: Ink(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 14,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              isSelected
-                                                  ? scheme.primary.withValues(
-                                                    alpha: 0.12,
-                                                  )
-                                                  : scheme
-                                                      .surfaceContainerLowest,
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          border: Border.all(
+                                          decoration: BoxDecoration(
                                             color:
                                                 isSelected
                                                     ? scheme.primary.withValues(
-                                                      alpha: 0.45,
+                                                      alpha: 0.12,
                                                     )
-                                                    : scheme.outlineVariant
-                                                        .withValues(
-                                                          alpha: 0.65,
-                                                        ),
+                                                    : scheme
+                                                        .surfaceContainerLowest,
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            border: Border.all(
+                                              color:
+                                                  isSelected
+                                                      ? scheme.primary.withValues(
+                                                        alpha: 0.45,
+                                                      )
+                                                      : scheme.outlineVariant
+                                                          .withValues(
+                                                            alpha: 0.65,
+                                                          ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(child: item.child),
+                                              const SizedBox(width: 10),
+                                              AnimatedOpacity(
+                                                opacity: isSelected ? 1 : 0,
+                                                duration: const Duration(
+                                                  milliseconds: 120,
+                                                ),
+                                                child: Icon(
+                                                  Icons.check_circle_rounded,
+                                                  color: scheme.primary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(child: item.child),
-                                            const SizedBox(width: 10),
-                                            AnimatedOpacity(
-                                              opacity: isSelected ? 1 : 0,
-                                              duration: const Duration(
-                                                milliseconds: 120,
-                                              ),
-                                              child: Icon(
-                                                Icons.check_circle_rounded,
-                                                color: scheme.primary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
-    },
-  );
-
-  searchController.dispose();
-  listScrollController.dispose();
-  return chosen;
+            );
+          },
+        );
+      },
+    );
+  } finally {
+    searchController.dispose();
+    listScrollController.dispose();
+  }
 }
 
 String _dialogItemLabel(Widget? child) {

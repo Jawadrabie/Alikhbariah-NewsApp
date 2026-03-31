@@ -5,10 +5,20 @@ class AppTheme {
   static const Color background = Color(0xFFF2F5F7);
   static const Color textPrimary = Color(0xFF1F2937);
 
+  static Color _onColorFor(Color backgroundColor) {
+    return ThemeData.estimateBrightnessForColor(backgroundColor) ==
+            Brightness.dark
+        ? Colors.white
+        : Colors.black;
+  }
+
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
+    final primaryContainer = Color.lerp(primary, Colors.white, 0.85)!;
     final scheme = base.colorScheme.copyWith(
       primary: primary,
+      primaryContainer: primaryContainer,
+      onPrimaryContainer: _onColorFor(primaryContainer),
       secondary: primary,
       tertiary: const Color(0xFF0E7490),
       onTertiary: Colors.white,
@@ -44,8 +54,11 @@ class AppTheme {
 
   static ThemeData dark() {
     final base = ThemeData.dark(useMaterial3: true);
+    final primaryContainer = Color.lerp(primary, Colors.black, 0.55)!;
     final scheme = base.colorScheme.copyWith(
       primary: primary,
+      primaryContainer: primaryContainer,
+      onPrimaryContainer: _onColorFor(primaryContainer),
       secondary: primary,
       tertiary: const Color(0xFF67E8F9),
       onTertiary: const Color(0xFF083344),

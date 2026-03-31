@@ -52,6 +52,7 @@ class DashboardTheme {
       tertiaryContainer: const Color(0xFF164E63),
       onTertiaryContainer: const Color(0xFFBAE6FD),
     );
+    
     return base.copyWith(
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,

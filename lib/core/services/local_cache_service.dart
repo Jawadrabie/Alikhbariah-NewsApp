@@ -12,7 +12,7 @@ class LocalCacheService {
   static final LocalCacheService instance = LocalCacheService._();
   static const String _boxName = 'app_cache_v1';
   Box<String>? _box;
-
+ 
   final Map<String, ({DateTime cachedAt, Object data})> _memoryCache =
       <String, ({DateTime cachedAt, Object data})>{};
 

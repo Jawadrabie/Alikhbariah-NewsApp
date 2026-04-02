@@ -8,18 +8,40 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: Row(
-        children: [
-          const Sidebar(),
-          Expanded(
-            child: Container(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 900;
+
+        if (isMobile) {
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: scheme.surface,
+              surfaceTintColor: Colors.transparent,
+            ),
+            drawer: const Drawer(
+              child: SafeArea(child: Sidebar()),
+            ),
+            body: Container(
               color: scheme.surfaceContainerLowest,
               child: child,
             ),
+          );
+        }
+
+        return Scaffold(
+          body: Row(
+            children: [
+              const Sidebar(),
+              Expanded(
+                child: Container(
+                  color: scheme.surfaceContainerLowest,
+                  child: child,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

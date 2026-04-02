@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
+import 'package:newsappjs/dashboard/core/dashboard_text_validators.dart';
 import 'package:newsappjs/dashboard/models/location.dart';
 import 'package:newsappjs/dashboard/services/location_service.dart';
 import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
@@ -35,6 +36,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
     final nameController = TextEditingController(text: current?.name ?? '');
     final nameEnController = TextEditingController(text: current?.nameEn ?? '');
     bool isSaving = false;
+    final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
       context: context,
@@ -45,20 +47,41 @@ class _LocationsScreenState extends State<LocationsScreen> {
               title: Text(
                 current == null ? t('add_location') : t('edit_location'),
               ),
-              content: SizedBox(
-                width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(
-                      controller: nameController,
-                      labelText: t('name'),
-                    ),
-                    CustomTextField(
-                      controller: nameEnController,
-                      labelText: t('name_en'),
-                    ),
-                  ],
+              content: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: nameController,
+                        labelText: t('name'),
+                        validator:
+                            (value) => DashboardTextValidators.validateArabic(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'arabic_field_rejects_english',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: nameEnController,
+                        labelText: t('name_en'),
+                        validator:
+                            (value) => DashboardTextValidators.validateEnglish(
+                              value: value,
+                              required: false,
+                              invalidLanguageMessage: t(
+                                'english_field_rejects_arabic',
+                              ),
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -72,6 +95,10 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       isSaving
                           ? null
                           : () async {
+                            if (!(formKey.currentState?.validate() ?? false)) {
+                              return;
+                            }
+
                             setLocalState(() => isSaving = true);
                             final item = Location(
                               id: current?.id ?? '',

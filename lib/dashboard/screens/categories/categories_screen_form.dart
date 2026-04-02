@@ -20,6 +20,7 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
     String? coverImageUrl = current?.coverImageUrl;
     String? coverUploadError;
     bool uploadingCover = false;
+    final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
       context: context,
@@ -30,19 +31,40 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
             builder: (context, setLocalState) {
               final scheme = Theme.of(context).colorScheme;
 
-              return SizedBox(
-                width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(
-                      controller: nameController,
-                      labelText: t('name_ar'),
-                    ),
-                    CustomTextField(
-                      controller: nameEnController,
-                      labelText: t('name_en'),
-                    ),
+              return Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: nameController,
+                        labelText: t('name_ar'),
+                        validator:
+                            (value) => DashboardTextValidators.validateArabic(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'arabic_field_rejects_english',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: nameEnController,
+                        labelText: t('name_en'),
+                        validator:
+                            (value) => DashboardTextValidators.validateEnglish(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'english_field_rejects_arabic',
+                              ),
+                            ),
+                      ),
                     CustomDropdownField<String>(
                       value: selectedType,
                       labelText: t('category_type'),
@@ -204,14 +226,15 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
                           ),
                         ),
                     ],
-                    const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: orderController,
-                      keyboardType: TextInputType.number,
-                      labelText: t('order_index'),
-                      showLabelAboveField: true,
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: orderController,
+                        keyboardType: TextInputType.number,
+                        labelText: t('order_index'),
+                        showLabelAboveField: true,
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -223,6 +246,10 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
             ),
             FilledButton(
               onPressed: () async {
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
                 if ((selectedType == 'video' || selectedType == 'program') &&
                     (coverImageUrl == null || coverImageUrl!.trim().isEmpty)) {
                   await DashboardDialogs.showError(

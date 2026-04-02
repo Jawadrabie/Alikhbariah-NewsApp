@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
+import 'package:newsappjs/dashboard/core/dashboard_text_validators.dart';
 import 'package:newsappjs/dashboard/models/live_stream.dart';
 import 'package:newsappjs/dashboard/services/live_stream_service.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
@@ -16,6 +17,7 @@ class LiveStreamScreen extends StatefulWidget {
 
 class _LiveStreamScreenState extends State<LiveStreamScreen> {
   final LiveStreamService _service = LiveStreamService();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _urlController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _titleEnController = TextEditingController();
@@ -52,6 +54,10 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   Future<void> _save() async {
     String t(String key) => DashboardI18n.t(context, key);
     if (_isSaving) return;
+
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -116,69 +122,93 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
       ],
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.live_tv, color: scheme.error, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  t('live_stream'),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.live_tv, color: scheme.error, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    t('live_stream'),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              CustomTextField(
+                controller: _titleController,
+                labelText: t('broadcast_title_ar'),
+                prefixIcon: const Icon(Icons.title),
+                validator: (value) => DashboardTextValidators.validateArabic(
+                  value: value,
+                  required: false,
+                  invalidLanguageMessage: t('arabic_field_rejects_english'),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            CustomTextField(
-              controller: _titleController,
-              labelText: t('broadcast_title_ar'),
-              prefixIcon: const Icon(Icons.title),
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _titleEnController,
-              labelText: t('broadcast_title_en'),
-              prefixIcon: const Icon(Icons.title),
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _urlController,
-              labelText: t('youtube_url'),
-              prefixIcon: const Icon(Icons.link),
-              hintText: 'https://www.youtube.com/watch?v=...',
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _fallbackController,
-              minLines: 3,
-              maxLines: null,
-              labelText: t('fallback_message_ar'),
-              prefixIcon: const Icon(Icons.message_outlined),
-              alignLabelWithHint: true,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _fallbackEnController,
-              minLines: 3,
-              maxLines: null,
-              labelText: t('fallback_message_en'),
-              prefixIcon: const Icon(Icons.message_outlined),
-              alignLabelWithHint: true,
-            ),
-            const SizedBox(height: 24),
-            CustomSwitchTile(
-              title: t('active'),
-              subtitle:
-                  _isActive
-                      ? 'البث المباشر مفعل حالياً ويظهر للمستخدمين'
-                      : 'البث المباشر متوقف حالياً',
-              value: _isActive,
-              onChanged: (value) => setState(() => _isActive = value),
-            ),
-          ],
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _titleEnController,
+                labelText: t('broadcast_title_en'),
+                prefixIcon: const Icon(Icons.title),
+                validator: (value) => DashboardTextValidators.validateEnglish(
+                  value: value,
+                  required: false,
+                  invalidLanguageMessage: t('english_field_rejects_arabic'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _urlController,
+                labelText: t('youtube_url'),
+                prefixIcon: const Icon(Icons.link),
+                hintText: 'https://www.youtube.com/watch?v=...',
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _fallbackController,
+                minLines: 3,
+                maxLines: null,
+                labelText: t('fallback_message_ar'),
+                prefixIcon: const Icon(Icons.message_outlined),
+                alignLabelWithHint: true,
+                validator: (value) => DashboardTextValidators.validateArabic(
+                  value: value,
+                  required: false,
+                  invalidLanguageMessage: t('arabic_field_rejects_english'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                controller: _fallbackEnController,
+                minLines: 3,
+                maxLines: null,
+                labelText: t('fallback_message_en'),
+                prefixIcon: const Icon(Icons.message_outlined),
+                alignLabelWithHint: true,
+                validator: (value) => DashboardTextValidators.validateEnglish(
+                  value: value,
+                  required: false,
+                  invalidLanguageMessage: t('english_field_rejects_arabic'),
+                ),
+              ),
+              const SizedBox(height: 24),
+              CustomSwitchTile(
+                title: t('active'),
+                subtitle:
+                    _isActive
+                        ? 'البث المباشر مفعل حالياً ويظهر للمستخدمين'
+                        : 'البث المباشر متوقف حالياً',
+                value: _isActive,
+                onChanged: (value) => setState(() => _isActive = value),
+              ),
+            ],
+          ),
         ),
       ),
     );

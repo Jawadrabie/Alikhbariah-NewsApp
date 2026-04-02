@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
@@ -39,14 +40,34 @@ Future<void> main() async {
 class DashboardApp extends StatelessWidget {
   const DashboardApp({super.key});
 
+  ThemeData _applyCairoIfNeeded(ThemeData base, bool enabled) {
+    if (!enabled) {
+      return base;
+    }
+
+    final textTheme = GoogleFonts.cairoTextTheme(base.textTheme);
+    final primaryTextTheme = GoogleFonts.cairoTextTheme(base.primaryTextTheme);
+
+    return base.copyWith(
+      textTheme: textTheme,
+      primaryTextTheme: primaryTextTheme,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: DashboardPreferencesService.instance,
       builder: (context, _) {
+        final locale = DashboardPreferencesService.instance.locale;
+        final isArabic = locale.languageCode.toLowerCase() == 'ar';
+        final lightTheme = _applyCairoIfNeeded(DashboardTheme.light(), isArabic);
+        final darkTheme = _applyCairoIfNeeded(DashboardTheme.dark(), isArabic);
+
         return MaterialApp.router(
           title: 'Alikhbariah Dashboard',
-          locale: DashboardPreferencesService.instance.locale,
+          debugShowCheckedModeBanner: false,
+          locale: locale,
           supportedLocales: const [Locale('ar'), Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
@@ -54,8 +75,8 @@ class DashboardApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           themeMode: DashboardPreferencesService.instance.themeMode,
-          theme: DashboardTheme.light(),
-          darkTheme: DashboardTheme.dark(),
+          theme: lightTheme,
+          darkTheme: darkTheme,
           routerConfig: DashboardRouter.router,
         );
       },

@@ -76,6 +76,7 @@ extension _VideosScreenVideoForm on _VideosScreenState {
       text: initialOrderIndex.toString(),
     );
     bool isHidden = current?.isHidden ?? false;
+    final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
       context: context,
@@ -88,19 +89,40 @@ extension _VideosScreenVideoForm on _VideosScreenState {
           ),
           content: StatefulBuilder(
             builder: (context, setLocalState) {
-              return SizedBox(
-                width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(
-                      controller: titleController,
-                      labelText: t('title_ar'),
-                    ),
-                    CustomTextField(
-                      controller: titleEnController,
-                      labelText: t('title_en'),
-                    ),
+              return Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: titleController,
+                        labelText: t('title_ar'),
+                        validator:
+                            (value) => DashboardTextValidators.validateArabic(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'arabic_field_rejects_english',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: titleEnController,
+                        labelText: t('title_en'),
+                        validator:
+                            (value) => DashboardTextValidators.validateEnglish(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'english_field_rejects_arabic',
+                              ),
+                            ),
+                      ),
                     CustomTextField(
                       controller: urlController,
                       labelText: t('youtube_url'),
@@ -184,7 +206,8 @@ extension _VideosScreenVideoForm on _VideosScreenState {
                           (value) => setLocalState(() => isHidden = value),
                       title: t('hidden'),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -196,6 +219,10 @@ extension _VideosScreenVideoForm on _VideosScreenState {
             ),
             FilledButton(
               onPressed: () async {
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
                 if (!lockCategorySelection &&
                     (selectedCategoryId == null ||
                         selectedCategoryId!.isEmpty)) {

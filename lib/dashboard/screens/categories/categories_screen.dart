@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
+import 'package:newsappjs/dashboard/core/dashboard_text_validators.dart';
 import 'package:newsappjs/dashboard/models/category.dart';
 import 'package:newsappjs/dashboard/services/category_service.dart';
 import 'package:newsappjs/dashboard/services/storage_service.dart';

@@ -1,6 +1,25 @@
 part of 'news_details_screen.dart';
 
 extension _NewsDetailsScreenView on _NewsDetailsScreenState {
+  String _formatViewCount(BuildContext context, int count) {
+    final localeName = Localizations.localeOf(context).toString();
+    return intl.NumberFormat.compact(locale: localeName).format(count);
+  }
+
+  /// حساب الفرق بالأيام بين موعد الخبر والآن
+  int _daysDifference(DateTime publishedAt) {
+    final now = DateTime.now();
+    final difference = now.difference(publishedAt);
+    return difference.inDays;
+  }
+
+  /// تحديد ما إذا كان يتم عرض التاريخ النسبي أم التاريخ الكامل
+  /// true = عرض الوقت النسبي فقط (منذ يومين، منذ يوم، إلخ)
+  /// false = عرض التاريخ الكامل فقط
+  bool _shouldShowRelativeTime(DateTime publishedAt) {
+    return _daysDifference(publishedAt) <= 2;
+  }
+
   Widget _buildScaffold(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -16,6 +35,7 @@ extension _NewsDetailsScreenView on _NewsDetailsScreenState {
     ).format(publishedAt);
     final relativeDate = formatRelativeTime(context, publishedAt);
     final governorate = _governorateName;
+    final compactViews = _formatViewCount(context, _viewCount);
 
     return Scaffold(
       body: CustomScrollView(
@@ -138,18 +158,35 @@ extension _NewsDetailsScreenView on _NewsDetailsScreenState {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.calendar_today_rounded,
-                            size: 16,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            formattedDate,
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                          if (_shouldShowRelativeTime(publishedAt)) ...[
+                            // عرض الوقت النسبي فقط (اقل من او يساوي يومين)
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 16,
                               color: scheme.onSurfaceVariant,
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              relativeDate,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ] else ...[
+                            // عرض التاريخ الكامل فقط (اكثر من يومين)
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 16,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              formattedDate,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: CircleAvatar(
@@ -158,13 +195,13 @@ extension _NewsDetailsScreenView on _NewsDetailsScreenState {
                             ),
                           ),
                           Icon(
-                            Icons.access_time_rounded,
+                            Icons.visibility_outlined,
                             size: 16,
                             color: scheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            relativeDate,
+                            compactViews,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),

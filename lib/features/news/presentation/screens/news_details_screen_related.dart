@@ -56,12 +56,18 @@ class _RelatedNewsTile extends StatelessWidget {
     return '${plain.substring(0, 95)}...';
   }
 
+  String _formatViewCount(BuildContext context, int count) {
+    final localeName = Localizations.localeOf(context).toString();
+    return intl.NumberFormat.compact(locale: localeName).format(count);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final direction = Directionality.of(context);
     final preview = _contentPreview(news.content);
     final relativeTime = formatRelativeTime(context, news.createdAt);
+    final compactViews = _formatViewCount(context, news.viewCount);
     final location = news.locationName?.trim();
     final isRtl = direction == TextDirection.rtl;
 
@@ -126,6 +132,10 @@ class _RelatedNewsTile extends StatelessWidget {
                           _RelatedMetaLabel(
                             icon: Icons.schedule_rounded,
                             text: relativeTime,
+                          ),
+                          _RelatedMetaLabel(
+                            icon: Icons.visibility_outlined,
+                            text: compactViews,
                           ),
                           if (location != null && location.isNotEmpty)
                             _RelatedMetaLabel(

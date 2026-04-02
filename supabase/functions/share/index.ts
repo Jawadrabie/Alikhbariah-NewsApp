@@ -1,4 +1,8 @@
-Deno.serve(async (req) => {
+declare const Deno: {
+  serve: (handler: (req: Request) => Response | Promise<Response>) => void;
+};
+
+Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const id = url.searchParams.get('id');
 
@@ -9,6 +13,7 @@ Deno.serve(async (req) => {
   // The custom URI scheme to launch our app.
   // It matches what we defined in AndroidManifest.xml and Info.plist
   const appSchemeUrl = `alikhbariah://news/${id}`;
+  const androidIntentUrl = `intent://news/${id}#Intent;scheme=alikhbariah;package=com.alikhbariah.newsapp;end`;
 
   // We return a simple HTML page that automatically redirects the browser 
   // to the app's custom scheme when opened. This ensures the link is 
@@ -53,12 +58,36 @@ Deno.serve(async (req) => {
           font-weight: bold;
           font-size: 16px;
         }
+        .btn.secondary {
+          background-color: #0f766e;
+          margin-top: 10px;
+        }
       </style>
       <script>
-        // Try to open the app automatically
-        setTimeout(() => {
-          window.location.href = "${appSchemeUrl}";
-        }, 500);
+        const appSchemeUrl = "${appSchemeUrl}";
+        const androidIntentUrl = "${androidIntentUrl}";
+
+        function isAndroid() {
+          return /Android/i.test(navigator.userAgent || '');
+        }
+
+        function tryOpenApp() {
+          // Android browsers are usually more reliable with intent://
+          if (isAndroid()) {
+            window.location.href = androidIntentUrl;
+            setTimeout(() => {
+              window.location.href = appSchemeUrl;
+            }, 700);
+            return;
+          }
+
+          // iOS and other platforms
+          window.location.href = appSchemeUrl;
+        }
+
+        window.addEventListener('load', () => {
+          setTimeout(tryOpenApp, 250);
+        });
       </script>
     </head>
     <body>
@@ -66,14 +95,17 @@ Deno.serve(async (req) => {
         <h1>جاري تحويلك إلى التطبيق...</h1>
         <p>إذا لم يفتح التطبيق تلقائياً، يرجى الضغط على الزر أدناه</p>
         <a href="${appSchemeUrl}" class="btn">فتح في التطبيق</a>
+        <a href="${androidIntentUrl}" class="btn secondary">فتح مباشر لأندرويد</a>
       </div>
     </body>
     </html>
   `;
 
   return new Response(html, {
+    status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
     },
   });
 });

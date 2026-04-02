@@ -108,12 +108,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    l10n.appTitle,
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-                  ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(l10n.dateLabel(date)),
                   Text(l10n.timeLabel(time)),
                 ],
@@ -123,21 +118,6 @@ class _HomeDrawerState extends State<HomeDrawer> {
               leading: const Icon(Icons.live_tv_rounded),
               title: Text(l10n.liveStream),
               onTap: () => _openScreen(const LiveStreamScreen()),
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_none_rounded),
-              title: Text(l10n.notifications),
-              onTap: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.notificationsComingSoon)),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bookmark_outline_rounded),
-              title: Text(l10n.savedNews),
-              onTap: () => _openScreen(const SavedNewsScreen()),
             ),
             ListTile(
               leading: const Icon(Icons.video_library_outlined),
@@ -150,9 +130,19 @@ class _HomeDrawerState extends State<HomeDrawer> {
               onTap: () => _openScreen(const ProgramsScreen()),
             ),
             ListTile(
-              leading: const Icon(Icons.newspaper_rounded),
-              title: Text(l10n.latestNews),
-              onTap: () => Navigator.of(context).pop(),
+              leading: const Icon(Icons.bookmark_outline_rounded),
+              title: Text(l10n.savedNews),
+              onTap: () => _openScreen(const SavedNewsScreen()),
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_none_rounded),
+              title: Text(l10n.notifications),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.notificationsComingSoon)),
+                );
+              },
             ),
             const Divider(height: 28),
             ListTile(

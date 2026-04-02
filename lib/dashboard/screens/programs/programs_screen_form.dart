@@ -15,6 +15,7 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
     String? coverImageUrl = current?.coverImageUrl;
     String? coverUploadError;
     bool uploadingCover = false;
+    final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
       context: context,
@@ -25,19 +26,40 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
             builder: (context, setLocalState) {
               final scheme = Theme.of(context).colorScheme;
 
-              return SizedBox(
-                width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(
-                      controller: nameController,
-                      labelText: t('name_ar'),
-                    ),
-                    CustomTextField(
-                      controller: nameEnController,
-                      labelText: t('name_en'),
-                    ),
+              return Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: nameController,
+                        labelText: t('name_ar'),
+                        validator:
+                            (value) => DashboardTextValidators.validateArabic(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'arabic_field_rejects_english',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: nameEnController,
+                        labelText: t('name_en'),
+                        validator:
+                            (value) => DashboardTextValidators.validateEnglish(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'english_field_rejects_arabic',
+                              ),
+                            ),
+                      ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -168,7 +190,8 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                       labelText: t('order_index'),
                       showLabelAboveField: true,
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -180,6 +203,10 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
             ),
             FilledButton(
               onPressed: () async {
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
                 if (coverImageUrl == null || coverImageUrl!.trim().isEmpty) {
                   await DashboardDialogs.showError(
                     dialogContext,
@@ -238,6 +265,7 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
     final orderController = TextEditingController(text: '1');
     String selectedProgramId = programs.first.id;
     bool isHidden = false;
+    final formKey = GlobalKey<FormState>();
 
     Future<void> updateOrder(StateSetter setLocalState) async {
       final videos = await _videosService.getVideos(
@@ -256,19 +284,39 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
           title: Text(t('add_episode')),
           content: StatefulBuilder(
             builder: (context, setLocalState) {
-              return SizedBox(
-                width: 420,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomTextField(
-                      controller: titleController,
-                      labelText: t('title_ar'),
-                    ),
-                    CustomTextField(
-                      controller: titleEnController,
-                      labelText: t('title_en'),
-                    ),
+              return Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: titleController,
+                        labelText: t('title_ar'),
+                        validator:
+                            (value) => DashboardTextValidators.validateArabic(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'arabic_field_rejects_english',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: titleEnController,
+                        labelText: t('title_en'),
+                        validator:
+                            (value) => DashboardTextValidators.validateEnglish(
+                              value: value,
+                              required: false,
+                              invalidLanguageMessage: t(
+                                'english_field_rejects_arabic',
+                              ),
+                            ),
+                      ),
                     CustomTextField(
                       controller: urlController,
                       labelText: t('youtube_url'),
@@ -303,7 +351,8 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                           (value) => setLocalState(() => isHidden = value),
                       title: t('hidden'),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -315,6 +364,10 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
             ),
             FilledButton(
               onPressed: () async {
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
                 if (titleController.text.trim().isEmpty ||
                     urlController.text.trim().isEmpty) {
                   await DashboardDialogs.showError(

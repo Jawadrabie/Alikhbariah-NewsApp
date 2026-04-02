@@ -339,6 +339,28 @@ class _MainNewsScreenState extends State<MainNewsScreen> {
     }
   }
 
+  List<News> _normalizeNewsList(dynamic source) {
+    if (source is! List) {
+      return const <News>[];
+    }
+
+    return source
+        .map((item) {
+          if (item is News) {
+            return item;
+          }
+          if (item is Map<String, dynamic>) {
+            return News.fromJson(item);
+          }
+          if (item is Map) {
+            return News.fromJson(Map<String, dynamic>.from(item));
+          }
+          return null;
+        })
+        .whereType<News>()
+        .toList();
+  }
+
   Widget _buildStatBadge(
     BuildContext context, {
     required IconData icon,
@@ -1095,7 +1117,7 @@ class _MainNewsScreenState extends State<MainNewsScreen> {
             return Center(child: Text('${t('error')}: ${snapshot.error}'));
           }
 
-          final newsList = snapshot.data?[0] as List<News>? ?? [];
+          final newsList = _normalizeNewsList(snapshot.data?[0]);
           final categories =
               snapshot.data?[1] as List<Category>? ?? const <Category>[];
           final locations =

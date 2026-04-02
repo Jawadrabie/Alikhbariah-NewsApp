@@ -19,6 +19,7 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   Future<void> _login() async {
     String t(String key) => DashboardI18n.t(context, key);
@@ -110,8 +111,18 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                   CustomTextField(
                     controller: _passwordController,
                     labelText: t('password'),
-                    obscureText: true,
+                    obscureText: _obscurePassword,
                     prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return t('please_enter_password');

@@ -95,6 +95,10 @@ const Map<String, String> _dashboardTranslationsAr = {
   'please_enter_title_en': 'يرجى إدخال العنوان بالإنكليزية',
   'please_enter_content': 'يرجى إدخال المحتوى',
   'please_enter_content_en': 'يرجى إدخال المحتوى بالإنكليزية',
+    'arabic_field_rejects_english':
+      'الحقل العربي يجب ألا يحتوي على أحرف إنكليزية',
+    'english_field_rejects_arabic':
+      'الحقل الإنكليزي يجب ألا يحتوي على أحرف عربية',
   'image_source': 'مصدر الصورة',
   'direct_url': 'رابط مباشر',
   'upload_from_device': 'رفع من الجهاز',

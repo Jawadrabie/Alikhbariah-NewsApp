@@ -8,32 +8,55 @@ extension _VideosScreenCategoryForm on _VideosScreenState {
     final orderController = TextEditingController(
       text: (current?.orderIndex ?? 0).toString(),
     );
+    final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(current == null ? t('add_category') : t('edit_category')),
-          content: SizedBox(
-            width: 420,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomTextField(
-                  controller: nameController,
-                  labelText: t('name_ar'),
-                ),
-                CustomTextField(
-                  controller: nameEnController,
-                  labelText: t('name_en'),
-                ),
-                CustomTextField(
-                  controller: orderController,
-                  keyboardType: TextInputType.number,
-                  labelText: t('order_index'),
-                  showLabelAboveField: true,
-                ),
-              ],
+          content: Form(
+            key: formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: SizedBox(
+              width: 420,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomTextField(
+                    controller: nameController,
+                    labelText: t('name_ar'),
+                    validator:
+                        (value) => DashboardTextValidators.validateArabic(
+                          value: value,
+                          required: true,
+                          requiredMessage: t('please_fill_all_fields'),
+                          invalidLanguageMessage: t(
+                            'arabic_field_rejects_english',
+                          ),
+                        ),
+                  ),
+                  CustomTextField(
+                    controller: nameEnController,
+                    labelText: t('name_en'),
+                    validator:
+                        (value) => DashboardTextValidators.validateEnglish(
+                          value: value,
+                          required: true,
+                          requiredMessage: t('please_fill_all_fields'),
+                          invalidLanguageMessage: t(
+                            'english_field_rejects_arabic',
+                          ),
+                        ),
+                  ),
+                  CustomTextField(
+                    controller: orderController,
+                    keyboardType: TextInputType.number,
+                    labelText: t('order_index'),
+                    showLabelAboveField: true,
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -43,6 +66,10 @@ extension _VideosScreenCategoryForm on _VideosScreenState {
             ),
             FilledButton(
               onPressed: () async {
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
                 final item = Category(
                   id: current?.id ?? '',
                   name: nameController.text.trim(),

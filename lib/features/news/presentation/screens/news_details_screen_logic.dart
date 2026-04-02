@@ -3,6 +3,24 @@
 part of 'news_details_screen.dart';
 
 extension _NewsDetailsScreenLogic on _NewsDetailsScreenState {
+  Future<void> _registerNewsView() async {
+    if (_didRegisterView) return;
+    _didRegisterView = true;
+
+    if (mounted) {
+      setState(() => _viewCount += 1);
+    }
+
+    try {
+      await _homeRepository.incrementNewsViewCount(widget.news.id);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _viewCount = _viewCount > 0 ? _viewCount - 1 : 0;
+      });
+    }
+  }
+
   Future<void> _loadBookmarkState() async {
     final bookmarked = await _bookmarkService.isBookmarked(widget.news.id);
     if (!mounted) return;
@@ -165,12 +183,17 @@ extension _NewsDetailsScreenLogic on _NewsDetailsScreenState {
 
   Future<void> _shareArticle() async {
     final title = widget.news.title;
-    // We construct a clickable HTTPS URL pointing to the Supabase Edge Function
-    final url = '${AppEnv.supabaseUrl}/functions/v1/share?id=${widget.news.id}';
     final content = _shareableContent(widget.news.content);
+    final locale = Localizations.localeOf(context).toString();
+    final publishedAt = intl
+      .DateFormat('yyyy-MM-dd HH:mm', locale)
+      .format(widget.news.createdAt.toLocal());
+    final publishedLine = _currentLanguageCode == 'en'
+      ? 'Published at: $publishedAt'
+      : 'تاريخ النشر: $publishedAt';
     final text = content.isEmpty
-        ? '$title\n\n$url'
-        : '$title\n\n$content\n\n$url';
+      ? '$title\n\n$publishedLine'
+      : '$title\n\n$content\n\n$publishedLine';
     await SharePlus.instance.share(ShareParams(text: text));
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:newsappjs/dashboard/core/dashboard_dialogs.dart';
 import 'package:newsappjs/dashboard/core/dashboard_i18n.dart';
+import 'package:newsappjs/dashboard/core/dashboard_text_validators.dart';
 import 'package:newsappjs/dashboard/models/breaking_news.dart';
 import 'package:newsappjs/dashboard/services/breaking_news_service.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
@@ -188,25 +189,33 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
           center: false,
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 CustomTextField(
                   controller: _titleController,
                   labelText: t('title_ar'),
-                  validator:
-                      (value) =>
-                          value!.isEmpty ? t('please_enter_title') : null,
+                  validator: (value) => DashboardTextValidators.validateArabic(
+                    value: value,
+                    required: true,
+                    requiredMessage: t('please_enter_title'),
+                    invalidLanguageMessage: t('arabic_field_rejects_english'),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _titleEnController,
                   labelText: t('title_en'),
                   validator:
-                      (value) =>
-                          value == null || value.trim().isEmpty
-                              ? t('please_enter_title_en')
-                              : null,
+                      (value) => DashboardTextValidators.validateEnglish(
+                        value: value,
+                        required: true,
+                        requiredMessage: t('please_enter_title_en'),
+                        invalidLanguageMessage: t(
+                          'english_field_rejects_arabic',
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -214,9 +223,12 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                   labelText: t('content_ar'),
                   minLines: 3,
                   maxLines: null,
-                  validator:
-                      (value) =>
-                          value!.isEmpty ? t('please_enter_content') : null,
+                  validator: (value) => DashboardTextValidators.validateArabic(
+                    value: value,
+                    required: true,
+                    requiredMessage: t('please_enter_content'),
+                    invalidLanguageMessage: t('arabic_field_rejects_english'),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -225,10 +237,14 @@ class _EditBreakingNewsScreenState extends State<EditBreakingNewsScreen> {
                   minLines: 3,
                   maxLines: null,
                   validator:
-                      (value) =>
-                          value == null || value.trim().isEmpty
-                              ? t('please_enter_content_en')
-                              : null,
+                      (value) => DashboardTextValidators.validateEnglish(
+                        value: value,
+                        required: true,
+                        requiredMessage: t('please_enter_content_en'),
+                        invalidLanguageMessage: t(
+                          'english_field_rejects_arabic',
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 20),
                 Row(

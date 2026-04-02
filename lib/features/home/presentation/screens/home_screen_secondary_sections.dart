@@ -378,7 +378,12 @@ class _NewsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: items.map((item) => NewsCard(news: item)).toList());
+    return Column(
+      children: items.asMap().entries.map((entry) {
+        final item = entry.value;
+        return NewsCard(news: item);
+      }).toList(),
+    );
   }
 }
 

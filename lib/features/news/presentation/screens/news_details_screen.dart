@@ -10,7 +10,6 @@ import '../../../../core/localization/l10n_extensions.dart';
 import '../../../../core/utils/image_prefetch_guard.dart';
 import '../../../../core/utils/relative_time_formatter.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
-import '../../../../core/config/app_env.dart';
 import '../../../home/data/models/news_model.dart';
 import '../../../home/data/repositories/home_repository.dart';
 import '../../data/services/bookmark_service.dart';
@@ -32,6 +31,8 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   double _fontSize = 18.0;
   final BookmarkService _bookmarkService = BookmarkService();
   final HomeRepository _homeRepository = HomeRepository();
+  int _viewCount = 0;
+  bool _didRegisterView = false;
   bool _isBookmarked = false;
   bool _bookmarkLoading = true;
   bool _relatedLoading = true;
@@ -43,9 +44,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _viewCount = widget.news.viewCount;
     _resolvedLocationName = widget.news.locationName;
     _warmImageUrls([widget.news.imageUrl]);
     _loadBookmarkState();
+    _registerNewsView();
   }
 
   @override

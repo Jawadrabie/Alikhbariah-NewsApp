@@ -22,6 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.showLabelAboveField = false,
+    this.autovalidateMode,
   });
 
   final TextEditingController? controller;
@@ -40,6 +41,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final bool showLabelAboveField;
+  final AutovalidateMode? autovalidateMode;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +75,7 @@ class CustomTextField extends StatelessWidget {
                 return null;
               }
               : null),
+      autovalidateMode: autovalidateMode,
       onSaved: onSaved,
       onChanged: onChanged,
     );

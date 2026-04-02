@@ -28,8 +28,9 @@ extension _EditNewsScreenLogic on _EditNewsScreenState {
           _imageUploadError = DashboardI18n.t(context, 'image_too_large');
         });
       } else {
+        // Show the actual Supabase error message for debugging
         _applyState(() {
-          _imageUploadError = DashboardI18n.t(context, 'image_upload_failed');
+          _imageUploadError = 'خطأ الرفع: $msg';
         });
       }
     }

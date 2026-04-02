@@ -15,7 +15,18 @@ class NewsService {
         return [];
       }
 
-      return data.map((json) => News.fromJson(json)).toList();
+      return data.map((item) {
+        if (item is News) {
+          return item;
+        }
+        if (item is Map<String, dynamic>) {
+          return News.fromJson(item);
+        }
+        if (item is Map) {
+          return News.fromJson(Map<String, dynamic>.from(item));
+        }
+        throw StateError('Unexpected news item type: ${item.runtimeType}');
+      }).toList();
     } catch (e) {
       // Handle error
       debugPrint('Error fetching news: $e');

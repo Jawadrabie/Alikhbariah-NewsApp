@@ -29,25 +29,33 @@ extension _EditNewsScreenView on _EditNewsScreenState {
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 CustomTextField(
                   controller: _titleController,
                   labelText: t('title_ar'),
-                  validator:
-                      (value) =>
-                          value!.isEmpty ? t('please_enter_title') : null,
+                  validator: (value) => DashboardTextValidators.validateArabic(
+                    value: value,
+                    required: true,
+                    requiredMessage: t('please_enter_title'),
+                    invalidLanguageMessage: t('arabic_field_rejects_english'),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _titleEnController,
                   labelText: t('title_en'),
                   validator:
-                      (value) =>
-                          value == null || value.trim().isEmpty
-                              ? t('please_enter_title_en')
-                              : null,
+                      (value) => DashboardTextValidators.validateEnglish(
+                        value: value,
+                        required: true,
+                        requiredMessage: t('please_enter_title_en'),
+                        invalidLanguageMessage: t(
+                          'english_field_rejects_arabic',
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -57,11 +65,12 @@ extension _EditNewsScreenView on _EditNewsScreenState {
                   alignLabelWithHint: true,
                   minLines: 3,
                   maxLines: null,
-                  validator:
-                      (value) =>
-                          value == null || value.trim().isEmpty
-                              ? t('please_enter_content')
-                              : null,
+                  validator: (value) => DashboardTextValidators.validateArabic(
+                    value: value,
+                    required: true,
+                    requiredMessage: t('please_enter_content'),
+                    invalidLanguageMessage: t('arabic_field_rejects_english'),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
@@ -72,10 +81,14 @@ extension _EditNewsScreenView on _EditNewsScreenState {
                   minLines: 3,
                   maxLines: null,
                   validator:
-                      (value) =>
-                          value == null || value.trim().isEmpty
-                              ? t('please_enter_content_en')
-                              : null,
+                      (value) => DashboardTextValidators.validateEnglish(
+                        value: value,
+                        required: true,
+                        requiredMessage: t('please_enter_content_en'),
+                        invalidLanguageMessage: t(
+                          'english_field_rejects_arabic',
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 16),
                 Row(

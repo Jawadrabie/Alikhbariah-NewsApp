@@ -65,8 +65,10 @@ class StorageService {
       // 6. Get Public URL
       return _supabase.storage.from(bucketName).getPublicUrl(filePath);
     } catch (e) {
-      debugPrint('Error uploading image: $e');
-      throw Exception('upload_failed');
+      final errorMsg = e.toString();
+      debugPrint('Error uploading image: $errorMsg');
+      // Pass the real error message instead of hiding it
+      throw Exception('upload_failed: $errorMsg');
     }
   }
 }

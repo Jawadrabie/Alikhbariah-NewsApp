@@ -7,6 +7,7 @@ import 'package:newsappjs/dashboard/models/category.dart';
 import 'package:newsappjs/dashboard/models/video_item.dart';
 import 'package:newsappjs/dashboard/services/category_service.dart';
 import 'package:newsappjs/dashboard/services/videos_service.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
@@ -44,6 +45,11 @@ class _VideosScreenState extends State<VideosScreen> {
   late Future<List<Category>> _categoriesWithCountsFuture;
   String? _selectedCategoryId;
   bool _didAutoOpenAddForm = false;
+
+  void setLocalState(VoidCallback fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
 
   @override
   void initState() {

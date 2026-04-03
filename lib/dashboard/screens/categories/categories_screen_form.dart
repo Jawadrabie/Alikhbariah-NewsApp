@@ -20,6 +20,7 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
     String? coverImageUrl = current?.coverImageUrl;
     String? coverUploadError;
     bool uploadingCover = false;
+    bool isSaving = false;
     final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
@@ -241,11 +242,15 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed:
+                  isSaving ? null : () => Navigator.of(dialogContext).pop(),
               child: Text(t('cancel')),
             ),
             FilledButton(
-              onPressed: () async {
+              onPressed:
+                  isSaving
+                      ? null
+                      : () async {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
@@ -258,6 +263,8 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
                   );
                   return;
                 }
+
+                setLocalState(() => isSaving = true);
 
                 final item = Category(
                   id: current?.id ?? '',
@@ -277,6 +284,7 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
                   }
                 } catch (e) {
                   if (!dialogContext.mounted) return;
+                  setLocalState(() => isSaving = false);
                   await DashboardDialogs.showError(
                     dialogContext,
                     '${t('error_saving_category')}: $e',
@@ -288,7 +296,10 @@ extension _CategoriesScreenForm on _CategoriesScreenState {
                 Navigator.of(dialogContext).pop();
                 _reload();
               },
-              child: Text(t('save')),
+              child: DashboardLoadingButtonChild(
+                isLoading: isSaving,
+                label: t('save'),
+              ),
             ),
           ],
         );

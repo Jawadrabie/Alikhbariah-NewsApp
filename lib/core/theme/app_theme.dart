@@ -86,7 +86,7 @@ class AppTheme {
           side: const BorderSide(color: Color(0xFF334155)),
         ),
       ),
-      chipTheme: base.chipTheme.copyWith(؟
+      chipTheme: base.chipTheme.copyWith(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );

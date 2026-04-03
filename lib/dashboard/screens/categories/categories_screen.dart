@@ -6,6 +6,7 @@ import 'package:newsappjs/dashboard/core/dashboard_text_validators.dart';
 import 'package:newsappjs/dashboard/models/category.dart';
 import 'package:newsappjs/dashboard/services/category_service.dart';
 import 'package:newsappjs/dashboard/services/storage_service.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
@@ -32,6 +33,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   final StorageService _storageService = StorageService();
   late Future<List<Category>> _future;
   bool _didTriggerAutoOpen = false;
+
+  void setLocalState(VoidCallback fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
 
   @override
   void initState() {

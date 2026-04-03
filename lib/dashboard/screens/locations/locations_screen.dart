@@ -17,18 +17,95 @@ class LocationsScreen extends StatefulWidget {
 
 class _LocationsScreenState extends State<LocationsScreen> {
   final LocationService _service = LocationService();
+  final TextEditingController _searchController = TextEditingController();
   late Future<List<Location>> _future;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_handleSearchChanged);
     _reload();
+  }
+
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_handleSearchChanged)
+      ..dispose();
+    super.dispose();
   }
 
   void _reload() {
     setState(() {
       _future = _service.getLocations();
     });
+  }
+
+  void _handleSearchChanged() {
+    final nextQuery = _searchController.text.trim();
+    if (nextQuery == _searchQuery) {
+      return;
+    }
+    setState(() {
+      _searchQuery = nextQuery;
+    });
+  }
+
+  List<Location> _applySearch(List<Location> items) {
+    final normalizedQuery = _searchQuery.toLowerCase();
+    if (normalizedQuery.isEmpty) {
+      return items;
+    }
+    return items.where((item) {
+      final searchable = '${item.name} ${item.nameEn ?? ''}'
+          .toLowerCase();
+      return searchable.contains(normalizedQuery);
+    }).toList();
+  }
+
+  Widget _buildSearchField(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        labelText: DashboardI18n.t(context, 'search_locations'),
+        hintText: DashboardI18n.t(context, 'search_locations_hint'),
+        prefixIcon: Icon(Icons.search_rounded, color: scheme.primary),
+        suffixIcon:
+            _searchQuery.isNotEmpty
+                ? IconButton(
+                  tooltip: DashboardI18n.t(context, 'clear_filters'),
+                  onPressed: () => _searchController.clear(),
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                )
+                : null,
+        filled: true,
+        fillColor: scheme.onSurface.withValues(alpha: 0.04),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: scheme.primary, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+      style: Theme.of(
+        context,
+      ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+    );
   }
 
   Future<void> _openForm({Location? current}) async {
@@ -173,6 +250,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
           }
 
           final items = snapshot.data ?? [];
+          final filteredItems = _applySearch(items);
           return DashboardSectionView(
             title: t('locations'),
             actions: [
@@ -188,107 +266,140 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       icon: Icons.location_on_outlined,
                       title: t('no_locations_found'),
                     )
-                    : Align(
-                      alignment: AlignmentDirectional.topStart,
-                      child: Card(
-                        elevation: 0,
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color: scheme.outlineVariant.withValues(alpha: 0.4),
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 360),
+                            child: _buildSearchField(context),
                           ),
                         ),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            headingRowColor: WidgetStatePropertyAll(
-                              scheme.surfaceContainerHighest.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            dataRowMaxHeight: 60,
-                            columns: [
-                              DataColumn(
-                                label: Text(
-                                  t('name'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  t('name_en'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Text(
-                                  t('actions'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            rows:
-                                items.map((item) {
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.location_on_rounded,
-                                              size: 18,
-                                              color: scheme.primary,
+                        const SizedBox(height: 16),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 180),
+                          child:
+                              filteredItems.isEmpty
+                                  ? DashboardEmptyState(
+                                    key: const ValueKey('empty-search'),
+                                    icon: Icons.search_off_rounded,
+                                    title: t('no_locations_match_search'),
+                                  )
+                                  : Align(
+                                    alignment: AlignmentDirectional.topStart,
+                                    child: Card(
+                                      elevation: 0,
+                                      clipBehavior: Clip.antiAlias,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side: BorderSide(
+                                          color: scheme.outlineVariant
+                                              .withValues(alpha: 0.4),
+                                        ),
+                                      ),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: DataTable(
+                                          headingRowColor: WidgetStatePropertyAll(
+                                            scheme.surfaceContainerHighest
+                                                .withValues(alpha: 0.5),
+                                          ),
+                                          dataRowMaxHeight: 60,
+                                          columns: [
+                                            DataColumn(
+                                              label: Text(
+                                                t('name'),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              item.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
+                                            DataColumn(
+                                              label: Text(
+                                                t('name_en'),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            DataColumn(
+                                              label: Text(
+                                                t('actions'),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                             ),
                                           ],
+                                          rows:
+                                              filteredItems.map((item) {
+                                                return DataRow(
+                                                  cells: [
+                                                    DataCell(
+                                                      Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.location_on_rounded,
+                                                            size: 18,
+                                                            color: scheme.primary,
+                                                          ),
+                                                          const SizedBox(width: 8),
+                                                          Text(
+                                                            item.name,
+                                                            style: const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    DataCell(
+                                                      Text(
+                                                        item.nameEn ?? t('na'),
+                                                      ),
+                                                    ),
+                                                    DataCell(
+                                                      Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          IconButton(
+                                                            icon: Icon(
+                                                              Icons.edit_rounded,
+                                                              color:
+                                                                  scheme.primary,
+                                                            ),
+                                                            tooltip: t('edit'),
+                                                            onPressed:
+                                                                () => _openForm(
+                                                                  current: item,
+                                                                ),
+                                                          ),
+                                                          IconButton(
+                                                            icon: Icon(
+                                                              Icons.delete_rounded,
+                                                              color: scheme.error,
+                                                            ),
+                                                            tooltip: t('delete'),
+                                                            onPressed: () =>
+                                                                _delete(item.id),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              }).toList(),
                                         ),
                                       ),
-                                      DataCell(Text(item.nameEn ?? t('na'))),
-                                      DataCell(
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.edit_rounded,
-                                                color: scheme.primary,
-                                              ),
-                                              tooltip: t('edit'),
-                                              onPressed:
-                                                  () =>
-                                                      _openForm(current: item),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.delete_rounded,
-                                                color: scheme.error,
-                                              ),
-                                              tooltip: t('delete'),
-                                              onPressed: () => _delete(item.id),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
-                          ),
+                                    ),
+                                  ),
                         ),
-                      ),
+                      ],
                     ),
           );
         },

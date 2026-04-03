@@ -20,12 +20,35 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
+  String? _errorMessage;
+
+  void _clearError() {
+    if (_errorMessage == null) return;
+    setState(() => _errorMessage = null);
+  }
+
+  String _resolveAuthError(BuildContext context, AuthException error) {
+    final message = error.message.trim();
+    if (message.isEmpty) {
+      return DashboardI18n.t(context, 'unexpected_error');
+    }
+
+    final normalized = message.toLowerCase();
+    if (normalized.contains('invalid login credentials')) {
+      return DashboardI18n.t(context, 'invalid_login_credentials');
+    }
+
+    return message;
+  }
 
   Future<void> _login() async {
     String t(String key) => DashboardI18n.t(context, key);
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final response = await Supabase.instance.client.auth.signInWithPassword(
@@ -33,25 +56,20 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      if (mounted && response.user != null) {
+      if (!mounted) return;
+
+      if (response.user != null) {
         context.go('/dashboard');
+        return;
       }
+
+      setState(() => _errorMessage = t('unexpected_error'));
     } on AuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      setState(() => _errorMessage = _resolveAuthError(context, e));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(t('unexpected_error')),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      setState(() => _errorMessage = t('unexpected_error'));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -97,6 +115,7 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                     labelText: t('email'),
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: const Icon(Icons.email_outlined),
+                    onChanged: (_) => _clearError(),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return t('please_enter_email');
@@ -113,6 +132,7 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                     labelText: t('password'),
                     obscureText: _obscurePassword,
                     prefixIcon: const Icon(Icons.lock_outline),
+                    onChanged: (_) => _clearError(),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
@@ -130,7 +150,36 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) {
+                      final slideAnimation = Tween<Offset>(
+                        begin: const Offset(0, -0.08),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                      );
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: slideAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child:
+                        _errorMessage == null
+                            ? const SizedBox(height: 24)
+                            : Padding(
+                              padding: const EdgeInsets.only(
+                                top: 12,
+                                bottom: 16,
+                              ),
+                              child: _buildErrorBanner(context, _errorMessage!),
+                            ),
+                  ),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -150,6 +199,36 @@ class _DashboardLoginScreenState extends State<DashboardLoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner(BuildContext context, String message) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: ValueKey(message),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.error.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline, color: scheme.error),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              textAlign: TextAlign.start,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: scheme.onErrorContainer,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

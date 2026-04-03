@@ -8,6 +8,7 @@ import 'package:newsappjs/dashboard/models/video_item.dart';
 import 'package:newsappjs/dashboard/services/category_service.dart';
 import 'package:newsappjs/dashboard/services/storage_service.dart';
 import 'package:newsappjs/dashboard/services/videos_service.dart';
+import 'package:newsappjs/dashboard/widgets/dashboard_button_content.dart';
 import 'package:newsappjs/dashboard/widgets/custom_form_fields.dart';
 import 'package:newsappjs/dashboard/widgets/section_ui.dart';
 
@@ -27,6 +28,11 @@ class _ProgramsScreenState extends State<ProgramsScreen> {
   final StorageService _storageService = StorageService();
   final VideosService _videosService = VideosService();
   late Future<List<Category>> _future;
+
+  void setLocalState(VoidCallback fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
 
   @override
   void initState() {

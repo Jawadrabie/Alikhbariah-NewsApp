@@ -15,6 +15,7 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
     String? coverImageUrl = current?.coverImageUrl;
     String? coverUploadError;
     bool uploadingCover = false;
+    bool isSaving = false;
     final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
@@ -198,11 +199,15 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed:
+                  isSaving ? null : () => Navigator.of(dialogContext).pop(),
               child: Text(t('cancel')),
             ),
             FilledButton(
-              onPressed: () async {
+              onPressed:
+                  isSaving
+                      ? null
+                      : () async {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
@@ -214,6 +219,8 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                   );
                   return;
                 }
+
+                setLocalState(() => isSaving = true);
 
                 final item = Category(
                   id: current?.id ?? '',
@@ -233,6 +240,7 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                   }
                 } catch (e) {
                   if (!dialogContext.mounted) return;
+                  setLocalState(() => isSaving = false);
                   await DashboardDialogs.showError(
                     dialogContext,
                     '${t('error_saving_category')}: $e',
@@ -244,7 +252,10 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                 Navigator.of(dialogContext).pop();
                 _reload();
               },
-              child: Text(t('save')),
+              child: DashboardLoadingButtonChild(
+                isLoading: isSaving,
+                label: t('save'),
+              ),
             ),
           ],
         );
@@ -265,6 +276,7 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
     final orderController = TextEditingController(text: '1');
     String selectedProgramId = programs.first.id;
     bool isHidden = false;
+    bool isSaving = false;
     final formKey = GlobalKey<FormState>();
 
     Future<void> updateOrder(StateSetter setLocalState) async {
@@ -359,11 +371,15 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed:
+                  isSaving ? null : () => Navigator.of(dialogContext).pop(),
               child: Text(t('cancel')),
             ),
             FilledButton(
-              onPressed: () async {
+              onPressed:
+                  isSaving
+                      ? null
+                      : () async {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
@@ -376,6 +392,8 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                   );
                   return;
                 }
+
+                setLocalState(() => isSaving = true);
 
                 final item = VideoItem(
                   id: '',
@@ -395,6 +413,7 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                   await _videosService.createVideo(item);
                 } catch (e) {
                   if (!dialogContext.mounted) return;
+                  setLocalState(() => isSaving = false);
                   await DashboardDialogs.showError(
                     dialogContext,
                     '${t('error_saving_video')}: $e',
@@ -405,7 +424,10 @@ extension _ProgramsScreenForm on _ProgramsScreenState {
                 if (!dialogContext.mounted) return;
                 Navigator.of(dialogContext).pop();
               },
-              child: Text(t('save')),
+              child: DashboardLoadingButtonChild(
+                isLoading: isSaving,
+                label: t('save'),
+              ),
             ),
           ],
         );

@@ -77,6 +77,7 @@ extension _VideosScreenVideoForm on _VideosScreenState {
     );
     bool isHidden = current?.isHidden ?? false;
     final formKey = GlobalKey<FormState>();
+    bool isSaving = false;
 
     await showDialog<void>(
       context: context,
@@ -214,11 +215,15 @@ extension _VideosScreenVideoForm on _VideosScreenState {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed:
+                  isSaving ? null : () => Navigator.of(dialogContext).pop(),
               child: Text(t('cancel')),
             ),
             FilledButton(
-              onPressed: () async {
+              onPressed:
+                  isSaving
+                      ? null
+                      : () async {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
@@ -236,6 +241,8 @@ extension _VideosScreenVideoForm on _VideosScreenState {
                   );
                   return;
                 }
+
+                setLocalState(() => isSaving = true);
 
                 final item = VideoItem(
                   id: current?.id ?? '',
@@ -259,6 +266,7 @@ extension _VideosScreenVideoForm on _VideosScreenState {
                   }
                 } catch (e) {
                   if (!dialogContext.mounted) return;
+                  setLocalState(() => isSaving = false);
                   await DashboardDialogs.showError(
                     dialogContext,
                     '${t('error_saving_video')}: $e',
@@ -270,7 +278,10 @@ extension _VideosScreenVideoForm on _VideosScreenState {
                 Navigator.of(dialogContext).pop();
                 _reload();
               },
-              child: Text(t('save')),
+              child: DashboardLoadingButtonChild(
+                isLoading: isSaving,
+                label: t('save'),
+              ),
             ),
           ],
         );

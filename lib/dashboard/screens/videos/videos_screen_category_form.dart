@@ -9,66 +9,77 @@ extension _VideosScreenCategoryForm on _VideosScreenState {
       text: (current?.orderIndex ?? 0).toString(),
     );
     final formKey = GlobalKey<FormState>();
+    bool isSaving = false;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(current == null ? t('add_category') : t('edit_category')),
-          content: Form(
-            key: formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: SizedBox(
-              width: 420,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomTextField(
-                    controller: nameController,
-                    labelText: t('name_ar'),
-                    validator:
-                        (value) => DashboardTextValidators.validateArabic(
-                          value: value,
-                          required: true,
-                          requiredMessage: t('please_fill_all_fields'),
-                          invalidLanguageMessage: t(
-                            'arabic_field_rejects_english',
-                          ),
-                        ),
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text(current == null ? t('add_category') : t('edit_category')),
+              content: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: SizedBox(
+                  width: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: nameController,
+                        labelText: t('name_ar'),
+                        validator:
+                            (value) => DashboardTextValidators.validateArabic(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'arabic_field_rejects_english',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: nameEnController,
+                        labelText: t('name_en'),
+                        validator:
+                            (value) => DashboardTextValidators.validateEnglish(
+                              value: value,
+                              required: true,
+                              requiredMessage: t('please_fill_all_fields'),
+                              invalidLanguageMessage: t(
+                                'english_field_rejects_arabic',
+                              ),
+                            ),
+                      ),
+                      CustomTextField(
+                        controller: orderController,
+                        keyboardType: TextInputType.number,
+                        labelText: t('order_index'),
+                        showLabelAboveField: true,
+                      ),
+                    ],
                   ),
-                  CustomTextField(
-                    controller: nameEnController,
-                    labelText: t('name_en'),
-                    validator:
-                        (value) => DashboardTextValidators.validateEnglish(
-                          value: value,
-                          required: true,
-                          requiredMessage: t('please_fill_all_fields'),
-                          invalidLanguageMessage: t(
-                            'english_field_rejects_arabic',
-                          ),
-                        ),
-                  ),
-                  CustomTextField(
-                    controller: orderController,
-                    keyboardType: TextInputType.number,
-                    labelText: t('order_index'),
-                    showLabelAboveField: true,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(t('cancel')),
-            ),
-            FilledButton(
-              onPressed: () async {
+              actions: [
+                TextButton(
+                  onPressed:
+                      isSaving
+                          ? null
+                          : () => Navigator.of(dialogContext).pop(),
+                  child: Text(t('cancel')),
+                ),
+                FilledButton(
+                  onPressed:
+                      isSaving
+                          ? null
+                          : () async {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
+
+                setLocalState(() => isSaving = true);
 
                 final item = Category(
                   id: current?.id ?? '',
@@ -88,6 +99,7 @@ extension _VideosScreenCategoryForm on _VideosScreenState {
                   }
                 } catch (e) {
                   if (!dialogContext.mounted) return;
+                  setLocalState(() => isSaving = false);
                   await DashboardDialogs.showError(
                     dialogContext,
                     '${t('error_saving_category')}: $e',
@@ -99,9 +111,14 @@ extension _VideosScreenCategoryForm on _VideosScreenState {
                 Navigator.of(dialogContext).pop();
                 _reload();
               },
-              child: Text(t('save')),
-            ),
-          ],
+                  child: DashboardLoadingButtonChild(
+                    isLoading: isSaving,
+                    label: t('save'),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

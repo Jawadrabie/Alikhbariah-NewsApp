@@ -288,12 +288,14 @@ for select
 to authenticated
 using (public.is_admin_user());
 
+drop policy if exists user_reports_admin_update on public.user_reports;
 create policy user_reports_admin_update on public.user_reports
 for update
 to authenticated
 using (public.is_admin_user())
 with check (public.is_admin_user());
 
+drop policy if exists user_reports_admin_delete on public.user_reports;
 create policy user_reports_admin_delete on public.user_reports
 for delete
 to authenticated
@@ -320,6 +322,16 @@ using (user_id = auth.uid());
 -- Storage policies (news-images bucket)
 -- ============
 
+-- Allow public/app users to upload report attachments only under the user-reports folder
+drop policy if exists user_reports_attachments_insert on storage.objects;
+create policy user_reports_attachments_insert on storage.objects
+for insert
+to anon, authenticated
+with check (
+  bucket_id = 'news-images'
+  and name like 'user-reports/%'
+);
+
 -- Allow authenticated admins only to upload files
 drop policy if exists news_images_admin_insert on storage.objects;
 create policy news_images_admin_insert on storage.objects
@@ -327,7 +339,11 @@ for insert
 to authenticated
 with check (
   bucket_id = 'news-images'
-  and public.is_admin_user()
+  and exists (
+    select 1
+    from public.admin_users au
+    where au.user_id = auth.uid()
+  )
 );
 
 -- Allow authenticated admins only to update files
@@ -337,11 +353,19 @@ for update
 to authenticated
 using (
   bucket_id = 'news-images'
-  and public.is_admin_user()
+  and exists (
+    select 1
+    from public.admin_users au
+    where au.user_id = auth.uid()
+  )
 )
 with check (
   bucket_id = 'news-images'
-  and public.is_admin_user()
+  and exists (
+    select 1
+    from public.admin_users au
+    where au.user_id = auth.uid()
+  )
 );
 
 -- Allow authenticated admins only to delete files
@@ -351,14 +375,12 @@ for delete
 to authenticated
 using (
   bucket_id = 'news-images'
-  and public.is_admin_user()
+  and exists (
+    select 1
+    from public.admin_users au
+    where au.user_id = auth.uid()
+  )
 );
-
--- Optional hardening: restrict MIME types at bucket level
--- (safe to run after bucket is created)
-update storage.buckets
-set allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']::text[]
-where id = 'news-images';
 
 commit;
 

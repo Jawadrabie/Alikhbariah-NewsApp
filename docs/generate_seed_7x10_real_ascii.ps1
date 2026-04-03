@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Set-Location (Join-Path $PSScriptRoot '..')
@@ -159,7 +159,26 @@ $locations = @(
   [pscustomobject]@{ name = 'Al-Hasakah'; name_en = 'Al-Hasakah'; slug = 'al-hasakah' },
   [pscustomobject]@{ name = 'Daraa'; name_en = 'Daraa'; slug = 'daraa' },
   [pscustomobject]@{ name = 'As-Suwayda'; name_en = 'As-Suwayda'; slug = 'as-suwayda' },
-  [pscustomobject]@{ name = 'Quneitra'; name_en = 'Quneitra'; slug = 'quneitra' }
+  [pscustomobject]@{ name = 'Quneitra'; name_en = 'Quneitra'; slug = 'quneitra' },
+  [pscustomobject]@{ name = 'Syria'; name_en = 'Syria'; slug = 'syria' },
+  [pscustomobject]@{ name = 'United Kingdom'; name_en = 'United Kingdom'; slug = 'united-kingdom' },
+  [pscustomobject]@{ name = 'London'; name_en = 'London'; slug = 'london' },
+  [pscustomobject]@{ name = 'United States'; name_en = 'United States'; slug = 'united-states' },
+  [pscustomobject]@{ name = 'Washington'; name_en = 'Washington'; slug = 'washington' },
+  [pscustomobject]@{ name = 'Lebanon'; name_en = 'Lebanon'; slug = 'lebanon' },
+  [pscustomobject]@{ name = 'Iraq'; name_en = 'Iraq'; slug = 'iraq' },
+  [pscustomobject]@{ name = 'Iran'; name_en = 'Iran'; slug = 'iran' },
+  [pscustomobject]@{ name = 'Jordan'; name_en = 'Jordan'; slug = 'jordan' },
+  [pscustomobject]@{ name = 'Palestine'; name_en = 'Palestine'; slug = 'palestine' },
+  [pscustomobject]@{ name = 'Gaza'; name_en = 'Gaza'; slug = 'gaza' },
+  [pscustomobject]@{ name = 'Israel'; name_en = 'Israel'; slug = 'israel' },
+  [pscustomobject]@{ name = 'Kuwait'; name_en = 'Kuwait'; slug = 'kuwait' },
+  [pscustomobject]@{ name = 'United Arab Emirates'; name_en = 'United Arab Emirates'; slug = 'uae' },
+  [pscustomobject]@{ name = 'Qatar'; name_en = 'Qatar'; slug = 'qatar' },
+  [pscustomobject]@{ name = 'Saudi Arabia'; name_en = 'Saudi Arabia'; slug = 'saudi-arabia' },
+  [pscustomobject]@{ name = 'Egypt'; name_en = 'Egypt'; slug = 'egypt' },
+  [pscustomobject]@{ name = 'Germany'; name_en = 'Germany'; slug = 'germany' },
+  [pscustomobject]@{ name = 'Turkey'; name_en = 'Turkey'; slug = 'turkey' }
 )
 
 $newsMetaByWp = @{}
@@ -190,6 +209,7 @@ foreach ($cat in $newsCategories) {
 
 $allPosts = @()
 $globalPostOrdinal = 0
+$globalSeenIds = New-Object 'System.Collections.Generic.HashSet[int]'
 
 foreach ($cat in $newsCategories) {
   $catRows = @()
@@ -212,6 +232,9 @@ foreach ($cat in $newsCategories) {
         break
       }
       if (-not $catSeenIds.Add([int]$post.id)) {
+        continue
+      }
+      if (-not $globalSeenIds.Add([int]$post.id)) {
         continue
       }
 
@@ -539,21 +562,17 @@ Add-Line $sb 'values'
 for ($i = 0; $i -lt $allPosts.Count; $i++) {
   $row = $allPosts[$i]
   $isFeatured = if ($row.category_rank -le 2) { 'true' } else { 'false' }
-  $locationOffset = ($row.ordinal - 1) % $locations.Count
   $viewCount = 120 + ($allPosts.Count - $i)
-  $contentWithSource = "$($row.content) Source: $($row.link)"
-    $contentEnWithSource = "$($row.content_en) Source: $($row.link)"
   $suffix = if ($i -lt ($allPosts.Count - 1)) { ',' } else { '' }
-  Add-Line $sb ("  ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', (select id from public.categories where slug = '{7}' and type = 'news' limit 1), (select id from public.locations order by id offset {8} limit 1), '{9}'::timestamptz, false, {10}, false, {11}){12}" -f
+  Add-Line $sb ("  ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', (select id from public.categories where slug = '{7}' and type = 'news' limit 1), (select id from public.locations where slug = 'syria' limit 1), '{8}'::timestamptz, false, {9}, false, {10}){11}" -f
       (SqlEscape $row.title),
       (SqlEscape $row.title_en),
       (SqlEscape $row.summary),
       (SqlEscape $row.summary_en),
-      (SqlEscape $contentWithSource),
-      (SqlEscape $contentEnWithSource),
+      (SqlEscape $row.content),
+      (SqlEscape $row.content_en),
       (SqlEscape $row.image_url),
       (SqlEscape $row.category_slug),
-      $locationOffset,
       (SqlEscape $row.created_at),
       $isFeatured,
       $viewCount,
@@ -569,10 +588,10 @@ Add-Line $sb '  select * from (values'
 for ($i = 0; $i -lt $breakingSeed.Count; $i++) {
   $row = $breakingSeed[$i]
   $seq = $i + 1
-  $title = "Breaking | " + $row.title
-  $titleEn = "Breaking | " + $row.title_en
-  $content = "$($row.summary) Source: $($row.link)"
-  $contentEn = "$($row.summary_en) Source: $($row.link)"
+  $title = $row.title
+  $titleEn = $row.title_en
+  $content = $row.summary
+  $contentEn = $row.summary_en
   $suffix = if ($i -lt ($breakingSeed.Count - 1)) { ',' } else { '' }
   Add-Line $sb ("    ({0}, '{1}', '{2}', '{3}', '{4}'){5}" -f $seq, (SqlEscape $title), (SqlEscape $titleEn), (SqlEscape $content), (SqlEscape $contentEn), $suffix)
 }
@@ -660,6 +679,46 @@ for ($i = 0; $i -lt $programRows.Count; $i++) {
 }
 Add-Line $sb ';'
 Add-Line $sb ''
+Add-Line $sb '-- ============================='
+Add-Line $sb '-- 8) Normalize logical news locations'
+Add-Line $sb '-- ============================='
+Add-Line $sb 'update public.news n'
+Add-Line $sb 'set location_id = case'
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%washington%' then (select id from public.locations where slug = 'washington' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%london%' then (select id from public.locations where slug = 'london' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%united kingdom%' or lower(coalesce(n.title_en,'')) like '%britain%' then (select id from public.locations where slug = 'united-kingdom' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%united states%' or lower(coalesce(n.title_en,'')) like '%america%' then (select id from public.locations where slug = 'united-states' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%lebanon%' then (select id from public.locations where slug = 'lebanon' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%iraq%' then (select id from public.locations where slug = 'iraq' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%iran%' then (select id from public.locations where slug = 'iran' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%jordan%' then (select id from public.locations where slug = 'jordan' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%palestin%' then (select id from public.locations where slug = 'palestine' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%gaza%' then (select id from public.locations where slug = 'gaza' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%israel%' then (select id from public.locations where slug = 'israel' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%kuwait%' then (select id from public.locations where slug = 'kuwait' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%united arab emirates%' then (select id from public.locations where slug = 'uae' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%qatar%' then (select id from public.locations where slug = 'qatar' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%saudi%' then (select id from public.locations where slug = 'saudi-arabia' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%egypt%' then (select id from public.locations where slug = 'egypt' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%germany%' then (select id from public.locations where slug = 'germany' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%turkey%' then (select id from public.locations where slug = 'turkey' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%damascus countryside%' then (select id from public.locations where slug = 'rif-dimashq' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%damascus%' then (select id from public.locations where slug = 'damascus' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%aleppo%' then (select id from public.locations where slug = 'aleppo' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%homs%' then (select id from public.locations where slug = 'homs' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%hama%' then (select id from public.locations where slug = 'hama' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%latakia%' then (select id from public.locations where slug = 'latakia' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%tartus%' then (select id from public.locations where slug = 'tartus' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%idlib%' then (select id from public.locations where slug = 'idlib' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%raqqa%' then (select id from public.locations where slug = 'raqqa' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%deir ez-zor%' then (select id from public.locations where slug = 'deir-ez-zor' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%hasakah%' then (select id from public.locations where slug = 'al-hasakah' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%daraa%' then (select id from public.locations where slug = 'daraa' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%suwayda%' then (select id from public.locations where slug = 'as-suwayda' limit 1)"
+Add-Line $sb "  when lower(coalesce(n.title_en,'')) like '%quneitra%' then (select id from public.locations where slug = 'quneitra' limit 1)"
+Add-Line $sb "  else (select id from public.locations where slug = 'syria' limit 1)"
+Add-Line $sb 'end;'
+Add-Line $sb ''
 Add-Line $sb 'commit;'
 Add-Line $sb ''
 Add-Line $sb '-- Quick checks'
@@ -675,3 +734,5 @@ Write-Host "News rows: $($allPosts.Count)"
 Write-Host "Breaking rows: $($breakingSeed.Count)"
 Write-Host "Video rows: $($videoRows.Count)"
 Write-Host "Program rows: $($programRows.Count)"
+
+

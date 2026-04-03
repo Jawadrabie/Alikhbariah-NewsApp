@@ -49,6 +49,7 @@ class _EditNewsScreenState extends State<EditNewsScreen> {
   String? _selectedLocationId;
   String? _imageUploadError;
   String _imageSource = _imageSourceUpload;
+  bool _isUploadingImage = false;
 
   bool _isFeatured = false;
   bool _isHidden = false;

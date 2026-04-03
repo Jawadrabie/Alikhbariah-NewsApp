@@ -5,6 +5,7 @@ part of 'edit_news_screen.dart';
 extension _EditNewsScreenLogic on _EditNewsScreenState {
   Future<void> _pickImage() async {
     _applyState(() {
+      _isUploadingImage = true;
       _imageUploadError = null;
     });
 
@@ -17,20 +18,27 @@ extension _EditNewsScreenLogic on _EditNewsScreenState {
         _applyState(() {
           _imageUrlController.text = url;
           _imageUploadError = null;
+          _isUploadingImage = false;
         });
         return;
       }
+
+      _applyState(() {
+        _isUploadingImage = false;
+      });
     } catch (e) {
       if (!mounted) return;
       final msg = e.toString();
       if (msg.contains('file_too_large')) {
         _applyState(() {
           _imageUploadError = DashboardI18n.t(context, 'image_too_large');
+          _isUploadingImage = false;
         });
       } else {
         // Show the actual Supabase error message for debugging
         _applyState(() {
           _imageUploadError = 'خطأ الرفع: $msg';
+          _isUploadingImage = false;
         });
       }
     }

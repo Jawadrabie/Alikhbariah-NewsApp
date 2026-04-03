@@ -155,9 +155,24 @@ extension _EditNewsScreenView on _EditNewsScreenState {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.upload_file, color: scheme.primary),
+                        icon:
+                            _isUploadingImage
+                                ? SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      scheme.primary,
+                                    ),
+                                  ),
+                                )
+                                : Icon(
+                                  Icons.upload_file,
+                                  color: scheme.primary,
+                                ),
                         tooltip: t('upload_image'),
-                        onPressed: _pickImage,
+                        onPressed: _isUploadingImage ? null : _pickImage,
                       ),
                     ],
                   ),

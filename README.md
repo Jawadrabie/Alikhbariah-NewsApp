@@ -55,14 +55,3 @@ Notes:
 - The app also validates image size client-side with a 5 MB limit.
 - If a larger image is selected, an inline error appears in the news form.
 
-## Storage Policies (Step 5)
-
-Apply admin-only write/delete policies for `news-images` bucket:
-
-1. Open [docs/storage_policies.sql](docs/storage_policies.sql)
-2. Run it in Supabase SQL Editor
-
-What this enforces:
-- Upload/Update/Delete on `news-images` is allowed only for `authenticated` users that satisfy `public.is_admin_user()`.
-- Optional MIME hardening is applied to allow only: `image/jpeg`, `image/png`, `image/webp`.
-

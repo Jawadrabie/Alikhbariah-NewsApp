@@ -48,3 +48,9 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+
+# Local workspace artifacts and generated docs
+.venv/
+docs/seed_7x10_complete.sql
+docs/seed_7x10_bilingual_full.sql
+docs/translation_cache_all.json

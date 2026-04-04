@@ -1,57 +1,112 @@
 # newsappjs
 
-Flutter news application for **Alikhbariah Syria**.
+Flutter news application for **Alikhbariah Syria**. The project ships as a public news app plus a private dashboard for managing editorial content, media, notifications, and supporting data.
 
-## Supabase setup (Step 1)
+## What The App Does
 
-1. Execute database schema from [docs/supabase_init.sql](docs/supabase_init.sql) in Supabase SQL Editor.
+- Publishes the home feed with featured content, category chips, breaking news, search, and news cards.
+- Shows full news details with related stories, share actions, saved/bookmarked items, and HTML content rendering.
+- Provides a media area for live stream, programs, videos, and an in-app video player.
+- Accepts user reports with optional attachments.
+- Includes an admin dashboard for news, breaking news, ticker news, categories, locations, programs, videos, live stream, settings, user reports, and manual notifications.
+- Supports Arabic and English UI strings and generated localization files.
+- Targets Android, iOS, Web, Windows, macOS, and Linux.
+
+## Main Features
+
+### Public App
+
+- Home screen with featured slider, breaking ticker, category chips, search, and curated sections.
+- News detail page with related news, rich content rendering, share, and bookmark support.
+- Saved news stored locally on the device.
+- Live stream and video playback experiences.
+- Program and episode browsing for media content.
+- User report submission for audience feedback.
+- Splash screen and branded launch assets.
+
+### Admin Dashboard
+
+- Admin login and role-gated access.
+- News management with create, edit, publish, and image upload support.
+- Breaking news and ticker news management.
+- Category and location management.
+- Program and video management with category forms and video forms.
+- Live stream management.
+- Manual notifications.
+- Settings and dashboard localization.
+- User reports review.
+
+### Platform and Infrastructure
+
+- Supabase for auth, database, and storage.
+- Firebase Cloud Messaging for manual notifications and breaking news alerts.
+- Supabase Storage upload support for news images.
+- Local caching and image helpers for smoother browsing.
+
+## Setup
+
+### 1. Supabase
+
+1. Open [docs/supabase_init.sql](docs/supabase_init.sql) in the Supabase SQL Editor and run the schema setup.
 2. Create your first admin user in Supabase Auth.
-3. Insert the admin user UUID into `public.admin_users`.
+3. Insert the admin UUID into `public.admin_users`.
 
 ```sql
 insert into public.admin_users(user_id) values ('PUT_ADMIN_UUID_HERE');
 ```
 
-## Run app with Supabase (Step 2)
+### 2. Run The App
 
-Use one of these options:
-
-- VS Code launch config: [/.vscode/launch.json](.vscode/launch.json)
-- CLI:
+Use the VS Code launch configuration in [/.vscode/launch.json](.vscode/launch.json) or run Flutter directly:
 
 ```bash
 flutter run \
-	--dart-define=SUPABASE_URL=YOUR_SUPABASE_URL \
-	--dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+  --dart-define=SUPABASE_URL=YOUR_SUPABASE_URL \
+  --dart-define=SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-After launch, press **"اختبر الاتصال الآن"** on the home screen.
+After launch, open the home screen and press **"اختبر الاتصال الآن"** to verify the backend connection.
 
-## Notes
+### 3. Firebase Cloud Messaging
 
-- `saved_news` is intentionally local-only (no table in Supabase currently).
-- Anonymous users can read public content only.
-- Dashboard writes are restricted to `authenticated` users listed in `admin_users`.
+The project uses FCM for manual notifications and breaking news pushes.
 
-## FCM Setup (Step 3)
+1. Go to `supabase/functions/send-fcm`.
+2. Follow [supabase/functions/send-fcm/deploy_instructions.md](supabase/functions/send-fcm/deploy_instructions.md).
+3. Add the `FIREBASE_SERVICE_ACCOUNT` secret to your Supabase project.
 
-The project requires Firebase Cloud Messaging for "Manual Notifications" and "Breaking News".
+### 4. Storage
 
-1.  Navigate to `supabase/functions/send-fcm`.
-2.  Follow `DEPLOY.md` (or `deploy_instructions.md`) to set up the Edge Function.
-3.  Add the `FIREBASE_SERVICE_ACCOUNT` secret to your Supabase project.
-
-See full instructions in [supabase/functions/send-fcm/deploy_instructions.md](supabase/functions/send-fcm/deploy_instructions.md).
-
-## Storage Setup (Step 4)
-
-For Dashboard news image uploads, create a Supabase Storage bucket with these settings:
+For dashboard news image uploads, create a Supabase Storage bucket with these settings:
 
 1. Bucket name: `news-images`
 2. Public bucket: enabled
-3. Restrict file size: enabled, set to **5 MB**
+3. File size limit: 5 MB
 
-Notes:
-- The app also validates image size client-side with a 5 MB limit.
-- If a larger image is selected, an inline error appears in the news form.
+The app also validates the image size on the client side. If a selected image is too large, the news form shows an inline error.
+
+## Project Structure
+
+- `lib/features/home` - public home experience and related widgets.
+- `lib/features/news` - news details, saved news, and bookmark logic.
+- `lib/features/media` - live stream, programs, videos, and player screens.
+- `lib/features/user_reports` - report submission flow.
+- `lib/features/splash` - splash screen.
+- `lib/dashboard` - admin dashboard screens, services, models, and widgets.
+- `docs` - Supabase SQL, seed files, and operational scripts.
+
+## Notes
+
+- `saved_news` is intentionally local-only and does not map to a Supabase table.
+- Anonymous users can read public content only.
+- Dashboard writes are restricted to authenticated users listed in `admin_users`.
+- The app is configured for branded launcher icons and platform assets across all supported targets.
+
+## Useful Commands
+
+```bash
+flutter analyze
+flutter test
+flutter run
+```
 

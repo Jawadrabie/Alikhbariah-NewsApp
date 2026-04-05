@@ -1,6 +1,6 @@
 {
-    "name": "newsappjs",
-    "short_name": "newsappjs",
+    "name": "الاخبارية السورية",
+    "short_name": "الاخبارية السورية",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F2F5F7",

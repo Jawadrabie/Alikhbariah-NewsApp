@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,15 +21,32 @@ Future<void> main() async {
   await LocalCacheService.instance.init();
 
   if (AppEnv.hasSupabaseConfig) {
-    await Supabase.initialize(
-      url: AppEnv.supabaseUrl,
-      anonKey: AppEnv.supabaseAnonKey,
-    );
+    try {
+      await Supabase.initialize(
+        url: AppEnv.supabaseUrl,
+        anonKey: AppEnv.supabaseAnonKey,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw TimeoutException('Supabase initialization timeout'),
+      );
+    } catch (error) {
+      debugPrint('Supabase initialization failed (app will work offline): $error');
+    }
   }
 
   await PushNotificationService.initialize();
-  await DashboardPreferencesService.instance.load();
-  await AppSettingsController.instance.load();
+  
+  try {
+    await DashboardPreferencesService.instance.load();
+  } catch (error) {
+    debugPrint('Dashboard preferences loading failed: $error');
+  }
+  
+  try {
+    await AppSettingsController.instance.load();
+  } catch (error) {
+    debugPrint('App settings loading failed: $error');
+  }
 
   if (kIsWeb) {
     runApp(const DashboardApp());

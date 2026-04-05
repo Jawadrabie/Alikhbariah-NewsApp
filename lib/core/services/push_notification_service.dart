@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../firebase_options.dart';
+import 'notification_inbox_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -95,14 +96,30 @@ class PushNotificationService {
         message,
       ) async {
         debugPrint('Foreground message: ${message.messageId}');
+        await NotificationInboxService.instance.saveRemoteMessage(
+          message,
+          source: 'foreground',
+        );
         await _showForegroundNotification(message);
       });
 
       _onMessageOpenedSubscription?.cancel();
       _onMessageOpenedSubscription = FirebaseMessaging.onMessageOpenedApp
-          .listen((message) {
+          .listen((message) async {
             debugPrint('Opened from notification: ${message.messageId}');
+            await NotificationInboxService.instance.saveRemoteMessage(
+              message,
+              source: 'opened',
+            );
           });
+
+      final initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null) {
+        await NotificationInboxService.instance.saveRemoteMessage(
+          initialMessage,
+          source: 'launch',
+        );
+      }
 
       _onTokenRefreshSubscription?.cancel();
       _onTokenRefreshSubscription = _messaging.onTokenRefresh.listen((

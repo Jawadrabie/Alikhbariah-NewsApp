@@ -61,6 +61,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsComingSoon => 'Notifications feature is coming soon';
 
   @override
+  String get notificationsInboxEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsInboxClearAll => 'Clear all';
+
+  @override
+  String get notificationsInboxCleared => 'Notifications cleared';
+
+  @override
+  String get notificationsInboxUntitled => 'Notification';
+
+  @override
+  String notificationsInboxLoadFailed(Object error) {
+    return 'Failed to load notifications: $error';
+  }
+
+  @override
   String get videos => 'Videos';
 
   @override

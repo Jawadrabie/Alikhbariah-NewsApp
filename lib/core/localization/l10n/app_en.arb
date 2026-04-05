@@ -26,6 +26,16 @@
   "liveStream": "Live Stream",
   "notifications": "Notifications",
   "notificationsComingSoon": "Notifications feature is coming soon",
+  "notificationsInboxEmpty": "No notifications yet",
+  "notificationsInboxClearAll": "Clear all",
+  "notificationsInboxCleared": "Notifications cleared",
+  "notificationsInboxUntitled": "Notification",
+  "notificationsInboxLoadFailed": "Failed to load notifications: {error}",
+  "@notificationsInboxLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "videos": "Videos",
   "viewAll": "View all",
   "readMore": "See more",

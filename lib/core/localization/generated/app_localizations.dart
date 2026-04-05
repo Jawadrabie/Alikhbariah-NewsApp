@@ -191,6 +191,36 @@ abstract class AppLocalizations {
   /// **'ميزة الإشعارات قيد التنفيذ'**
   String get notificationsComingSoon;
 
+  /// No description provided for @notificationsInboxEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد إشعارات حتى الآن'**
+  String get notificationsInboxEmpty;
+
+  /// No description provided for @notificationsInboxClearAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسح الكل'**
+  String get notificationsInboxClearAll;
+
+  /// No description provided for @notificationsInboxCleared.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم مسح الإشعارات'**
+  String get notificationsInboxCleared;
+
+  /// No description provided for @notificationsInboxUntitled.
+  ///
+  /// In ar, this message translates to:
+  /// **'إشعار'**
+  String get notificationsInboxUntitled;
+
+  /// No description provided for @notificationsInboxLoadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل الإشعارات: {error}'**
+  String notificationsInboxLoadFailed(Object error);
+
   /// No description provided for @videos.
   ///
   /// In ar, this message translates to:

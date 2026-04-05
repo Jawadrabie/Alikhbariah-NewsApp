@@ -61,6 +61,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notificationsComingSoon => 'ميزة الإشعارات قيد التنفيذ';
 
   @override
+  String get notificationsInboxEmpty => 'لا توجد إشعارات حتى الآن';
+
+  @override
+  String get notificationsInboxClearAll => 'مسح الكل';
+
+  @override
+  String get notificationsInboxCleared => 'تم مسح الإشعارات';
+
+  @override
+  String get notificationsInboxUntitled => 'إشعار';
+
+  @override
+  String notificationsInboxLoadFailed(Object error) {
+    return 'تعذر تحميل الإشعارات: $error';
+  }
+
+  @override
   String get videos => 'الفيديوهات';
 
   @override

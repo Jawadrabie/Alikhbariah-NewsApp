@@ -26,6 +26,16 @@
   "liveStream": "البث المباشر",
   "notifications": "الإشعارات",
   "notificationsComingSoon": "ميزة الإشعارات قيد التنفيذ",
+  "notificationsInboxEmpty": "لا توجد إشعارات حتى الآن",
+  "notificationsInboxClearAll": "مسح الكل",
+  "notificationsInboxCleared": "تم مسح الإشعارات",
+  "notificationsInboxUntitled": "إشعار",
+  "notificationsInboxLoadFailed": "تعذر تحميل الإشعارات: {error}",
+  "@notificationsInboxLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "videos": "الفيديوهات",
   "viewAll": "عرض الكل",
   "readMore": "قراءة المزيد",

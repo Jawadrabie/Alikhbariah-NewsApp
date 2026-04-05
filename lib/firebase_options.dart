@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '83759396320',
     projectId: 'alikhbariah-newsapp',
     storageBucket: 'alikhbariah-newsapp.firebasestorage.app',
-    iosBundleId: 'com.example.newsappjs',
+    iosBundleId: 'com.alikhbariah.newsapp',
   );
 }
